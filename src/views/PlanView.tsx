@@ -1,4 +1,3 @@
-// src/views/PlanView.tsx
 import React from 'react';
 import { TestPlan, TestTask } from '../models/types';
 import { Plus, Trash2 } from 'lucide-react';
@@ -24,11 +23,10 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, onUpdate, onAddTask, o
       </header>
 
       <div className="dashboard-content">
-        {/* 1. Contexto General */}
         <section className="card">
           <h3 className="card-title">1. Contexto general</h3>
           <div className="card-content">
-            <div className="form-grid">
+            <div className="row-2">
               <div className="form-group">
                 <label htmlFor="product">Producto / servicio:</label>
                 <input 
@@ -47,45 +45,46 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, onUpdate, onAddTask, o
                   onChange={(e) => onUpdate({ module: e.target.value })} 
                 />
               </div>
-              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                <label htmlFor="objective">Objetivo del test:</label>
-                <textarea 
-                  id="objective" 
-                  value={data.objective} 
-                  onChange={(e) => onUpdate({ objective: e.target.value })} 
-                  rows={3}
-                />
-              </div>
+            </div>
+            <div className="form-group">
+              <label htmlFor="objective">Objetivo del test:</label>
+              <textarea 
+                id="objective" 
+                value={data.objective} 
+                onChange={(e) => onUpdate({ objective: e.target.value })} 
+                rows={3}
+              />
             </div>
           </div>
         </section>
 
-        {/* 2. Tareas del Test */}
         <section className="card">
           <h3 className="card-title">2. Tareas del test</h3>
           <div className="data-table-container">
             <table className="data-table" aria-label="Listado de tareas del plan de prueba">
               <thead>
                 <tr>
-                  <th scope="col" style={{ width: '40px' }}>ID</th>
+                  <th scope="col" style={{ width: '50px' }}>ID</th>
                   <th scope="col">Escenario / tarea</th>
                   <th scope="col">Resultado esperado</th>
                   <th scope="col">Métrica principal</th>
                   <th scope="col">Criterio de éxito</th>
-                  <th scope="col" style={{ width: '50px' }}>Borrar</th>
+                  <th scope="col" style={{ width: '60px' }}>Borrar</th>
                 </tr>
               </thead>
               <tbody>
                 {data.tasks.map((task) => (
                   <tr key={task.id}>
-                    <td style={{ textAlign: 'center' }}><strong>{task.id}</strong></td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="id-badge">{task.id}</span>
+                    </td>
                     <td>
                       <input 
                         type="text" 
                         aria-label={`Escenario para tarea ${task.id}`} 
                         value={task.scenario || ''}
                         onChange={(e) => onUpdateTask(task.id, { scenario: e.target.value })}
-                        placeholder="Escenario..."
+                        placeholder="Ej. Iniciar sesión..."
                       />
                     </td>
                     <td>
@@ -94,7 +93,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, onUpdate, onAddTask, o
                         aria-label={`Resultado esperado para tarea ${task.id}`} 
                         value={task.expectedResult || ''}
                         onChange={(e) => onUpdateTask(task.id, { expectedResult: e.target.value })}
-                        placeholder="Resultado..."
+                        placeholder="Ej. Accede al panel..."
                       />
                     </td>
                     <td>
@@ -103,7 +102,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, onUpdate, onAddTask, o
                         aria-label={`Métrica principal para tarea ${task.id}`} 
                         value={task.mainMetric || ''}
                         onChange={(e) => onUpdateTask(task.id, { mainMetric: e.target.value })}
-                        placeholder="Métrica..."
+                        placeholder="Ej. Tiempo, clics..."
                       />
                     </td>
                     <td>
@@ -112,7 +111,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, onUpdate, onAddTask, o
                         aria-label={`Criterio de éxito para tarea ${task.id}`} 
                         value={task.successCriteria || ''}
                         onChange={(e) => onUpdateTask(task.id, { successCriteria: e.target.value })}
-                        placeholder="Criterio..."
+                        placeholder="Ej. Completa en < 1min..."
                       />
                     </td>
                     <td style={{ textAlign: 'center' }}>
@@ -120,9 +119,10 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, onUpdate, onAddTask, o
                         className="btn-delete" 
                         onClick={() => onDeleteTask(task.id)}
                         aria-label={`Eliminar tarea ${task.id}`}
+                        title="Eliminar tarea"
                         type="button"
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={20} />
                       </button>
                     </td>
                   </tr>
@@ -130,7 +130,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, onUpdate, onAddTask, o
               </tbody>
             </table>
           </div>
-          <div style={{ padding: '1rem' }}>
+          <div style={{ padding: '1rem 1.5rem', backgroundColor: '#f8fafc', borderTop: '1px solid var(--border)' }}>
             <button 
               type="button"
               className="btn-add" 
@@ -141,7 +141,6 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, onUpdate, onAddTask, o
           </div>
         </section>
 
-        {/* 3. Roles y Logística */}
         <section className="card">
           <h3 className="card-title">3. Roles y logística</h3>
           <div className="card-content">
@@ -166,7 +165,6 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, onUpdate, onAddTask, o
           </div>
         </section>
 
-        {/* 4. Notas del moderador */}
         <section className="card">
           <h3 className="card-title">4. Notas del moderador</h3>
           <div className="card-content">
@@ -174,7 +172,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, onUpdate, onAddTask, o
               <label htmlFor="moderatorNotes">Instrucciones, riesgos o sesgos a evitar:</label>
               <textarea 
                 id="moderatorNotes" 
-                placeholder="Escribe aquí recordatorios..."
+                placeholder="Escribe aquí recordatorios importantes durante la prueba..."
                 value={data.moderatorNotes} 
                 onChange={(e) => onUpdate({ moderatorNotes: e.target.value })} 
                 rows={4}

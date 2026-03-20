@@ -1,20 +1,19 @@
-// src/App.tsx
 import React from 'react';
-import './styles/theme.css';
 import './styles/App.css';
 import { useUsabilityApp } from './controllers/useUsabilityApp';
 import { TabNavigation } from './components/TabNavigation';
 import { PlanView } from './views/PlanView';
+import { ScriptView } from './views/ScriptView';
+import { ObservationsView } from './views/ObservationsView';
+import { FindingsView } from './views/FindingsView';
 
 const App: React.FC = () => {
   const { 
-    activeTab, 
-    setActiveTab, 
-    testPlan, 
-    handleUpdatePlan, 
-    handleAddTask, 
-    handleUpdateTask,
-    handleDeleteTask
+    activeTab, setActiveTab, 
+    testPlan, handleUpdatePlan, handleAddTask, handleUpdateTask, handleDeleteTask,
+    script, handleUpdateScript, handleUpdateScriptTask, handleAddScriptTask, handleDeleteScriptTask, handleUpdateClosingAnswer,
+    observations, handleAddObservation, handleUpdateObservation, handleDeleteObservation,
+    findings, handleAddFinding, handleUpdateFinding, handleDeleteFinding
   } = useUsabilityApp();
 
   return (
@@ -26,7 +25,7 @@ const App: React.FC = () => {
 
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <main>
+      <main style={{ minHeight: '60vh' }}>
         {activeTab === 'plan' && (
           <PlanView 
             data={testPlan} 
@@ -38,28 +37,36 @@ const App: React.FC = () => {
         )}
         
         {activeTab === 'script' && (
-          <section id="script-panel" role="tabpanel" aria-labelledby="script-tab">
-            <h2>Guion de moderación y tareas</h2>
-            <p>(Cargando contenido basado en Guion y tareas.jpg...)</p>
-          </section>
+          <ScriptView 
+            data={script}
+            onUpdateScript={handleUpdateScript}
+            onUpdateTask={handleUpdateScriptTask}
+            onAddTask={handleAddScriptTask}
+            onDeleteTask={handleDeleteScriptTask}
+            onUpdateClosingAnswer={handleUpdateClosingAnswer}
+          />
         )}
 
         {activeTab === 'observations' && (
-          <section id="observations-panel" role="tabpanel" aria-labelledby="observations-tab">
-            <h2>Registro de observación</h2>
-            <p>(Cargando contenido basado en Registro y observacion.jpg...)</p>
-          </section>
+          <ObservationsView 
+            data={observations}
+            onAdd={handleAddObservation}
+            onUpdate={handleUpdateObservation}
+            onDelete={handleDeleteObservation}
+          />
         )}
 
         {activeTab === 'findings' && (
-          <section id="findings-panel" role="tabpanel" aria-labelledby="findings-tab">
-            <h2>Hallazgos y Mejoras</h2>
-            <p>(Cargando contenido basado en Hallazgos y mejoras.jpg...)</p>
-          </section>
+          <FindingsView 
+            data={findings}
+            onAdd={handleAddFinding}
+            onUpdate={handleUpdateFinding}
+            onDelete={handleDeleteFinding}
+          />
         )}
       </main>
       
-      <footer style={{ marginTop: '3rem', padding: '1rem 0', borderTop: '1px solid var(--border-color)', fontSize: '0.8rem', textAlign: 'center' }}>
+      <footer style={{ marginTop: '3rem', padding: '1rem 0', borderTop: '1px solid var(--border)', fontSize: '0.8rem', textAlign: 'center', color: 'var(--text-muted)' }}>
         Diseñado bajo estándares WCAG 2.1 (AA) para accesibilidad web.
       </footer>
     </div>

@@ -1,16 +1,16 @@
-/* src/styles/App.css */
 :root {
   --primary: #003366;
   --primary-light: #004080;
   --bg-page: #f0f2f5;
   --bg-card: #ffffff;
   --text-main: #1a1a1a;
-  --text-muted: #64748b;
+  --text-muted: #475569;
   --border: #cbd5e1;
   --focus: #2563eb;
   --white: #ffffff;
   --success: #166534;
   --danger: #dc2626;
+  --danger-hover: #fee2e2;
 }
 
 body {
@@ -20,11 +20,12 @@ body {
   display: flex;
   justify-content: center;
   min-height: 100vh;
+  color: var(--text-main);
 }
 
 .container {
   width: 100%;
-  max-width: 1550px; /* Tamaño ideal para dashboards */
+  max-width: 1550px;
   background-color: var(--white);
   min-height: 100vh;
   box-shadow: 0 0 20px rgba(0,0,0,0.1);
@@ -32,12 +33,11 @@ body {
   padding: 0 2rem 4rem 2rem;
 }
 
-/* Header Principal - Rectángulo Azul */
 .main-header {
   background-color: var(--primary);
   color: var(--white);
   padding: 2.5rem 1rem;
-  margin: 0 -2rem 2rem -2rem; /* Ocupa todo el ancho superior */
+  margin: 0 -2rem 2rem -2rem;
   text-align: center;
 }
 
@@ -55,19 +55,18 @@ body {
   font-size: 1rem;
 }
 
-/* Tabs */
 .tabs-container {
   display: flex;
-  gap: 0.25rem;
-  border-bottom: 4px solid var(--primary);
+  gap: 4px;
+  border-bottom: 3px solid var(--primary);
   margin-bottom: 2rem;
 }
 
 .tab-button {
-  padding: 1rem 1.5rem;
+  padding: 12px 24px;
   border: none;
-  background: #e2e8f0;
-  color: #475569;
+  background: #f1f5f9;
+  color: var(--text-muted);
   font-weight: 600;
   cursor: pointer;
   border-radius: 6px 6px 0 0;
@@ -75,12 +74,16 @@ body {
   transition: all 0.2s;
 }
 
+.tab-button:hover {
+  background: #e2e8f0;
+  color: var(--primary);
+}
+
 .tab-button[aria-selected="true"] {
   background: var(--primary);
   color: var(--white);
 }
 
-/* Dashboard View Header */
 .view-header {
   background-color: var(--primary);
   color: var(--white);
@@ -96,12 +99,12 @@ body {
   text-transform: uppercase;
 }
 
-/* Tarjetas */
 .card {
   border: 1px solid var(--border);
   border-radius: 8px;
   margin-bottom: 1.5rem;
   overflow: hidden;
+  background-color: var(--bg-card);
 }
 
 .card-title {
@@ -116,7 +119,6 @@ body {
   padding: 1.5rem;
 }
 
-/* Formularios - Arreglado alineación */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -135,16 +137,33 @@ body {
   color: var(--text-main);
 }
 
-.form-group input, .form-group textarea {
-  padding: 0.75rem;
+input, textarea, select {
+  background-color: var(--white);
+  color: var(--text-main);
   border: 1px solid var(--border);
+  padding: 0.75rem;
   border-radius: 4px;
   font-size: 1rem;
   width: 100%;
   box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* Tabla */
+input::placeholder, textarea::placeholder {
+  color: #94a3b8;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.data-table-container {
+  overflow-x: auto;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -163,45 +182,70 @@ body {
 .data-table td {
   padding: 0.5rem;
   border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.id-badge {
+  background-color: var(--primary);
+  color: var(--white);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-block;
+  text-align: center;
+  min-width: 24px;
 }
 
 .data-table input {
   width: 100%;
   border: 1px solid transparent;
-  padding: 8px;
-  background: transparent;
+  padding: 10px 8px;
+  background-color: transparent;
+  color: var(--text-main);
   text-align: left;
+  border-radius: 4px;
 }
 
 .data-table input:focus {
+  background-color: var(--white);
   border-color: var(--focus);
-  background: white;
+  box-shadow: none;
 }
 
-/* Botones */
 .btn-add {
-  background-color: #14532d;
-  color: white;
+  background-color: var(--success);
+  color: var(--white);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.btn-add:hover {
+  background-color: #15803d;
 }
 
 .btn-delete {
   color: var(--danger);
-  background: none;
+  background: transparent;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  transition: all 0.2s;
 }
 
 .btn-delete:hover {
-  background-color: #fee2e2;
+  background-color: var(--danger-hover);
 }
