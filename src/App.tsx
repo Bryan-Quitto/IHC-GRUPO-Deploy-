@@ -1,5 +1,5 @@
 import React from 'react';
-import './styles/App.css';
+import './App.css';
 import { useUsabilityApp } from './controllers/useUsabilityApp';
 import { TabNavigation } from './components/TabNavigation';
 import { PlanView } from './views/PlanView';
@@ -9,12 +9,20 @@ import { FindingsView } from './views/FindingsView';
 
 const App: React.FC = () => {
   const { 
-    activeTab, setActiveTab, 
-    testPlan, handleUpdatePlan, handleAddTask, handleUpdateTask, handleDeleteTask,
-    script, handleUpdateScript, handleUpdateScriptTask, handleAddScriptTask, handleDeleteScriptTask, handleUpdateClosingAnswer,
-    observations, handleAddObservation, handleUpdateObservation, handleDeleteObservation,
-    findings, handleAddFinding, handleUpdateFinding, handleDeleteFinding
+    activeTab, setActiveTab, loading, allPlans,
+    testPlan, handleSavePlan, handleCreateNewPlan, loadFullPlan,
+    tasks, handleAddTask, handleSaveTask, handleDeleteTask,
+    observations, handleAddObservation, handleSaveObservation, handleDeleteObservation,
+    findings, handleAddFinding, handleSaveFinding, handleDeleteFinding
   } = useUsabilityApp();
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
+        <p>Cargando datos desde Supabase...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -23,35 +31,95 @@ const App: React.FC = () => {
         <p>Plataforma para la gestión de pruebas de usabilidad y seguimiento de mejoras bajo estándares WCAG.</p>
       </header>
 
+      {/* SELECTOR DE PROYECTO PROFESIONAL */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        padding: '1.2rem', 
+        backgroundColor: '#f8fafc', 
+        borderRadius: '10px', 
+        marginBottom: '1.5rem',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <label htmlFor="plan-selector" style={{ fontWeight: 'bold', color: '#1e293b' }}>Seleccionar Plan:</label>
+          <select 
+            id="plan-selector"
+            value={testPlan.id || ''} 
+            onChange={(e) => {
+              const selected = allPlans.find(p => p.id === e.target.value);
+              if (selected) loadFullPlan(selected);
+            }}
+            style={{ 
+              padding: '10px', 
+              borderRadius: '6px', 
+              border: '1px solid #cbd5e1', 
+              minWidth: '300px',
+              backgroundColor: 'white',
+              fontSize: '0.95rem'
+            }}
+          >
+            <option value="" disabled>-- Selecciona un plan guardado --</option>
+            {allPlans.map(plan => (
+              <option key={plan.id} value={plan.id}>
+                {plan.product || 'Sin nombre'} - {plan.module || 'Global'} ({new Date(plan.created_at!).toLocaleDateString()})
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <button 
+          onClick={handleCreateNewPlan}
+          style={{ 
+            backgroundColor: '#0f172a', 
+            color: 'white', 
+            padding: '10px 20px', 
+            borderRadius: '6px', 
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            border: 'none',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1e293b'}
+          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0f172a'}
+        >
+          + Crear Nuevo Plan
+        </button>
+      </div>
+
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       <main style={{ minHeight: '60vh' }}>
         {activeTab === 'plan' && (
           <PlanView 
             data={testPlan} 
-            onUpdate={handleUpdatePlan} 
+            tasks={tasks}
+            onUpdate={handleSavePlan} 
             onAddTask={handleAddTask}
-            onUpdateTask={handleUpdateTask}
+            onSaveTask={handleSaveTask}
             onDeleteTask={handleDeleteTask}
           />
         )}
         
         {activeTab === 'script' && (
           <ScriptView 
-            data={script}
-            onUpdateScript={handleUpdateScript}
-            onUpdateTask={handleUpdateScriptTask}
-            onAddTask={handleAddScriptTask}
-            onDeleteTask={handleDeleteScriptTask}
-            onUpdateClosingAnswer={handleUpdateClosingAnswer}
+            testPlan={testPlan}
+            tasks={tasks}
+            onUpdatePlan={handleSavePlan}
+            onSaveTask={handleSaveTask}
+            onAddTask={handleAddTask}
+            onDeleteTask={handleDeleteTask}
           />
         )}
 
         {activeTab === 'observations' && (
           <ObservationsView 
             data={observations}
+            planId={testPlan.id}
             onAdd={handleAddObservation}
-            onUpdate={handleUpdateObservation}
+            onSave={handleSaveObservation}
             onDelete={handleDeleteObservation}
           />
         )}
@@ -59,8 +127,9 @@ const App: React.FC = () => {
         {activeTab === 'findings' && (
           <FindingsView 
             data={findings}
+            planId={testPlan.id}
             onAdd={handleAddFinding}
-            onUpdate={handleUpdateFinding}
+            onSave={handleSaveFinding}
             onDelete={handleDeleteFinding}
           />
         )}

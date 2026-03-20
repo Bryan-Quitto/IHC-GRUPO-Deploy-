@@ -1,65 +1,57 @@
-// src/models/types.ts
-
+export type DashboardTab = 'plan' | 'script' | 'observations' | 'findings';
 export type Severity = 'Baja' | 'Media' | 'Alta' | 'Crítica';
 export type Priority = 'Baja' | 'Media' | 'Alta';
 export type SuccessStatus = 'Sí' | 'No' | 'Con ayuda';
 export type TaskStatus = 'Pendiente' | 'En progreso' | 'Resuelto';
 
 export interface TestTask {
-  id: string;
+  id?: string;
+  test_plan_id?: string;
+  task_index: string;
   scenario: string;
-  expectedResult: string;
-  mainMetric: string;
-  successCriteria: string;
+  expected_result: string;
+  main_metric: string;
+  success_criteria: string;
+  script_task_text?: string;
+  script_follow_up?: string;
+  script_expected_success?: string;
 }
 
 export interface TestPlan {
+  id?: string;
   product: string;
   module: string;
   objective: string;
-  userProfile: string;
-  method: string;
-  duration: string;
-  date: string;
-  location: string;
-  tasks: TestTask[];
   moderator: string;
   observer: string;
   tools: string;
   link: string;
-  moderatorNotes: string;
-}
-
-export interface ScriptTask {
-  id: string;
-  taskText: string;
-  followUpQuestion: string;
-  expectedSuccess: string;
-}
-
-export interface ModerationScript {
-  openingSteps: string[];
-  tasks: ScriptTask[];
-  closingQuestions: string[];
+  moderator_notes: string;
+  closing_questions?: any;
+  created_at?: string;
 }
 
 export interface Observation {
-  participantId: string;
+  id?: string;
+  test_plan_id?: string;
+  participant: string;
   profile: string;
-  taskId: string;
-  success: SuccessStatus;
-  timeSeconds: number;
-  errorsCount: number;
-  keyComments: string;
-  detectedProblem: string;
+  task_ref: string;
+  success_level: SuccessStatus;
+  time_seconds: number;
+  errors: number;
+  comments: string;
+  problem: string;
   severity: Severity;
-  proposedImprovement: string;
+  proposal: string;
 }
 
 export interface Finding {
+  id?: string;
+  test_plan_id?: string;
   problem: string;
   evidence: string;
-  frequency: string; // e.g., "4/5"
+  frequency: string;
   severity: Severity;
   recommendation: string;
   priority: Priority;

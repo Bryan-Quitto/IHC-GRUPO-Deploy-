@@ -1,21 +1,22 @@
 import React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Observation } from '../models/types';
+import { Trash2, Plus } from 'lucide-react';
 
 interface ObservationsViewProps {
-  data: any[];
+  data: Observation[];
   onAdd: () => void;
-  onUpdate: (id: string, updates: any) => void;
+  onSave: (id: string, updates: Partial<Observation>) => void;
   onDelete: (id: string) => void;
+  planId?: string;
 }
 
-export const ObservationsView: React.FC<ObservationsViewProps> = ({ data, onAdd, onUpdate, onDelete }) => {
+export const ObservationsView: React.FC<ObservationsViewProps> = ({ data, onAdd, onSave, onDelete, planId }) => {
   return (
-    <div id="observations-panel" role="tabpanel" aria-labelledby="observations-tab" className="dashboard-view">
+    <div id="observations-panel" className="dashboard-view">
       <header className="view-header">
         <h2>Registro de observación - prueba de usabilidad</h2>
       </header>
-
-      <section className="card" style={{ marginBottom: '0' }}>
+      <section className="card">
         <div className="data-table-container">
           <table className="data-table">
             <thead>
@@ -24,50 +25,55 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({ data, onAdd,
                 <th style={{ width: '150px' }}>Perfil</th>
                 <th style={{ width: '80px' }}>Tarea</th>
                 <th style={{ width: '120px' }}>Éxito</th>
-                <th style={{ width: '80px' }}>Tiempo (s)</th>
+                <th style={{ width: '100px' }}>Tiempo (seg)</th>
                 <th style={{ width: '80px' }}>Errores</th>
-                <th style={{ width: '250px' }}>Comentarios clave</th>
-                <th style={{ width: '250px' }}>Problema detectado</th>
+                <th>Comentarios clave</th>
+                <th>Problema detectado</th>
                 <th style={{ width: '120px' }}>Severidad</th>
-                <th style={{ width: '250px' }}>Mejora propuesta</th>
+                <th>Mejora propuesta</th>
                 <th style={{ width: '60px' }}>Borrar</th>
               </tr>
             </thead>
             <tbody>
               {data.map((obs) => (
                 <tr key={obs.id}>
-                  <td><input value={obs.participant} onChange={(e) => onUpdate(obs.id, { participant: e.target.value })} placeholder="Ej. P1" /></td>
-                  <td><input value={obs.profile} onChange={(e) => onUpdate(obs.id, { profile: e.target.value })} placeholder="Perfil" /></td>
-                  <td><input value={obs.task} onChange={(e) => onUpdate(obs.id, { task: e.target.value })} placeholder="T1" /></td>
+                  <td><input defaultValue={obs.participant} onBlur={(e) => onSave(obs.id!, { participant: e.target.value })} placeholder="Ej. P1" /></td>
+                  <td><input defaultValue={obs.profile} onBlur={(e) => onSave(obs.id!, { profile: e.target.value })} placeholder="Ej. Estudiante 3er nivel" /></td>
+                  <td><input defaultValue={obs.task_ref} onBlur={(e) => onSave(obs.id!, { task_ref: e.target.value })} placeholder="Ej. T1" /></td>
                   <td>
-                    <select value={obs.success} onChange={(e) => onUpdate(obs.id, { success: e.target.value })}>
-                      <option value="">Seleccionar...</option>
+                    <select defaultValue={obs.success_level} onChange={(e) => onSave(obs.id!, { success_level: e.target.value as any })}>
                       <option value="Sí">Sí</option>
                       <option value="No">No</option>
                       <option value="Con ayuda">Con ayuda</option>
                     </select>
                   </td>
-                  <td><input type="number" value={obs.time} onChange={(e) => onUpdate(obs.id, { time: e.target.value })} placeholder="12" /></td>
-                  <td><input type="number" value={obs.errors} onChange={(e) => onUpdate(obs.id, { errors: e.target.value })} placeholder="0" /></td>
-                  <td><textarea value={obs.comments} onChange={(e) => onUpdate(obs.id, { comments: e.target.value })} placeholder="Comentarios..." /></td>
-                  <td><textarea value={obs.problem} onChange={(e) => onUpdate(obs.id, { problem: e.target.value })} placeholder="Problema..." /></td>
+                  <td><input type="number" defaultValue={obs.time_seconds} onBlur={(e) => onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} placeholder="12" /></td>
+                  <td><input type="number" defaultValue={obs.errors} onBlur={(e) => onSave(obs.id!, { errors: parseInt(e.target.value) || 0 })} placeholder="1" /></td>
+                  <td><textarea defaultValue={obs.comments} onBlur={(e) => onSave(obs.id!, { comments: e.target.value })} placeholder="Ej. Dudó entre 'Notas' y 'Rendimiento'" /></td>
+                  <td><textarea defaultValue={obs.problem} onBlur={(e) => onSave(obs.id!, { problem: e.target.value })} placeholder="Ej. Nombre del menú no es claro" /></td>
                   <td>
-                    <select value={obs.severity} onChange={(e) => onUpdate(obs.id, { severity: e.target.value })}>
-                      <option value="">Nivel...</option>
-                      <option value="Alta">Alta</option>
-                      <option value="Media">Media</option>
+                    <select defaultValue={obs.severity} onChange={(e) => onSave(obs.id!, { severity: e.target.value as any })}>
                       <option value="Baja">Baja</option>
+                      <option value="Media">Media</option>
+                      <option value="Alta">Alta</option>
+                      <option value="Crítica">Crítica</option>
                     </select>
                   </td>
-                  <td><textarea value={obs.proposal} onChange={(e) => onUpdate(obs.id, { proposal: e.target.value })} placeholder="Propuesta..." /></td>
-                  <td style={{ textAlign: 'center' }}><button className="btn-delete" onClick={() => onDelete(obs.id)}><Trash2 size={20} /></button></td>
+                  <td><textarea defaultValue={obs.proposal} onBlur={(e) => onSave(obs.id!, { proposal: e.target.value })} placeholder="Ej. Renombrar el menú a 'Notas'" /></td>
+                  <td style={{ textAlign: 'center' }}>
+                    <button className="btn-delete" onClick={() => onDelete(obs.id!)} type="button">
+                      <Trash2 size={20} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderTop: '1px solid var(--border)' }}>
-          <button className="btn-add" onClick={onAdd}><Plus size={18} /> Añadir Observación</button>
+        <div style={{ padding: '1rem' }}>
+          <button className="btn-add" onClick={onAdd} disabled={!planId} type="button">
+            <Plus size={18} /> Añadir Observación
+          </button>
         </div>
       </section>
     </div>
