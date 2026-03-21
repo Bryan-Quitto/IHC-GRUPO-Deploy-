@@ -44,7 +44,7 @@ const App: React.FC = () => {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
-        <p>Cargando datos desde Supabase...</p>
+        <p>Cargando datos...</p>
       </div>
     );
   }
