@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Finding } from '../models/types';
+import { Finding, Severity, Priority, TaskStatus } from '../models/types';
 import { Trash2, Plus, CheckCircle, RefreshCcw } from 'lucide-react';
 
 interface FindingsViewProps {
@@ -91,7 +91,7 @@ export const FindingsView: React.FC<FindingsViewProps> = ({ data, onAdd, onSave,
                         <td><textarea defaultValue={f.evidence} onBlur={(e) => handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4 de 5 usuarios dudaron o entraron al segundo intento" /></td>
                         <td><input defaultValue={f.frequency} onBlur={(e) => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="Ej. 4/5" /></td>
                         <td>
-                          <select defaultValue={f.severity} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { severity: e.target.value as any }))}>
+                          <select defaultValue={f.severity} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { severity: e.target.value as Severity }))}>
                             <option value="Baja">Baja</option>
                             <option value="Media">Media</option>
                             <option value="Alta">Alta</option>
@@ -100,14 +100,14 @@ export const FindingsView: React.FC<FindingsViewProps> = ({ data, onAdd, onSave,
                         </td>
                         <td><textarea defaultValue={f.recommendation} onBlur={(e) => handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Ej. Cambiar etiqueta a 'Notas'" /></td>
                         <td>
-                          <select defaultValue={f.priority} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { priority: e.target.value as any }))}>
+                          <select defaultValue={f.priority} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { priority: e.target.value as Priority }))}>
                             <option value="Baja">Baja</option>
                             <option value="Media">Media</option>
                             <option value="Alta">Alta</option>
                           </select>
                         </td>
                         <td>
-                          <select defaultValue={f.status} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { status: e.target.value as any }))}>
+                          <select defaultValue={f.status} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { status: e.target.value as TaskStatus }))}>
                             <option value="Pendiente">Pendiente</option>
                             <option value="En progreso">En progreso</option>
                             <option value="Resuelto">Resuelto</option>

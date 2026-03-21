@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { TestPlan, TestTask, Observation, Finding, DashboardTab } from '../models/types';
 
@@ -22,26 +22,7 @@ export const useUsabilityApp = () => {
   const [observations, setObservations] = useState<Observation[]>([]);
   const [findings, setFindings] = useState<Finding[]>([]);
 
-  useEffect(() => {
-    fetchAllPlans();
-  }, []);
-
-  const fetchAllPlans = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('test_plans')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (!error && data && data.length > 0) {
-      setAllPlans(data);
-      await loadFullPlan(data[0]);
-    } else {
-      setLoading(false);
-    }
-  };
-
-  const loadFullPlan = async (plan: TestPlan) => {
+  const loadFullPlan = useCallback(async (plan: TestPlan) => {
     setLoading(true);
     setTestPlan(plan);
     const planId = plan.id;
@@ -56,7 +37,26 @@ export const useUsabilityApp = () => {
     setObservations(o.data || []);
     setFindings(f.data || []);
     setLoading(false);
-  };
+  }, []);
+
+  const fetchAllPlans = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('test_plans')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data && data.length > 0) {
+      setAllPlans(data);
+      await loadFullPlan(data[0]);
+    } else {
+      setLoading(false);
+    }
+  }, [loadFullPlan]);
+
+  useEffect(() => {
+    fetchAllPlans();
+  }, [fetchAllPlans]);
 
   const handleCreateNewPlan = () => {
     setTestPlan(initialPlanState);

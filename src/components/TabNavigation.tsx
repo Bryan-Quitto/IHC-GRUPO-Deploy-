@@ -1,6 +1,6 @@
 // src/components/TabNavigation.tsx
 import React from 'react';
-import { DashboardTab } from '../controllers/useUsabilityApp';
+import { DashboardTab } from '../models/types';
 import { ClipboardList, FileText, Search, BarChart } from 'lucide-react';
 
 interface TabNavigationProps {

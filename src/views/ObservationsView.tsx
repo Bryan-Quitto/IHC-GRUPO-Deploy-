@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Observation } from '../models/types';
+import { Observation, SuccessStatus, Severity } from '../models/types';
 import { Trash2, Plus, CheckCircle, RefreshCcw } from 'lucide-react';
 
 interface ObservationsViewProps {
@@ -94,7 +94,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({ data, onAdd,
                         <td><input defaultValue={obs.profile} onBlur={(e) => handleActionWithStatus(() => onSave(obs.id!, { profile: e.target.value }))} placeholder="Ej. Estudiante 3er nivel" /></td>
                         <td><input defaultValue={obs.task_ref} onBlur={(e) => handleActionWithStatus(() => onSave(obs.id!, { task_ref: e.target.value }))} placeholder="Ej. T1" /></td>
                         <td>
-                          <select defaultValue={obs.success_level} onChange={(e) => handleActionWithStatus(() => onSave(obs.id!, { success_level: e.target.value as any }))}>
+                          <select defaultValue={obs.success_level} onChange={(e) => handleActionWithStatus(() => onSave(obs.id!, { success_level: e.target.value as SuccessStatus }))}>
                             <option value="Sí">Sí</option>
                             <option value="No">No</option>
                             <option value="Con ayuda">Con ayuda</option>
@@ -105,7 +105,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({ data, onAdd,
                         <td><textarea defaultValue={obs.comments} onBlur={(e) => handleActionWithStatus(() => onSave(obs.id!, { comments: e.target.value }))} placeholder="Ej. Dudó entre 'Notas' y 'Rendimiento'" /></td>
                         <td><textarea defaultValue={obs.problem} onBlur={(e) => handleActionWithStatus(() => onSave(obs.id!, { problem: e.target.value }))} placeholder="Ej. Nombre del menú no es claro" /></td>
                         <td>
-                          <select defaultValue={obs.severity} onChange={(e) => handleActionWithStatus(() => onSave(obs.id!, { severity: e.target.value as any }))}>
+                          <select defaultValue={obs.severity} onChange={(e) => handleActionWithStatus(() => onSave(obs.id!, { severity: e.target.value as Severity }))}>
                             <option value="Baja">Baja</option>
                             <option value="Media">Media</option>
                             <option value="Alta">Alta</option>

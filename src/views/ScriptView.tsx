@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, CheckCircle, RefreshCcw } from 'lucide-react';
-import { TestPlan, TestTask } from '../models/types';
+import { TestPlan, TestTask, ClosingQuestion } from '../models/types';
 
 interface ScriptViewProps {
   testPlan: TestPlan;
@@ -172,7 +172,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({ testPlan, tasks, onSaveT
               <h3 className="card-title">Cierre</h3>
               <div className="card-content">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  {(testPlan.closing_questions || []).map((q: any, index: number) => (
+                  {(testPlan.closing_questions || []).map((q: ClosingQuestion, index: number) => (
                     <div key={index} className="form-group">
                       <label style={{ color: '#854d0e', fontSize: '1.05rem', fontWeight: 'bold' }}>
                         {index + 1}. {q.question}

@@ -17,6 +17,11 @@ export interface TestTask {
   script_expected_success?: string;
 }
 
+export interface ClosingQuestion {
+  question: string;
+  answer: string;
+}
+
 export interface TestPlan {
   id?: string;
   product: string;
@@ -27,7 +32,7 @@ export interface TestPlan {
   tools: string;
   link: string;
   moderator_notes: string;
-  closing_questions?: any;
+  closing_questions?: ClosingQuestion[];
   created_at?: string;
 }
 
