@@ -73,7 +73,7 @@ const App: React.FC = () => {
         position: 'relative'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1 }}>
-          <label style={{ fontWeight: 'bold', color: '#1e293b', whiteSpace: 'nowrap' }}>Plan Actual:</label>
+          <label htmlFor="plan-search-input" style={{ fontWeight: 'bold', color: '#1e293b', whiteSpace: 'nowrap' }}>Plan Actual:</label>
           
           <div ref={dropdownRef} style={{ position: 'relative', width: '100%', maxWidth: '500px' }}>
             <div 
@@ -90,6 +90,7 @@ const App: React.FC = () => {
             >
               <Search size={18} color="#64748b" style={{ marginRight: '8px' }} />
               <input 
+                id="plan-search-input"
                 type="text"
                 placeholder="Buscar por producto o módulo..."
                 value={isDropdownOpen ? searchTerm : currentDisplayName}

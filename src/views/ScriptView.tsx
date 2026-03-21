@@ -126,6 +126,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({ testPlan, tasks, onSaveT
                           <td style={{ textAlign: 'center' }}><span className="id-badge">{task.task_index}</span></td>
                           <td>
                             <textarea 
+                              aria-label={`Texto de la tarea ${task.task_index}`}
                               defaultValue={task.script_task_text || ''} 
                               onBlur={(e) => handleActionWithStatus(() => onSaveTask(task.id!, { script_task_text: e.target.value }))} 
                               placeholder="Ej. Imagina que quieres..." 
@@ -133,6 +134,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({ testPlan, tasks, onSaveT
                           </td>
                           <td>
                             <textarea 
+                              aria-label={`Pregunta de seguimiento ${task.task_index}`}
                               defaultValue={task.script_follow_up || ''} 
                               onBlur={(e) => handleActionWithStatus(() => onSaveTask(task.id!, { script_follow_up: e.target.value }))} 
                               placeholder="Ej. ¿Qué esperabas...?" 
@@ -140,6 +142,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({ testPlan, tasks, onSaveT
                           </td>
                           <td>
                             <textarea 
+                              aria-label={`Éxito esperado ${task.task_index}`}
                               defaultValue={task.script_expected_success || ''} 
                               onBlur={(e) => handleActionWithStatus(() => onSaveTask(task.id!, { script_expected_success: e.target.value }))} 
                               placeholder="Ej. Encuentra la nota..." 
@@ -174,10 +177,14 @@ export const ScriptView: React.FC<ScriptViewProps> = ({ testPlan, tasks, onSaveT
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   {(testPlan.closing_questions || []).map((q: ClosingQuestion, index: number) => (
                     <div key={index} className="form-group">
-                      <label style={{ color: '#854d0e', fontSize: '1.05rem', fontWeight: 'bold' }}>
+                      <label 
+                        htmlFor={`closing-q-${index}`}
+                        style={{ color: '#854d0e', fontSize: '1.05rem', fontWeight: 'bold' }}
+                      >
                         {index + 1}. {q.question}
                       </label>
                       <textarea 
+                        id={`closing-q-${index}`}
                         defaultValue={q.answer} 
                         onBlur={(e) => handleUpdateClosingAnswer(index, e.target.value)} 
                         placeholder="Escribe la respuesta..."

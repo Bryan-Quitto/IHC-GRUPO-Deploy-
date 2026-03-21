@@ -87,27 +87,27 @@ export const FindingsView: React.FC<FindingsViewProps> = ({ data, onAdd, onSave,
                   {data.length > 0 ? (
                     data.map((f) => (
                       <tr key={f.id}>
-                        <td><textarea defaultValue={f.problem} onBlur={(e) => handleActionWithStatus(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú 'Rendimiento' no comunica que contiene notas" /></td>
-                        <td><textarea defaultValue={f.evidence} onBlur={(e) => handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4 de 5 usuarios dudaron o entraron al segundo intento" /></td>
-                        <td><input defaultValue={f.frequency} onBlur={(e) => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="Ej. 4/5" /></td>
+                        <td><textarea aria-label="Problema" defaultValue={f.problem} onBlur={(e) => handleActionWithStatus(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú 'Rendimiento' no comunica que contiene notas" /></td>
+                        <td><textarea aria-label="Evidencia" defaultValue={f.evidence} onBlur={(e) => handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4 de 5 usuarios dudaron o entraron al segundo intento" /></td>
+                        <td><input aria-label="Frecuencia" defaultValue={f.frequency} onBlur={(e) => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="Ej. 4/5" /></td>
                         <td>
-                          <select defaultValue={f.severity} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { severity: e.target.value as Severity }))}>
+                          <select aria-label="Severidad" defaultValue={f.severity} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { severity: e.target.value as Severity }))}>
                             <option value="Baja">Baja</option>
                             <option value="Media">Media</option>
                             <option value="Alta">Alta</option>
                             <option value="Crítica">Crítica</option>
                           </select>
                         </td>
-                        <td><textarea defaultValue={f.recommendation} onBlur={(e) => handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Ej. Cambiar etiqueta a 'Notas'" /></td>
+                        <td><textarea aria-label="Recomendación" defaultValue={f.recommendation} onBlur={(e) => handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Ej. Cambiar etiqueta a 'Notas'" /></td>
                         <td>
-                          <select defaultValue={f.priority} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { priority: e.target.value as Priority }))}>
+                          <select aria-label="Prioridad" defaultValue={f.priority} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { priority: e.target.value as Priority }))}>
                             <option value="Baja">Baja</option>
                             <option value="Media">Media</option>
                             <option value="Alta">Alta</option>
                           </select>
                         </td>
                         <td>
-                          <select defaultValue={f.status} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { status: e.target.value as TaskStatus }))}>
+                          <select aria-label="Estado" defaultValue={f.status} onChange={(e) => handleActionWithStatus(() => onSave(f.id!, { status: e.target.value as TaskStatus }))}>
                             <option value="Pendiente">Pendiente</option>
                             <option value="En progreso">En progreso</option>
                             <option value="Resuelto">Resuelto</option>
