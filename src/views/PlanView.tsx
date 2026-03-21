@@ -30,11 +30,13 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
     setLocalPlan(prev => ({ ...prev, ...updates }));
   };
 
+  const isProductEmpty = !localPlan.product || localPlan.product.trim() === '';
+
   return (
     <div id="plan-panel" className="dashboard-view">
-      <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Usability Test Plan Dashboard</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+      <header className="view-header" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <h2>Panel del Plan de Pruebas de Usabilidad</h2>
+        <div style={{ position: 'absolute', right: '1rem', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
           {isSaving ? (
             <span style={{ color: '#ffffff', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <RefreshCcw size={14} className="spin" /> Guardando...
@@ -53,11 +55,19 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
           <div className="card-content">
             <div className="row-2">
               <div className="form-group">
-                <label htmlFor="product-name">Producto / servicio:</label>
+                <label htmlFor="product-name">
+                  Producto / servicio: 
+                  {isProductEmpty && <span style={{ color: '#d97706', marginLeft: '5px', fontSize: '0.8rem' }}>(Obligatorio)</span>}
+                </label>
                 <input 
                   id="product-name"
                   type="text" 
                   value={localPlan.product} 
+                  placeholder="Ej: App de Delivery 'Rápido', E-commerce, etc."
+                  style={{ 
+                    border: isProductEmpty ? '2px solid #fbbf24' : '1px solid var(--border)',
+                    backgroundColor: isProductEmpty ? '#fffbeb' : 'white'
+                  }}
                   onChange={(e) => handleChange({ product: e.target.value })} 
                   onBlur={(e) => handleAutoSave({ product: e.target.value })}
                 />
@@ -68,6 +78,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
                   id="module-name"
                   type="text" 
                   value={localPlan.module} 
+                  placeholder="Ej: Proceso de checkout, Registro de usuario, etc."
                   onChange={(e) => handleChange({ module: e.target.value })} 
                   onBlur={(e) => handleAutoSave({ module: e.target.value })}
                 />
@@ -78,6 +89,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
               <textarea 
                 id="test-objective"
                 value={localPlan.objective} 
+                placeholder="Ej: Evaluar la facilidad de navegación y el tiempo de completado del flujo de compra."
                 onChange={(e) => handleChange({ objective: e.target.value })} 
                 onBlur={(e) => handleAutoSave({ objective: e.target.value })}
                 rows={2} 
@@ -113,6 +125,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
                           type="text" 
                           aria-label={`Escenario para ${task.task_index}`}
                           defaultValue={task.scenario} 
+                          placeholder="Ej: Imagina que quieres comprar..."
                           onBlur={(e) => onSaveTask(task.id!, { scenario: e.target.value })} 
                         />
                       </td>
@@ -121,6 +134,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
                           type="text" 
                           aria-label={`Resultado esperado para ${task.task_index}`}
                           defaultValue={task.expected_result} 
+                          placeholder="Ej: El usuario llega a la confirmación."
                           onBlur={(e) => onSaveTask(task.id!, { expected_result: e.target.value })} 
                         />
                       </td>
@@ -129,6 +143,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
                           type="text" 
                           aria-label={`Métrica para ${task.task_index}`}
                           defaultValue={task.main_metric} 
+                          placeholder="Ej: Tiempo, Tasa de éxito..."
                           onBlur={(e) => onSaveTask(task.id!, { main_metric: e.target.value })} 
                         />
                       </td>
@@ -137,6 +152,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
                           type="text" 
                           aria-label={`Criterio de éxito para ${task.task_index}`}
                           defaultValue={task.success_criteria} 
+                          placeholder="Ej: Sin errores críticos..."
                           onBlur={(e) => onSaveTask(task.id!, { success_criteria: e.target.value })} 
                         />
                       </td>
@@ -162,15 +178,20 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
               </tbody>
             </table>
           </div>
-          <div style={{ padding: '1rem 1.5rem', backgroundColor: '#f8fafc', borderTop: '1px solid var(--border)' }}>
+          <div style={{ padding: '1rem 1.5rem', backgroundColor: '#f8fafc', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '15px' }}>
             <button 
               type="button"
               className="btn-add" 
               onClick={onAddTask}
-              disabled={!localPlan.id}
+              disabled={!localPlan.id || isProductEmpty}
             >
               <Plus size={18} aria-hidden="true" /> Añadir Tarea
             </button>
+            {isProductEmpty && (
+              <span style={{ color: '#64748b', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                * Debes definir un nombre de producto para añadir tareas.
+              </span>
+            )}
           </div>
         </section>
 
@@ -180,19 +201,19 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
             <div className="form-grid">
               <div className="form-group">
                 <label htmlFor="moderator-name">Moderador:</label>
-                <input id="moderator-name" type="text" value={localPlan.moderator} onChange={(e) => handleChange({ moderator: e.target.value })} onBlur={(e) => handleAutoSave({ moderator: e.target.value })} />
+                <input id="moderator-name" type="text" value={localPlan.moderator} placeholder="Nombre del facilitador" onChange={(e) => handleChange({ moderator: e.target.value })} onBlur={(e) => handleAutoSave({ moderator: e.target.value })} />
               </div>
               <div className="form-group">
                 <label htmlFor="observer-name">Observador:</label>
-                <input id="observer-name" type="text" value={localPlan.observer} onChange={(e) => handleChange({ observer: e.target.value })} onBlur={(e) => handleAutoSave({ observer: e.target.value })} />
+                <input id="observer-name" type="text" value={localPlan.observer} placeholder="Nombre del que toma notas" onChange={(e) => handleChange({ observer: e.target.value })} onBlur={(e) => handleAutoSave({ observer: e.target.value })} />
               </div>
               <div className="form-group">
                 <label htmlFor="tools-used">Herramientas:</label>
-                <input id="tools-used" type="text" value={localPlan.tools} onChange={(e) => handleChange({ tools: e.target.value })} onBlur={(e) => handleAutoSave({ tools: e.target.value })} />
+                <input id="tools-used" type="text" value={localPlan.tools} placeholder="Ej: Figma, Zoom, Maze..." onChange={(e) => handleChange({ tools: e.target.value })} onBlur={(e) => handleAutoSave({ tools: e.target.value })} />
               </div>
               <div className="form-group">
                 <label htmlFor="project-link">Enlace:</label>
-                <input id="project-link" type="text" value={localPlan.link} onChange={(e) => handleChange({ link: e.target.value })} onBlur={(e) => handleAutoSave({ link: e.target.value })} />
+                <input id="project-link" type="text" value={localPlan.link} placeholder="https://figma.com/proto/..." onChange={(e) => handleChange({ link: e.target.value })} onBlur={(e) => handleAutoSave({ link: e.target.value })} />
               </div>
             </div>
           </div>
@@ -208,7 +229,7 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
               onChange={(e) => handleChange({ moderator_notes: e.target.value })} 
               onBlur={(e) => handleAutoSave({ moderator_notes: e.target.value })}
               rows={3} 
-              placeholder="Recordatorios importantes..."
+              placeholder="Ej: Recordar pedir al usuario que piense en voz alta..."
             />
           </div>
         </section>

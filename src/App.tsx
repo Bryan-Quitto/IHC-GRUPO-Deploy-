@@ -105,6 +105,7 @@ const App: React.FC = () => {
             onSaveTask={handleSaveTask}
             onAddTask={handleAddTask}
             onDeleteTask={handleDeleteTask}
+            onGoToPlan={() => setActiveTab('plan')}
           />
         )}
 
@@ -112,9 +113,11 @@ const App: React.FC = () => {
           <ObservationsView 
             data={observations}
             planId={testPlan.id}
+            productName={testPlan.product}
             onAdd={handleAddObservation}
             onSave={handleSaveObservation}
             onDelete={handleDeleteObservation}
+            onGoToPlan={() => setActiveTab('plan')}
           />
         )}
 
@@ -122,9 +125,11 @@ const App: React.FC = () => {
           <FindingsView 
             data={findings}
             planId={testPlan.id}
+            productName={testPlan.product}
             onAdd={handleAddFinding}
             onSave={handleSaveFinding}
             onDelete={handleDeleteFinding}
+            onGoToPlan={() => setActiveTab('plan')}
           />
         )}
       </main>

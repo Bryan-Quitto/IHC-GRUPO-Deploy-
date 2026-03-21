@@ -45,3 +45,4 @@ supabase/.branches/
 # Archivos de SO
 .DS_Store
 Thumbs.db
+*.txt
