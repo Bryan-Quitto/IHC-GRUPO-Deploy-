@@ -13,16 +13,15 @@
   --danger-hover: #fee2e2;
 }
 
-/* ── FIX: El root ocupa todo el ancho para que margin:auto funcione ── */
 #root {
   width: 100%;
   min-height: 100vh;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
 }
 
-/* ── El body NO usa flexbox — evita el problema de centrado que corta contenido ── */
 body {
   margin: 0;
   padding: 0;
@@ -31,18 +30,19 @@ body {
   min-height: 100vh;
   color: var(--text-main);
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
-/* ── Container: centrado con margin auto, nunca más ancho que la pantalla ── */
 .container {
-  width: min(1550px, 100vw);
-  max-width: 100vw;
+  width: 100%;
+  max-width: 1550px;
   margin: 0 auto;
   background-color: var(--white);
   min-height: 100vh;
   box-shadow: 0 0 20px rgba(0,0,0,0.1);
   box-sizing: border-box;
   padding: 0 2rem 4rem 2rem;
+  overflow-x: hidden;
 }
 
 .main-header {
@@ -79,6 +79,10 @@ body {
   gap: 4px;
   border-bottom: 3px solid var(--primary);
   margin-bottom: 2rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  flex-wrap: nowrap;
 }
 
 .tab-button {
@@ -91,6 +95,8 @@ body {
   border-radius: 6px 6px 0 0;
   font-size: 0.95rem;
   transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tab-button:hover {
@@ -110,6 +116,9 @@ body {
   border-radius: 4px;
   text-align: center;
   margin-bottom: 1.5rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .view-header h2 {
@@ -152,12 +161,6 @@ body {
   margin-bottom: 1.5rem;
 }
 
-@media (max-width: 768px) {
-  .row-2 {
-    grid-template-columns: 1fr;
-  }
-}
-
 .form-group {
   display: flex;
   flex-direction: column;
@@ -195,7 +198,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 input:-webkit-autofill,
-input:-webkit-autofill:hover, 
+input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
@@ -221,12 +224,14 @@ select {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   width: 100%;
+  max-width: 100%;
   display: block;
+  position: relative;
 }
 
 .data-table {
   width: 100%;
-  min-width: 1200px;
+  min-width: 600px;
   border-collapse: collapse;
   table-layout: auto;
 }
@@ -287,11 +292,6 @@ select {
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
-}
-
-.data-table textarea {
-  resize: vertical;
-  min-height: 40px;
 }
 
 .data-table input:focus, .data-table select:focus, .data-table textarea:focus {
@@ -371,6 +371,7 @@ select {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
 .spin {
   animation: spin 1s linear infinite;
 }
@@ -432,11 +433,12 @@ select {
   font-weight: 600;
 }
 
-/* ── FIX 2.4.7 Focus Visible — todos los elementos interactivos deben tener foco visible ── */
-#plan-search-input:focus {
+#plan-search-input:focus,
+#plan-search-input:focus-visible {
   outline: 3px solid var(--focus) !important;
   outline-offset: 2px !important;
   border-radius: 2px;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
 }
 
 button:focus-visible {
@@ -450,14 +452,13 @@ select:focus-visible {
 }
 
 /* ══════════════════════════════════════════════
-   RESPONSIVE — solo ajusta padding y texto
-   El diseño alternativo lo manejan los componentes
+   RESPONSIVE
    ══════════════════════════════════════════════ */
 
-/* Tablet (max 1023px) */
 @media (max-width: 1023px) {
   .container {
     padding: 0 1rem 3rem 1rem;
+    box-shadow: none;
   }
 
   .main-header {
@@ -471,20 +472,8 @@ select:focus-visible {
   .form-grid {
     grid-template-columns: 1fr 1fr;
   }
-
-  .tabs-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    flex-wrap: nowrap;
-  }
-
-  .tab-button {
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
 }
 
-/* Móvil (max 767px) */
 @media (max-width: 767px) {
   .container {
     padding: 0 0.75rem 2rem 0.75rem;
@@ -515,5 +504,19 @@ select:focus-visible {
 
   .card-content {
     padding: 1rem;
+  }
+
+  .row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.5rem 2rem 0.5rem;
+  }
+
+  .main-header {
+    margin: 0 -0.5rem 1rem -0.5rem;
   }
 }

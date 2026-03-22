@@ -49,15 +49,12 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
   return (
     <div className="dashboard-view">
       {/* ── Encabezado ── */}
-      <header
-        className="view-header"
-        style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-      >
-        <h2>Guion de moderación y tareas</h2>
+      <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <h2 style={{ margin: 0, flex: 1, textAlign: 'center' }}>Guion de moderación y tareas</h2>
         <div
           aria-live="polite"
           aria-atomic="true"
-          style={{ position: 'absolute', right: '1rem', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', flexShrink: 0 }}
         >
           {isSaving ? (
             <>
