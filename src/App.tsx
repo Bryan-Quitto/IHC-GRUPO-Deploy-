@@ -69,30 +69,31 @@ const App: React.FC = () => {
           <div
             role="region"
             aria-label="Plan activo"
+            className="plan-context-bar"
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               flexWrap: 'wrap',
-              gap: '.75rem',
-              padding: '1rem 1.25rem',
+              gap: '1rem',
+              padding: '1.25rem',
               backgroundColor: '#f8fafc',
-              borderRadius: '10px',
+              borderRadius: '12px',
               marginBottom: '1.5rem',
               border: '1px solid #e2e8f0',
               boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
             }}
           >
-            {/* Botón volver */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '1 1 200px', minWidth: 0 }}>
+            {/* Botón volver y nombre del plan */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: '1 1 300px', minWidth: 0, flexWrap: 'wrap' }}>
               <button
                 onClick={handleGoHome}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   background: '#e8eef7', color: '#003366',
                   border: '1px solid #c7d7f0', borderRadius: '8px',
-                  padding: '7px 14px', fontWeight: 700, cursor: 'pointer',
-                  fontSize: '.84rem', fontFamily: 'inherit', flexShrink: 0,
+                  padding: '8px 16px', fontWeight: 700, cursor: 'pointer',
+                  fontSize: '.85rem', fontFamily: 'inherit', flexShrink: 0,
                   transition: 'background .2s',
                 }}
                 aria-label="Volver al dashboard principal"
@@ -104,15 +105,15 @@ const App: React.FC = () => {
               </button>
 
               {/* Nombre del plan activo */}
-              <div style={{ minWidth: 0 }}>
+              <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                 <div style={{
-                  fontWeight: 700, color: '#0f172a', fontSize: '.95rem',
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  fontWeight: 700, color: '#0f172a', fontSize: '1rem',
+                  wordWrap: 'break-word', overflowWrap: 'break-word',
                 }}>
                   {testPlan.product || 'Plan nuevo'}
                 </div>
                 {testPlan.module && (
-                  <div style={{ fontSize: '.8rem', color: '#374151', marginTop: 1 }}>
+                  <div style={{ fontSize: '.85rem', color: '#475569', marginTop: 2, wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                     {testPlan.module}
                   </div>
                 )}
@@ -123,13 +124,15 @@ const App: React.FC = () => {
                 <button
                   onClick={() => setShowDeleteModal(true)}
                   style={{
-                    background: 'none', border: '2px solid transparent',
-                    color: '#dc2626', cursor: 'pointer', padding: '5px',
-                    display: 'flex', alignItems: 'center', borderRadius: '4px',
-                    flexShrink: 0,
+                    background: '#fee2e2', border: '1px solid #fecaca',
+                    color: '#dc2626', cursor: 'pointer', padding: '8px',
+                    display: 'flex', alignItems: 'center', borderRadius: '8px',
+                    flexShrink: 0, transition: 'background .2s',
                   }}
                   title="Eliminar este plan"
                   aria-label="Eliminar plan actual"
+                  onMouseEnter={e => (e.currentTarget.style.background = '#fecaca')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '#fee2e2')}
                 >
                   <Trash2 size={18} aria-hidden="true" />
                 </button>
@@ -141,12 +144,16 @@ const App: React.FC = () => {
               onClick={handleCreateNewPlan}
               style={{
                 backgroundColor: '#0f172a', color: 'white',
-                padding: '8px 18px', borderRadius: '6px',
+                padding: '10px 20px', borderRadius: '8px',
                 cursor: 'pointer', fontWeight: 'bold',
-                border: '2px solid transparent',
+                border: 'none',
                 whiteSpace: 'nowrap', flexShrink: 0,
                 fontFamily: 'inherit', fontSize: '.88rem',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                transition: 'transform .1s',
               }}
+              onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.98)')}
+              onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
             >
               + Crear Nuevo Plan
             </button>

@@ -369,16 +369,14 @@
   font-size: .88rem;
   font-weight: 700;
   color: var(--gd-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 .gd-plan-name > span {
   font-size: .8rem;
   color: var(--gd-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 .gd-plan-mod {
   display: inline-flex;

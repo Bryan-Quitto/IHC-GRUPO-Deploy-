@@ -34,9 +34,9 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
 
   return (
     <div id="plan-panel" className="dashboard-view">
-      <header className="view-header" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <h2>Panel del Plan de Pruebas de Usabilidad</h2>
-        <div style={{ position: 'absolute', right: '1rem', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+      <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', padding: '1rem' }}>
+        <h2 style={{ margin: 0, flex: '1 1 300px', textAlign: 'center' }}>Panel del Plan de Pruebas de Usabilidad</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', flexShrink: 0, margin: '0 auto' }}>
           {isSaving ? (
             <span style={{ color: '#ffffff', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <RefreshCcw size={14} className="spin" /> Guardando...

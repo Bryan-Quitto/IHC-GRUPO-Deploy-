@@ -262,9 +262,9 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
     <div id="findings-panel" role="tabpanel" aria-labelledby="findings-tab" className="dashboard-view">
 
       {/* Encabezado */}
-      <header className="view-header" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <h2>Síntesis de hallazgos y plan de mejora</h2>
-        <div role="status" aria-live="polite" style={{ position: 'absolute', right: '1rem', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem' }}>
+      <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', padding: '1rem' }}>
+        <h2 style={{ margin: 0, flex: '1 1 300px', textAlign: 'center' }}>Síntesis de hallazgos y plan de mejora</h2>
+        <div role="status" aria-live="polite" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', flexShrink: 0, margin: '0 auto' }}>
           {isSaving
             ? <span style={{ color: '#fff', display: 'flex', alignItems: 'center', gap: 5 }}><RefreshCcw size={14} className="spin" aria-hidden="true" /> Guardando…</span>
             : <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle size={14} aria-hidden="true" /> Cambios guardados</span>
