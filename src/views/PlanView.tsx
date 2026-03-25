@@ -132,12 +132,11 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
             </div>
             <div className="row-2">
               <div className="form-group">
-                <label htmlFor="test-date">Fecha:</label>
+                <label htmlFor="test-date">Fecha del test:</label>
                 <input 
                   id="test-date"
-                  type="text" 
-                  value={localPlan.test_date} 
-                  placeholder="Ej: 15 de Mayo, 2024"
+                  type="date" 
+                  value={localPlan.test_date || ''} 
                   onChange={(e) => handleChange({ test_date: e.target.value })} 
                   onBlur={(e) => handleAutoSave({ test_date: e.target.value })}
                 />
