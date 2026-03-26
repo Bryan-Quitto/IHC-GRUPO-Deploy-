@@ -8,6 +8,7 @@ import {
 import './GlobalDashboard.css';
 
 interface GlobalDashboardProps {
+  loading?: boolean;
   allPlans: TestPlan[];
   allObservations: Observation[];
   allFindings: Finding[];
@@ -27,6 +28,7 @@ const SEV_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
+  loading = false,
   allPlans, allObservations, allFindings,
   onSelectPlan, onCreatePlan, onDeletePlan,
 }) => {
@@ -119,7 +121,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
     <div className="gd-root">
 
       {/* ══ HERO GLOBAL ══ */}
-      <section className="gd-hero" aria-labelledby="gd-hero-title">
+      <section className="gd-hero" aria-labelledby="gd-hero-title" style={{ minHeight: '260px' }}>
         <div className="gd-hero-bg" aria-hidden="true">
           <div className="gd-orb gd-orb-1" />
           <div className="gd-orb gd-orb-2" />
@@ -138,33 +140,45 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
             </p>
           </div>
           <div className="gd-hero-score" aria-label={`Usabilidad global: ${global.usabilityScore}`}>
-            <span className="gd-score-num" style={{ color: '#fff' }}>
-              {global.total === 0 ? '—' : `${global.successRate}%`}
-            </span>
-            <span className="gd-score-label">Tasa de éxito global</span>
-            <span className="gd-score-badge">{global.usabilityScore}</span>
+            {loading ? (
+              <div className="skeleton" style={{ width: '80px', height: '60px', borderRadius: '8px' }} />
+            ) : (
+              <>
+                <span className="gd-score-num" style={{ color: '#fff' }}>
+                  {global.total === 0 ? '—' : `${global.successRate}%`}
+                </span>
+                <span className="gd-score-label">Tasa de éxito global</span>
+                <span className="gd-score-badge">{global.usabilityScore}</span>
+              </>
+            )}
           </div>
         </div>
       </section>
 
       {/* ══ KPIs GLOBALES ══ */}
-      <section className="gd-kpi-row" aria-label="Indicadores globales">
-        {kpis.map((k, i) => (
-          <article key={i} className="gd-kpi" style={{ '--accent': k.accent } as React.CSSProperties}>
-            <div className="gd-kpi-icon" style={{ background: k.iconBg, color: k.accent }} aria-hidden="true">
-              {k.icon}
-            </div>
-            <div className="gd-kpi-body">
-              <h3 className="gd-kpi-value" style={{ color: k.accent, margin: 0 }}>{k.value}</h3>
-              <span className="gd-kpi-label">{k.label}</span>
-              <span className="gd-kpi-sub">{k.sub}</span>
-            </div>
-          </article>
-        ))}
+      <section className="gd-kpi-row" aria-label="Indicadores globales" style={{ minHeight: '120px' }}>
+        {loading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <article key={i} className="gd-kpi skeleton" style={{ height: '100px' }} />
+          ))
+        ) : (
+          kpis.map((k, i) => (
+            <article key={i} className="gd-kpi" style={{ '--accent': k.accent } as React.CSSProperties}>
+              <div className="gd-kpi-icon" style={{ background: k.iconBg, color: k.accent }} aria-hidden="true">
+                {k.icon}
+              </div>
+              <div className="gd-kpi-body">
+                <h3 className="gd-kpi-value" style={{ color: k.accent, margin: 0 }}>{k.value}</h3>
+                <span className="gd-kpi-label">{k.label}</span>
+                <span className="gd-kpi-sub">{k.sub}</span>
+              </div>
+            </article>
+          ))
+        )}
       </section>
 
       {/* ══ LISTA DE PLANES ══ */}
-      <section className="gd-plans-section" aria-labelledby="gd-plans-title">
+      <section className="gd-plans-section" aria-labelledby="gd-plans-title" style={{ minHeight: '400px' }}>
         <div className="gd-plans-header">
           <div className="gd-plans-title-row">
             <h3 id="gd-plans-title" className="gd-section-title">
@@ -190,7 +204,13 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
           </div>
         </div>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div style={{ padding: '1.5rem' }}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="skeleton" style={{ height: '60px', marginBottom: '1rem', borderRadius: '8px' }} />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="gd-empty">
             <ClipboardList size={48} aria-hidden="true" />
             <h4>{search ? 'Sin resultados' : 'No hay planes todavía'}</h4>

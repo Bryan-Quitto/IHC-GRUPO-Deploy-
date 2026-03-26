@@ -94,6 +94,7 @@ const App: React.FC = () => {
         <div className="view-transition">
           <Suspense fallback={<LazyLoader />}>
             <GlobalDashboard
+              loading={loading}
               allPlans={allPlans}
               allObservations={allObservations}
               allFindings={allFindings}
