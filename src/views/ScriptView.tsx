@@ -6,6 +6,8 @@ interface ScriptViewProps {
   testPlan: TestPlan;
   tasks: TestTask[];
   onUpdatePlan: (updates: TestPlan) => void;
+  onSyncPlan: (updates: TestPlan) => void;
+  onSyncTasks: (tasks: TestTask[]) => void;
   onSaveTask: (id: string, updates: Partial<TestTask>) => void;
   onAddTask: () => void;
   onDeleteTask: (id: string) => void;
@@ -19,6 +21,8 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
   onAddTask,
   onDeleteTask,
   onUpdatePlan,
+  onSyncPlan,
+  onSyncTasks,
   onGoToPlan,
 }) => {
   const [isSaving, setIsSaving] = useState(false);
@@ -30,6 +34,11 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
     setTimeout(() => setIsSaving(false), 800);
   };
 
+  const handleTaskChange = (id: string, updates: Partial<TestTask>) => {
+    const updatedTasks = tasks.map(t => t.id === id ? { ...t, ...updates } : t);
+    onSyncTasks(updatedTasks);
+  };
+
   const openingSteps = [
     'Agradece la participación.',
     'Explica que se evalúa la interfaz, no a la persona.',
@@ -39,6 +48,13 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
   ];
 
   const handleUpdateClosingAnswer = (index: number, answer: string) => {
+    const newQuestions = [...(testPlan.closing_questions || [])];
+    newQuestions[index] = { ...newQuestions[index], answer };
+    const updatedPlan = { ...testPlan, closing_questions: newQuestions };
+    onSyncPlan(updatedPlan);
+  };
+
+  const handleSaveClosingAnswer = (index: number, answer: string) => {
     const newQuestions = [...(testPlan.closing_questions || [])];
     newQuestions[index] = { ...newQuestions[index], answer };
     handleActionWithStatus(() =>
@@ -211,7 +227,8 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                             </label>
                             <textarea
                               id={`script-text-${task.id}`}
-                              defaultValue={task.script_task_text || ''}
+                              value={task.script_task_text || ''}
+                              onChange={(e) => handleTaskChange(task.id!, { script_task_text: e.target.value })}
                               onBlur={(e) =>
                                 handleActionWithStatus(() =>
                                   onSaveTask(task.id!, { script_task_text: e.target.value })
@@ -228,7 +245,8 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                             </label>
                             <textarea
                               id={`script-followup-${task.id}`}
-                              defaultValue={task.script_follow_up || ''}
+                              value={task.script_follow_up || ''}
+                              onChange={(e) => handleTaskChange(task.id!, { script_follow_up: e.target.value })}
                               onBlur={(e) =>
                                 handleActionWithStatus(() =>
                                   onSaveTask(task.id!, { script_follow_up: e.target.value })
@@ -245,7 +263,8 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                             </label>
                             <textarea
                               id={`script-success-${task.id}`}
-                              defaultValue={task.script_expected_success || ''}
+                              value={task.script_expected_success || ''}
+                              onChange={(e) => handleTaskChange(task.id!, { script_expected_success: e.target.value })}
                               onBlur={(e) =>
                                 handleActionWithStatus(() =>
                                   onSaveTask(task.id!, { script_expected_success: e.target.value })
@@ -312,8 +331,9 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                       </label>
                       <textarea
                         id={`closing-q-${index}`}
-                        defaultValue={q.answer}
-                        onBlur={(e) => handleUpdateClosingAnswer(index, e.target.value)}
+                        value={q.answer}
+                        onChange={(e) => handleUpdateClosingAnswer(index, e.target.value)}
+                        onBlur={(e) => handleSaveClosingAnswer(index, e.target.value)}
                         placeholder="Escribe la respuesta..."
                         rows={3}
                         style={{

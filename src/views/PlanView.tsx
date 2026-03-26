@@ -6,12 +6,16 @@ interface PlanViewProps {
   data: TestPlan;
   tasks: TestTask[];
   onUpdate: (updates: TestPlan) => void;
+  onSyncPlan: (updates: TestPlan) => void;
+  onSyncTasks: (tasks: TestTask[]) => void;
   onAddTask: () => void;
   onSaveTask: (id: string, updates: Partial<TestTask>) => void;
   onDeleteTask: (id: string) => void;
 }
 
-export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAddTask, onSaveTask, onDeleteTask }) => {
+export const PlanView: React.FC<PlanViewProps> = ({ 
+  data, tasks, onUpdate, onSyncPlan, onSyncTasks, onAddTask, onSaveTask, onDeleteTask 
+}) => {
   const [localPlan, setLocalPlan] = useState<TestPlan>(data);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -27,7 +31,14 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
   };
 
   const handleChange = (updates: Partial<TestPlan>) => {
-    setLocalPlan(prev => ({ ...prev, ...updates }));
+    const updated = { ...localPlan, ...updates };
+    setLocalPlan(updated);
+    onSyncPlan(updated);
+  };
+
+  const handleTaskChange = (id: string, updates: Partial<TestTask>) => {
+    const updatedTasks = tasks.map(t => t.id === id ? { ...t, ...updates } : t);
+    onSyncTasks(updatedTasks);
   };
 
   const isProductEmpty = !localPlan.product || localPlan.product.trim() === '';
@@ -182,7 +193,8 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
                         <input 
                           type="text" 
                           aria-label={`Escenario para ${task.task_index}`}
-                          defaultValue={task.scenario} 
+                          value={task.scenario || ''} 
+                          onChange={(e) => handleTaskChange(task.id!, { scenario: e.target.value })}
                           placeholder="Ej: Imagina que quieres comprar..."
                           onBlur={(e) => onSaveTask(task.id!, { scenario: e.target.value })} 
                         />
@@ -191,7 +203,8 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
                         <input 
                           type="text" 
                           aria-label={`Resultado esperado para ${task.task_index}`}
-                          defaultValue={task.expected_result} 
+                          value={task.expected_result || ''} 
+                          onChange={(e) => handleTaskChange(task.id!, { expected_result: e.target.value })}
                           placeholder="Ej: El usuario llega a la confirmación."
                           onBlur={(e) => onSaveTask(task.id!, { expected_result: e.target.value })} 
                         />
@@ -200,7 +213,8 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
                         <input 
                           type="text" 
                           aria-label={`Métrica para ${task.task_index}`}
-                          defaultValue={task.main_metric} 
+                          value={task.main_metric || ''} 
+                          onChange={(e) => handleTaskChange(task.id!, { main_metric: e.target.value })}
                           placeholder="Ej: Tiempo, Tasa de éxito..."
                           onBlur={(e) => onSaveTask(task.id!, { main_metric: e.target.value })} 
                         />
@@ -209,7 +223,8 @@ export const PlanView: React.FC<PlanViewProps> = ({ data, tasks, onUpdate, onAdd
                         <input 
                           type="text" 
                           aria-label={`Criterio de éxito para ${task.task_index}`}
-                          defaultValue={task.success_criteria} 
+                          value={task.success_criteria || ''} 
+                          onChange={(e) => handleTaskChange(task.id!, { success_criteria: e.target.value })}
                           placeholder="Ej: Sin errores críticos..."
                           onBlur={(e) => onSaveTask(task.id!, { success_criteria: e.target.value })} 
                         />

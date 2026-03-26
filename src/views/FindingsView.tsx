@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Finding, Severity, Priority, TaskStatus } from '../models/types';
-import { Trash2, Plus, CheckCircle, RefreshCcw, AlertTriangle } from 'lucide-react';
+import { Trash2, Plus, CheckCircle, RefreshCcw, AlertTriangle, Info } from 'lucide-react';
 
 // ─── Hook para detectar ancho de ventana ─────────────────────────────────────
 function useWindowWidth() {
@@ -35,9 +35,31 @@ const STATUS_STYLES: Record<TaskStatus, { bg: string; color: string; icon: strin
   Resuelto:      { bg: '#f0fdf4', color: '#14532d', icon: '✅' },
 };
 
+// ─── Componente Tooltip Personalizado ────────────────────────────────────────
+const Tooltip: React.FC<{ text: string; children: React.ReactNode }> = ({ text, children }) => {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div 
+      className="tooltip-container"
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+      onClick={() => setVisible(!visible)}
+    >
+      {children}
+      {visible && (
+        <div className="tooltip-box">
+          {text}
+          <div className="tooltip-arrow" />
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── Props ───────────────────────────────────────────────────────────────────
 interface FindingsViewProps {
   data: Finding[];
+  onSync: (data: Finding[]) => void;
   onAdd: () => void;
   onSave: (id: string, updates: Partial<Finding>) => void;
   onDelete: (id: string) => void;
@@ -50,10 +72,11 @@ interface FindingsViewProps {
 const FindingCard: React.FC<{
   f: Finding;
   idx: number;
+  onSync: (updates: Partial<Finding>) => void;
   onSave: (id: string, updates: Partial<Finding>) => void;
   onDelete: (id: string) => void;
   onAction: (fn: () => void) => void;
-}> = ({ f, idx, onSave, onDelete, onAction }) => {
+}> = ({ f, idx, onSync, onSave, onDelete, onAction }) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const sev = SEVERITY_STYLES[f.severity] ?? SEVERITY_STYLES.Baja;
   const pri = PRIORITY_STYLES[f.priority] ?? PRIORITY_STYLES.Baja;
@@ -96,7 +119,8 @@ const FindingCard: React.FC<{
           </label>
           <textarea
             id={`m-problem-${f.id}`}
-            defaultValue={f.problem}
+            value={f.problem || ''}
+            onChange={e => onSync({ problem: e.target.value })}
             onBlur={e => onAction(() => onSave(f.id!, { problem: e.target.value }))}
             placeholder="Ej. Menú 'Rendimiento' no comunica que contiene notas"
             rows={2}
@@ -111,7 +135,8 @@ const FindingCard: React.FC<{
           </label>
           <textarea
             id={`m-evidence-${f.id}`}
-            defaultValue={f.evidence}
+            value={f.evidence || ''}
+            onChange={e => onSync({ evidence: e.target.value })}
             onBlur={e => onAction(() => onSave(f.id!, { evidence: e.target.value }))}
             placeholder="Ej. 4 de 5 usuarios dudaron al segundo intento"
             rows={2}
@@ -127,7 +152,8 @@ const FindingCard: React.FC<{
             </label>
             <input
               id={`m-freq-${f.id}`}
-              defaultValue={f.frequency}
+              value={f.frequency || ''}
+              onChange={e => onSync({ frequency: e.target.value })}
               onBlur={e => onAction(() => onSave(f.id!, { frequency: e.target.value }))}
               placeholder="Ej. 4/5"
               style={{ fontSize: '0.9rem' }}
@@ -139,8 +165,12 @@ const FindingCard: React.FC<{
             </label>
             <select
               id={`m-sev-${f.id}`}
-              defaultValue={f.severity}
-              onChange={e => onAction(() => onSave(f.id!, { severity: e.target.value as Severity }))}
+              value={f.severity}
+              onChange={e => {
+                const val = e.target.value as Severity;
+                onSync({ severity: val });
+                onAction(() => onSave(f.id!, { severity: val }));
+              }}
               style={{ backgroundColor: sev.bg, color: sev.color, fontWeight: 700, fontSize: '0.9rem' }}
             >
               <option value="Baja">Baja</option>
@@ -158,7 +188,8 @@ const FindingCard: React.FC<{
           </label>
           <textarea
             id={`m-rec-${f.id}`}
-            defaultValue={f.recommendation}
+            value={f.recommendation || ''}
+            onChange={e => onSync({ recommendation: e.target.value })}
             onBlur={e => onAction(() => onSave(f.id!, { recommendation: e.target.value }))}
             placeholder="Ej. Cambiar etiqueta a 'Notas'"
             rows={2}
@@ -174,8 +205,12 @@ const FindingCard: React.FC<{
             </label>
             <select
               id={`m-pri-${f.id}`}
-              defaultValue={f.priority}
-              onChange={e => onAction(() => onSave(f.id!, { priority: e.target.value as Priority }))}
+              value={f.priority}
+              onChange={e => {
+                const val = e.target.value as Priority;
+                onSync({ priority: val });
+                onAction(() => onSave(f.id!, { priority: val }));
+              }}
               style={{ backgroundColor: pri.bg, color: pri.color, fontWeight: 700, fontSize: '0.9rem' }}
             >
               <option value="Baja">Baja</option>
@@ -189,8 +224,12 @@ const FindingCard: React.FC<{
             </label>
             <select
               id={`m-status-${f.id}`}
-              defaultValue={f.status}
-              onChange={e => onAction(() => onSave(f.id!, { status: e.target.value as TaskStatus }))}
+              value={f.status}
+              onChange={e => {
+                const val = e.target.value as TaskStatus;
+                onSync({ status: val });
+                onAction(() => onSave(f.id!, { status: val }));
+              }}
               style={{ backgroundColor: sta.bg, color: sta.color, fontWeight: 600, fontSize: '0.9rem' }}
             >
               <option value="Pendiente">⏳ Pendiente</option>
@@ -235,7 +274,7 @@ const FindingCard: React.FC<{
 
 // ─── Componente principal ────────────────────────────────────────────────────
 export const FindingsView: React.FC<FindingsViewProps> = ({
-  data, onAdd, onSave, onDelete, planId, productName, onGoToPlan
+  data, onSync, onAdd, onSave, onDelete, planId, productName, onGoToPlan
 }) => {
   const width = useWindowWidth();
   const isMobile = width < 1024;
@@ -246,6 +285,11 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
     setIsSaving(true);
     action();
     setTimeout(() => setIsSaving(false), 800);
+  };
+
+  const handleLocalChange = (id: string, updates: Partial<Finding>) => {
+    const updated = data.map(f => f.id === id ? { ...f, ...updates } : f);
+    onSync(updated);
   };
 
   // Estadísticas rápidas
@@ -325,9 +369,23 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                       <th scope="col">Problema detectado</th>
                       <th scope="col">Evidencia observada</th>
                       <th scope="col" style={{ width: 100 }}>Frecuencia</th>
-                      <th scope="col" style={{ width: 120 }}>Severidad</th>
+                      <th scope="col" style={{ width: 120 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
+                          Severidad
+                          <Tooltip text="Nivel de impacto del problema en la experiencia del usuario (Baja, Media, Alta, Crítica).">
+                            <Info size={14} style={{ cursor: 'pointer', color: '#64748b' }} />
+                          </Tooltip>
+                        </div>
+                      </th>
                       <th scope="col">Recomendación de mejora</th>
-                      <th scope="col" style={{ width: 110 }}>Prioridad</th>
+                      <th scope="col" style={{ width: 110 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
+                          Prioridad
+                          <Tooltip text="Urgencia recomendada para resolver el hallazgo según el impacto y esfuerzo (Baja, Media, Alta).">
+                            <Info size={14} style={{ cursor: 'pointer', color: '#64748b' }} />
+                          </Tooltip>
+                        </div>
+                      </th>
                       <th scope="col" style={{ width: 130 }}>Estado</th>
                       <th scope="col" style={{ width: 60 }}><span className="sr-only">Acciones</span></th>
                     </tr>
@@ -344,19 +402,23 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                           </td>
                           <td>
                             <label htmlFor={`d-problem-${f.id}`} className="sr-only">Problema hallazgo {idx + 1}</label>
-                            <textarea id={`d-problem-${f.id}`} defaultValue={f.problem} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" />
+                            <textarea id={`d-problem-${f.id}`} value={f.problem || ''} onChange={e => handleLocalChange(f.id!, { problem: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" />
                           </td>
                           <td>
                             <label htmlFor={`d-evidence-${f.id}`} className="sr-only">Evidencia hallazgo {idx + 1}</label>
-                            <textarea id={`d-evidence-${f.id}`} defaultValue={f.evidence} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4/5 usuarios fallaron" />
+                            <textarea id={`d-evidence-${f.id}`} value={f.evidence || ''} onChange={e => handleLocalChange(f.id!, { evidence: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4/5 usuarios fallaron" />
                           </td>
                           <td>
                             <label htmlFor={`d-freq-${f.id}`} className="sr-only">Frecuencia hallazgo {idx + 1}</label>
-                            <input type="text" id={`d-freq-${f.id}`} defaultValue={f.frequency} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="Ej. 4/5" />
+                            <input type="text" id={`d-freq-${f.id}`} value={f.frequency || ''} onChange={e => handleLocalChange(f.id!, { frequency: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="Ej. 4/5" />
                           </td>
                           <td>
                             <label htmlFor={`d-sev-${f.id}`} className="sr-only">Severidad hallazgo {idx + 1}</label>
-                            <select id={`d-sev-${f.id}`} defaultValue={f.severity} onChange={e => handleActionWithStatus(() => onSave(f.id!, { severity: e.target.value as Severity }))} style={{ backgroundColor: sev.bg, color: sev.color, border: `1px solid ${sev.border}`, fontWeight: 700 }}>
+                            <select id={`d-sev-${f.id}`} value={f.severity} onChange={e => {
+                              const val = e.target.value as Severity;
+                              handleLocalChange(f.id!, { severity: val });
+                              handleActionWithStatus(() => onSave(f.id!, { severity: val }));
+                            }} style={{ backgroundColor: sev.bg, color: sev.color, border: `1px solid ${sev.border}`, fontWeight: 700 }}>
                               <option value="Baja">Baja</option>
                               <option value="Media">Media</option>
                               <option value="Alta">Alta</option>
@@ -365,11 +427,15 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                           </td>
                           <td>
                             <label htmlFor={`d-rec-${f.id}`} className="sr-only">Recomendación hallazgo {idx + 1}</label>
-                            <textarea id={`d-rec-${f.id}`} defaultValue={f.recommendation} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Ej. Renombrar menú" />
+                            <textarea id={`d-rec-${f.id}`} value={f.recommendation || ''} onChange={e => handleLocalChange(f.id!, { recommendation: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Ej. Renombrar menú" />
                           </td>
                           <td>
                             <label htmlFor={`d-pri-${f.id}`} className="sr-only">Prioridad hallazgo {idx + 1}</label>
-                            <select id={`d-pri-${f.id}`} defaultValue={f.priority} onChange={e => handleActionWithStatus(() => onSave(f.id!, { priority: e.target.value as Priority }))} style={{ backgroundColor: pri.bg, color: pri.color, fontWeight: 700 }}>
+                            <select id={`d-pri-${f.id}`} value={f.priority} onChange={e => {
+                              const val = e.target.value as Priority;
+                              handleLocalChange(f.id!, { priority: val });
+                              handleActionWithStatus(() => onSave(f.id!, { priority: val }));
+                            }} style={{ backgroundColor: pri.bg, color: pri.color, fontWeight: 700 }}>
                               <option value="Baja">Baja</option>
                               <option value="Media">Media</option>
                               <option value="Alta">Alta</option>
@@ -377,7 +443,11 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                           </td>
                           <td>
                             <label htmlFor={`d-status-${f.id}`} className="sr-only">Estado hallazgo {idx + 1}</label>
-                            <select id={`d-status-${f.id}`} defaultValue={f.status} onChange={e => handleActionWithStatus(() => onSave(f.id!, { status: e.target.value as TaskStatus }))} style={{ backgroundColor: sta.bg, color: sta.color, fontWeight: 600 }}>
+                            <select id={`d-status-${f.id}`} value={f.status} onChange={e => {
+                              const val = e.target.value as TaskStatus;
+                              handleLocalChange(f.id!, { status: val });
+                              handleActionWithStatus(() => onSave(f.id!, { status: val }));
+                            }} style={{ backgroundColor: sta.bg, color: sta.color, fontWeight: 600 }}>
                               <option value="Pendiente">⏳ Pendiente</option>
                               <option value="En progreso">🔄 En progreso</option>
                               <option value="Resuelto">✅ Resuelto</option>
@@ -421,6 +491,7 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                     key={f.id}
                     f={f}
                     idx={idx}
+                    onSync={(updates) => handleLocalChange(f.id!, updates)}
                     onSave={onSave}
                     onDelete={onDelete}
                     onAction={handleActionWithStatus}

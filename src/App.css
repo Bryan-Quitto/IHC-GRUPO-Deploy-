@@ -234,6 +234,14 @@ select {
   max-width: 100%;
   display: block;
   position: relative;
+  /* Espacio extra arriba para que el tooltip no se corte con el overflow-x: auto */
+  padding-top: 60px;
+  margin-top: -60px;
+  pointer-events: none;
+}
+
+.data-table-container > * {
+  pointer-events: auto;
 }
 
 .data-table {
@@ -530,3 +538,45 @@ select:focus-visible {
     margin: 0 -0.5rem 1rem -0.5rem;
   }
 }
+/* --- Tooltip Custom ----------------------------------- */
+.tooltip-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tooltip-box {
+  position: absolute;
+  bottom: 140%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1e293b;
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  width: 240px; /* Un poco ms ancho */
+  max-width: 80vw; /* No pasarse de la pantalla en mvil */
+  z-index: 10000; 
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  pointer-events: none;
+  visibility: visible;
+  opacity: 1;
+  font-weight: 500;
+  white-space: normal; /* Asegurar que el texto haga wrap */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.tooltip-arrow {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -6px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: #1e293b transparent transparent transparent;
+}
+

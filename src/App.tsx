@@ -8,20 +8,50 @@ import { ScriptView } from './views/ScriptView';
 import { ObservationsView } from './views/ObservationsView';
 import { FindingsView } from './views/FindingsView';
 import { ReportsView } from './views/ReportsView';
-import { Trash2, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Trash2, AlertTriangle, ArrowLeft, Save, Check } from 'lucide-react';
 
 const App: React.FC = () => {
   const {
     activeTab, setActiveTab,
     selectedPlan, handleGoHome,
     loading, allPlans, allObservations, allFindings,
-    testPlan, handleSavePlan, handleCreateNewPlan, loadFullPlan, handleDeletePlan,
-    tasks, handleAddTask, handleSaveTask, handleDeleteTask,
-    observations, handleAddObservation, handleSaveObservation, handleDeleteObservation,
-    findings, handleAddFinding, handleSaveFinding, handleDeleteFinding,
+    testPlan, setTestPlan, handleSavePlan, handleCreateNewPlan, loadFullPlan, handleDeletePlan,
+    tasks, setTasks, handleAddTask, handleSaveTask, handleDeleteTask,
+    observations, setObservations, handleAddObservation, handleSaveObservation, handleDeleteObservation,
+    findings, setFindings, handleAddFinding, handleSaveFinding, handleDeleteFinding,
+    hasUnsavedChanges,
   } = useUsabilityApp();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success'>('idle');
+
+  // Advertencia nativa para cerrar/recargar pestaña
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ''; // Requerido por Chrome
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  const onManualSave = async () => {
+    setSaveStatus('saving');
+    await handleSavePlan(testPlan);
+    setSaveStatus('success');
+    setTimeout(() => setSaveStatus('idle'), 2000);
+  };
+
+  const handleTryGoHome = () => {
+    if (hasUnsavedChanges) {
+      setShowUnsavedModal(true);
+    } else {
+      handleGoHome();
+    }
+  };
 
   if (loading) {
     return (
@@ -87,7 +117,7 @@ const App: React.FC = () => {
             {/* Botón volver y nombre del plan */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: '1 1 300px', minWidth: 0, flexWrap: 'wrap' }}>
               <button
-                onClick={handleGoHome}
+                onClick={handleTryGoHome}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   background: '#e8eef7', color: '#003366',
@@ -137,26 +167,48 @@ const App: React.FC = () => {
                   <Trash2 size={18} aria-hidden="true" />
                 </button>
               )}
-            </div>
 
-            {/* Crear nuevo */}
-            <button
-              onClick={handleCreateNewPlan}
-              style={{
-                backgroundColor: '#0f172a', color: 'white',
-                padding: '10px 20px', borderRadius: '8px',
-                cursor: 'pointer', fontWeight: 'bold',
-                border: 'none',
-                whiteSpace: 'nowrap', flexShrink: 0,
-                fontFamily: 'inherit', fontSize: '.88rem',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                transition: 'transform .1s',
-              }}
-              onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.98)')}
-              onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              + Crear Nuevo Plan
-            </button>
+              {/* Botón de Guardar Manual */}
+              <button
+                onClick={onManualSave}
+                disabled={saveStatus !== 'idle'}
+                style={{
+                  background: saveStatus === 'success' ? '#dcfce7' : '#f1f5f9',
+                  border: `1px solid ${saveStatus === 'success' ? '#86efac' : '#e2e8f0'}`,
+                  color: saveStatus === 'success' ? '#15803d' : '#0f172a',
+                  cursor: saveStatus === 'idle' ? 'pointer' : 'default',
+                  padding: '8px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '.85rem',
+                  fontFamily: 'inherit',
+                  transition: 'all .3s ease',
+                  flexShrink: 0,
+                }}
+                title="Guardar cambios manualmente"
+                onMouseEnter={e => {
+                  if (saveStatus === 'idle') e.currentTarget.style.background = '#e2e8f0';
+                }}
+                onMouseLeave={e => {
+                  if (saveStatus === 'idle') e.currentTarget.style.background = '#f1f5f9';
+                }}
+              >
+                {saveStatus === 'success' ? (
+                  <>
+                    <Check size={18} aria-hidden="true" />
+                    ¡Guardado!
+                  </>
+                ) : (
+                  <>
+                    <Save size={18} aria-hidden="true" />
+                    {saveStatus === 'saving' ? 'Guardando...' : 'Guardar'}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Pestañas de sección */}
@@ -169,6 +221,8 @@ const App: React.FC = () => {
                   data={testPlan}
                   tasks={tasks}
                   onUpdate={handleSavePlan}
+                  onSyncPlan={setTestPlan}
+                  onSyncTasks={setTasks}
                   onAddTask={handleAddTask}
                   onSaveTask={handleSaveTask}
                   onDeleteTask={handleDeleteTask}
@@ -182,6 +236,8 @@ const App: React.FC = () => {
                   testPlan={testPlan}
                   tasks={tasks}
                   onUpdatePlan={handleSavePlan}
+                  onSyncPlan={setTestPlan}
+                  onSyncTasks={setTasks}
                   onSaveTask={handleSaveTask}
                   onAddTask={handleAddTask}
                   onDeleteTask={handleDeleteTask}
@@ -194,6 +250,7 @@ const App: React.FC = () => {
               <div id="observations-panel" role="tabpanel" aria-labelledby="observations-tab">
                 <ObservationsView
                   data={observations}
+                  onSync={setObservations}
                   planId={testPlan.id}
                   productName={testPlan.product}
                   onAdd={handleAddObservation}
@@ -207,6 +264,7 @@ const App: React.FC = () => {
             {activeTab === 'findings' && (
               <FindingsView
                 data={findings}
+                onSync={setFindings}
                 planId={testPlan.id}
                 productName={testPlan.product}
                 onAdd={handleAddFinding}
@@ -253,6 +311,38 @@ const App: React.FC = () => {
                 }}
               >
                 Sí, eliminar permanentemente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ MODAL CAMBIOS SIN GUARDAR ════════════════════════════════════════ */}
+      {showUnsavedModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <Save size={48} color="#003366" style={{ marginBottom: '1rem' }} />
+            <h3 className="modal-title">Cambios sin guardar</h3>
+            <p>
+              Tienes cambios pendientes en el plan <strong>"{testPlan.product}"</strong>. 
+              Si sales ahora, podrías perder la información que acabas de escribir.
+            </p>
+            <p style={{ fontWeight: 'bold' }}>¿Deseas salir de todas formas o quedarte a guardar?</p>
+            <div className="modal-buttons">
+              <button className="btn-cancel" onClick={() => setShowUnsavedModal(false)}>
+                Quedarme aquí
+              </button>
+              <button
+                style={{
+                  backgroundColor: '#003366', color: 'white', padding: '12px 24px',
+                  borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer'
+                }}
+                onClick={() => {
+                  handleGoHome();
+                  setShowUnsavedModal(false);
+                }}
+              >
+                Salir sin guardar
               </button>
             </div>
           </div>

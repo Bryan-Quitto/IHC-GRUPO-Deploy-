@@ -4,6 +4,7 @@ import { Trash2, Plus, CheckCircle, RefreshCcw, ClipboardList } from 'lucide-rea
 
 interface ObservationsViewProps {
   data: Observation[];
+  onSync: (data: Observation[]) => void;
   onAdd: () => void;
   onSave: (id: string, updates: Partial<Observation>) => void;
   onDelete: (id: string) => void;
@@ -27,6 +28,7 @@ const successStyles: Record<string, { bg: string; color: string; border: string 
 
 export const ObservationsView: React.FC<ObservationsViewProps> = ({
   data,
+  onSync,
   onAdd,
   onSave,
   onDelete,
@@ -41,6 +43,11 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
     setIsSaving(true);
     action();
     setTimeout(() => setIsSaving(false), 800);
+  };
+
+  const handleLocalChange = (id: string, updates: Partial<Observation>) => {
+    const updated = data.map(o => o.id === id ? { ...o, ...updates } : o);
+    onSync(updated);
   };
 
   const totalObs = data.length;
@@ -190,7 +197,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                               <input
                                 id={`obs-participant-${obs.id}`}
                                 type="text"
-                                defaultValue={obs.participant}
+                                value={obs.participant || ''}
+                                onChange={(e) => handleLocalChange(obs.id!, { participant: e.target.value })}
                                 onBlur={(e) =>
                                   handleActionWithStatus(() =>
                                     onSave(obs.id!, { participant: e.target.value })
@@ -208,7 +216,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                               <input
                                 id={`obs-profile-${obs.id}`}
                                 type="text"
-                                defaultValue={obs.profile}
+                                value={obs.profile || ''}
+                                onChange={(e) => handleLocalChange(obs.id!, { profile: e.target.value })}
                                 onBlur={(e) =>
                                   handleActionWithStatus(() =>
                                     onSave(obs.id!, { profile: e.target.value })
@@ -226,7 +235,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                               <input
                                 id={`obs-taskref-${obs.id}`}
                                 type="text"
-                                defaultValue={obs.task_ref}
+                                value={obs.task_ref || ''}
+                                onChange={(e) => handleLocalChange(obs.id!, { task_ref: e.target.value })}
                                 onBlur={(e) =>
                                   handleActionWithStatus(() =>
                                     onSave(obs.id!, { task_ref: e.target.value })
@@ -243,12 +253,12 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                               </label>
                               <select
                                 id={`obs-success-${obs.id}`}
-                                defaultValue={obs.success_level}
-                                onChange={(e) =>
-                                  handleActionWithStatus(() =>
-                                    onSave(obs.id!, { success_level: e.target.value as SuccessStatus })
-                                  )
-                                }
+                                value={obs.success_level}
+                                onChange={(e) => {
+                                  const val = e.target.value as SuccessStatus;
+                                  handleLocalChange(obs.id!, { success_level: val });
+                                  handleActionWithStatus(() => onSave(obs.id!, { success_level: val }));
+                                }}
                                 style={{
                                   backgroundColor: okStyle.bg,
                                   color: okStyle.color,
@@ -271,7 +281,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                                 id={`obs-time-${obs.id}`}
                                 type="number"
                                 min="0"
-                                defaultValue={obs.time_seconds}
+                                value={obs.time_seconds}
+                                onChange={(e) => handleLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })}
                                 onBlur={(e) =>
                                   handleActionWithStatus(() =>
                                     onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })
@@ -290,7 +301,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                                 id={`obs-errors-${obs.id}`}
                                 type="number"
                                 min="0"
-                                defaultValue={obs.errors}
+                                value={obs.errors}
+                                onChange={(e) => handleLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })}
                                 onBlur={(e) =>
                                   handleActionWithStatus(() =>
                                     onSave(obs.id!, { errors: parseInt(e.target.value) || 0 })
@@ -307,7 +319,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                               </label>
                               <textarea
                                 id={`obs-comments-${obs.id}`}
-                                defaultValue={obs.comments}
+                                value={obs.comments || ''}
+                                onChange={(e) => handleLocalChange(obs.id!, { comments: e.target.value })}
                                 onBlur={(e) =>
                                   handleActionWithStatus(() =>
                                     onSave(obs.id!, { comments: e.target.value })
@@ -325,7 +338,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                               </label>
                               <textarea
                                 id={`obs-problem-${obs.id}`}
-                                defaultValue={obs.problem}
+                                value={obs.problem || ''}
+                                onChange={(e) => handleLocalChange(obs.id!, { problem: e.target.value })}
                                 onBlur={(e) =>
                                   handleActionWithStatus(() =>
                                     onSave(obs.id!, { problem: e.target.value })
@@ -343,12 +357,12 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                               </label>
                               <select
                                 id={`obs-severity-${obs.id}`}
-                                defaultValue={obs.severity}
-                                onChange={(e) =>
-                                  handleActionWithStatus(() =>
-                                    onSave(obs.id!, { severity: e.target.value as Severity })
-                                  )
-                                }
+                                value={obs.severity}
+                                onChange={(e) => {
+                                  const val = e.target.value as Severity;
+                                  handleLocalChange(obs.id!, { severity: val });
+                                  handleActionWithStatus(() => onSave(obs.id!, { severity: val }));
+                                }}
                                 style={{
                                   backgroundColor: sStyle.bg,
                                   color: sStyle.color,
@@ -370,7 +384,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                               </label>
                               <textarea
                                 id={`obs-proposal-${obs.id}`}
-                                defaultValue={obs.proposal}
+                                value={obs.proposal || ''}
+                                onChange={(e) => handleLocalChange(obs.id!, { proposal: e.target.value })}
                                 onBlur={(e) =>
                                   handleActionWithStatus(() =>
                                     onSave(obs.id!, { proposal: e.target.value })
