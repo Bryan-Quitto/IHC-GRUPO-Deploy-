@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { TestPlan, TestTask } from '../models/types';
 import { Plus, Trash2, CheckCircle, RefreshCcw } from 'lucide-react';
 
+function useWindowWidth() {
+  const [width, setWidth] = useState(() => window.innerWidth);
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handler);
+    handler();
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return width;
+}
+
 interface PlanViewProps {
   data: TestPlan;
   tasks: TestTask[];
@@ -13,11 +24,13 @@ interface PlanViewProps {
   onDeleteTask: (id: string) => void;
 }
 
-export const PlanView: React.FC<PlanViewProps> = ({ 
-  data, tasks, onUpdate, onSyncPlan, onSyncTasks, onAddTask, onSaveTask, onDeleteTask 
+export const PlanView: React.FC<PlanViewProps> = ({
+  data, tasks, onUpdate, onSyncPlan, onSyncTasks, onAddTask, onSaveTask, onDeleteTask
 }) => {
   const [localPlan, setLocalPlan] = useState<TestPlan>(data);
   const [isSaving, setIsSaving] = useState(false);
+  const width = useWindowWidth();
+  const isMobile = width < 1024;
 
   useEffect(() => {
     setLocalPlan(data);
@@ -67,76 +80,76 @@ export const PlanView: React.FC<PlanViewProps> = ({
             <div className="row-2">
               <div className="form-group">
                 <label htmlFor="product-name">
-                  Producto / servicio: 
+                  Producto / servicio:
                   {isProductEmpty && <span style={{ color: '#d97706', marginLeft: '5px', fontSize: '0.8rem' }}>(Obligatorio)</span>}
                 </label>
-                <input 
+                <input
                   id="product-name"
-                  type="text" 
-                  value={localPlan.product} 
+                  type="text"
+                  value={localPlan.product}
                   placeholder="Ej: App de Delivery 'Rápido', E-commerce, etc."
-                  style={{ 
+                  style={{
                     border: isProductEmpty ? '2px solid #fbbf24' : '1px solid var(--border)',
                     backgroundColor: isProductEmpty ? '#fffbeb' : 'white'
                   }}
-                  onChange={(e) => handleChange({ product: e.target.value })} 
+                  onChange={(e) => handleChange({ product: e.target.value })}
                   onBlur={(e) => handleAutoSave({ product: e.target.value })}
                 />
               </div>
               <div className="form-group">
                 <label htmlFor="module-name">Pantalla / módulo:</label>
-                <input 
+                <input
                   id="module-name"
-                  type="text" 
-                  value={localPlan.module} 
+                  type="text"
+                  value={localPlan.module}
                   placeholder="Ej: Proceso de checkout, Registro de usuario, etc."
-                  onChange={(e) => handleChange({ module: e.target.value })} 
+                  onChange={(e) => handleChange({ module: e.target.value })}
                   onBlur={(e) => handleAutoSave({ module: e.target.value })}
                 />
               </div>
             </div>
             <div className="form-group">
               <label htmlFor="test-objective">Objetivo del test:</label>
-              <textarea 
+              <textarea
                 id="test-objective"
-                value={localPlan.objective} 
+                value={localPlan.objective}
                 placeholder="Ej: Evaluar la facilidad de navegación y el tiempo de completado del flujo de compra."
-                onChange={(e) => handleChange({ objective: e.target.value })} 
+                onChange={(e) => handleChange({ objective: e.target.value })}
                 onBlur={(e) => handleAutoSave({ objective: e.target.value })}
-                rows={2} 
+                rows={2}
               />
             </div>
             <div className="form-group">
               <label htmlFor="user-profile">Perfil de usuarios:</label>
-              <input 
+              <input
                 id="user-profile"
-                type="text" 
-                value={localPlan.user_profile} 
+                type="text"
+                value={localPlan.user_profile}
                 placeholder="Ej: Usuarios de 25-40 años, con experiencia en compras online."
-                onChange={(e) => handleChange({ user_profile: e.target.value })} 
+                onChange={(e) => handleChange({ user_profile: e.target.value })}
                 onBlur={(e) => handleAutoSave({ user_profile: e.target.value })}
               />
             </div>
             <div className="row-2">
               <div className="form-group">
                 <label htmlFor="test-method">Método:</label>
-                <input 
+                <input
                   id="test-method"
-                  type="text" 
-                  value={localPlan.method} 
+                  type="text"
+                  value={localPlan.method}
                   placeholder="Ej: Moderado, remoto, presencial..."
-                  onChange={(e) => handleChange({ method: e.target.value })} 
+                  onChange={(e) => handleChange({ method: e.target.value })}
                   onBlur={(e) => handleAutoSave({ method: e.target.value })}
                 />
               </div>
               <div className="form-group">
                 <label htmlFor="test-duration">Duración:</label>
-                <input 
+                <input
                   id="test-duration"
-                  type="text" 
-                  value={localPlan.duration} 
+                  type="text"
+                  value={localPlan.duration}
                   placeholder="Ej: 45 min por sesión."
-                  onChange={(e) => handleChange({ duration: e.target.value })} 
+                  onChange={(e) => handleChange({ duration: e.target.value })}
                   onBlur={(e) => handleAutoSave({ duration: e.target.value })}
                 />
               </div>
@@ -144,22 +157,22 @@ export const PlanView: React.FC<PlanViewProps> = ({
             <div className="row-2">
               <div className="form-group">
                 <label htmlFor="test-date">Fecha del test:</label>
-                <input 
+                <input
                   id="test-date"
-                  type="date" 
-                  value={localPlan.test_date || ''} 
-                  onChange={(e) => handleChange({ test_date: e.target.value })} 
+                  type="date"
+                  value={localPlan.test_date || ''}
+                  onChange={(e) => handleChange({ test_date: e.target.value })}
                   onBlur={(e) => handleAutoSave({ test_date: e.target.value })}
                 />
               </div>
               <div className="form-group">
                 <label htmlFor="location-channel">Lugar / canal:</label>
-                <input 
+                <input
                   id="location-channel"
-                  type="text" 
-                  value={localPlan.location_channel} 
+                  type="text"
+                  value={localPlan.location_channel}
                   placeholder="Ej: Google Meet, Oficina 302..."
-                  onChange={(e) => handleChange({ location_channel: e.target.value })} 
+                  onChange={(e) => handleChange({ location_channel: e.target.value })}
                   onBlur={(e) => handleAutoSave({ location_channel: e.target.value })}
                 />
               </div>
@@ -169,103 +182,99 @@ export const PlanView: React.FC<PlanViewProps> = ({
 
         <section className="card">
           <h3 className="card-title">2. Tareas del test</h3>
-          <div className="data-table-container">
-            <table className="data-table">
-              <caption className="sr-only">Listado de tareas detalladas para la prueba de usabilidad</caption>
-              <thead>
-                <tr>
-                  <th scope="col" style={{ width: '50px' }}>ID</th>
-                  <th scope="col">Escenario / tarea</th>
-                  <th scope="col">Resultado esperado</th>
-                  <th scope="col">Métrica principal</th>
-                  <th scope="col">Criterio de éxito</th>
-                  <th scope="col" style={{ width: '80px' }}>Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tasks.length > 0 ? (
-                  tasks.map((task) => (
-                    <tr key={task.id}>
-                      <td style={{ textAlign: 'center' }}>
-                        <span className="id-badge">{task.task_index}</span>
-                      </td>
-                      <td>
-                        <input 
-                          type="text" 
-                          aria-label={`Escenario para ${task.task_index}`}
-                          value={task.scenario || ''} 
-                          onChange={(e) => handleTaskChange(task.id!, { scenario: e.target.value })}
-                          placeholder="Ej: Imagina que quieres comprar..."
-                          onBlur={(e) => onSaveTask(task.id!, { scenario: e.target.value })} 
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="text" 
-                          aria-label={`Resultado esperado para ${task.task_index}`}
-                          value={task.expected_result || ''} 
-                          onChange={(e) => handleTaskChange(task.id!, { expected_result: e.target.value })}
-                          placeholder="Ej: El usuario llega a la confirmación."
-                          onBlur={(e) => onSaveTask(task.id!, { expected_result: e.target.value })} 
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="text" 
-                          aria-label={`Métrica para ${task.task_index}`}
-                          value={task.main_metric || ''} 
-                          onChange={(e) => handleTaskChange(task.id!, { main_metric: e.target.value })}
-                          placeholder="Ej: Tiempo, Tasa de éxito..."
-                          onBlur={(e) => onSaveTask(task.id!, { main_metric: e.target.value })} 
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="text" 
-                          aria-label={`Criterio de éxito para ${task.task_index}`}
-                          value={task.success_criteria || ''} 
-                          onChange={(e) => handleTaskChange(task.id!, { success_criteria: e.target.value })}
-                          placeholder="Ej: Sin errores críticos..."
-                          onBlur={(e) => onSaveTask(task.id!, { success_criteria: e.target.value })} 
-                        />
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        <button 
-                          className="btn-delete" 
-                          onClick={() => onDeleteTask(task.id!)}
-                          type="button"
-                          aria-label={`Eliminar ${task.task_index}`}
-                        >
-                          <Trash2 size={20} aria-hidden="true" />
-                        </button>
-                      </td>
+
+          {/* ── MÓVIL: tarjetas ── */}
+          {isMobile && (
+            <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {tasks.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1.5rem 0' }}>
+                  No hay tareas añadidas. Haz clic en el botón de abajo para empezar.
+                </p>
+              ) : (
+                tasks.map((task) => (
+                  <article
+                    key={task.id}
+                    style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}
+                    aria-label={`Tarea ${task.task_index}`}
+                  >
+                    <div style={{ background: 'var(--primary)', padding: '0.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>Tarea {task.task_index}</span>
+                      <button type="button" className="btn-delete" onClick={() => onDeleteTask(task.id!)} aria-label={`Eliminar ${task.task_index}`} style={{ color: '#fca5a5' }}>
+                        <Trash2 size={16} aria-hidden="true" />
+                      </button>
+                    </div>
+                    <div style={{ padding: '0.875rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <div className="form-group">
+                        <label htmlFor={`m-scenario-${task.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Escenario / tarea</label>
+                        <input id={`m-scenario-${task.id}`} type="text" value={task.scenario || ''} onChange={e => handleTaskChange(task.id!, { scenario: e.target.value })} onBlur={e => onSaveTask(task.id!, { scenario: e.target.value })} placeholder="Ej. Imagina que quieres comprar..." />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor={`m-expected-${task.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Resultado esperado</label>
+                        <input id={`m-expected-${task.id}`} type="text" value={task.expected_result || ''} onChange={e => handleTaskChange(task.id!, { expected_result: e.target.value })} onBlur={e => onSaveTask(task.id!, { expected_result: e.target.value })} placeholder="Ej. El usuario llega a la confirmación." />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        <div className="form-group">
+                          <label htmlFor={`m-metric-${task.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Métrica principal</label>
+                          <input id={`m-metric-${task.id}`} type="text" value={task.main_metric || ''} onChange={e => handleTaskChange(task.id!, { main_metric: e.target.value })} onBlur={e => onSaveTask(task.id!, { main_metric: e.target.value })} placeholder="Tiempo, Tasa..." />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor={`m-criteria-${task.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Criterio de éxito</label>
+                          <input id={`m-criteria-${task.id}`} type="text" value={task.success_criteria || ''} onChange={e => handleTaskChange(task.id!, { success_criteria: e.target.value })} onBlur={e => onSaveTask(task.id!, { success_criteria: e.target.value })} placeholder="Sin errores críticos..." />
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              )}
+              <button type="button" className="btn-add" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty} style={{ width: '100%', justifyContent: 'center' }}>
+                <Plus size={18} aria-hidden="true" /> Añadir Tarea
+              </button>
+              {isProductEmpty && <span style={{ color: '#64748b', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center' }}>* Debes definir un nombre de producto para añadir tareas.</span>}
+            </div>
+          )}
+
+          {/* ── DESKTOP: tabla ── */}
+          {!isMobile && (
+            <>
+              <div className="data-table-container">
+                <table className="data-table">
+                  <caption className="sr-only">Listado de tareas detalladas para la prueba de usabilidad</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col" style={{ width: '50px' }}>ID</th>
+                      <th scope="col">Escenario / tarea</th>
+                      <th scope="col">Resultado esperado</th>
+                      <th scope="col">Métrica principal</th>
+                      <th scope="col">Criterio de éxito</th>
+                      <th scope="col" style={{ width: '80px' }}>Acción</th>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      No hay tareas añadidas. Haz clic en el botón de abajo para empezar.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div style={{ padding: '1rem 1.5rem', backgroundColor: '#f8fafc', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <button 
-              type="button"
-              className="btn-add" 
-              onClick={onAddTask}
-              disabled={!localPlan.id || isProductEmpty}
-            >
-              <Plus size={18} aria-hidden="true" /> Añadir Tarea
-            </button>
-            {isProductEmpty && (
-              <span style={{ color: '#64748b', fontSize: '0.9rem', fontStyle: 'italic' }}>
-                * Debes definir un nombre de producto para añadir tareas.
-              </span>
-            )}
-          </div>
+                  </thead>
+                  <tbody>
+                    {tasks.length > 0 ? (
+                      tasks.map((task) => (
+                        <tr key={task.id}>
+                          <td style={{ textAlign: 'center' }}><span className="id-badge">{task.task_index}</span></td>
+                          <td><input type="text" aria-label={`Escenario para ${task.task_index}`} value={task.scenario || ''} onChange={e => handleTaskChange(task.id!, { scenario: e.target.value })} onBlur={e => onSaveTask(task.id!, { scenario: e.target.value })} placeholder="Ej. Imagina que quieres comprar..." /></td>
+                          <td><input type="text" aria-label={`Resultado esperado para ${task.task_index}`} value={task.expected_result || ''} onChange={e => handleTaskChange(task.id!, { expected_result: e.target.value })} onBlur={e => onSaveTask(task.id!, { expected_result: e.target.value })} placeholder="Ej. El usuario llega a la confirmación." /></td>
+                          <td><input type="text" aria-label={`Métrica para ${task.task_index}`} value={task.main_metric || ''} onChange={e => handleTaskChange(task.id!, { main_metric: e.target.value })} onBlur={e => onSaveTask(task.id!, { main_metric: e.target.value })} placeholder="Ej. Tiempo, Tasa de éxito..." /></td>
+                          <td><input type="text" aria-label={`Criterio de éxito para ${task.task_index}`} value={task.success_criteria || ''} onChange={e => handleTaskChange(task.id!, { success_criteria: e.target.value })} onBlur={e => onSaveTask(task.id!, { success_criteria: e.target.value })} placeholder="Ej. Sin errores críticos..." /></td>
+                          <td style={{ textAlign: 'center' }}><button className="btn-delete" onClick={() => onDeleteTask(task.id!)} type="button" aria-label={`Eliminar ${task.task_index}`}><Trash2 size={20} aria-hidden="true" /></button></td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr><td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No hay tareas añadidas. Haz clic en el botón de abajo para empezar.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div style={{ padding: '1rem 1.5rem', backgroundColor: '#f8fafc', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <button type="button" className="btn-add" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty}>
+                  <Plus size={18} aria-hidden="true" /> Añadir Tarea
+                </button>
+                {isProductEmpty && <span style={{ color: '#64748b', fontSize: '0.9rem', fontStyle: 'italic' }}>* Debes definir un nombre de producto para añadir tareas.</span>}
+              </div>
+            </>
+          )}
         </section>
 
         <section className="card">
@@ -296,12 +305,12 @@ export const PlanView: React.FC<PlanViewProps> = ({
           <h3 className="card-title">4. Notas del moderador</h3>
           <div className="card-content">
             <label htmlFor="moderator-notes" className="sr-only">Notas adicionales del moderador</label>
-            <textarea 
+            <textarea
               id="moderator-notes"
-              value={localPlan.moderator_notes} 
-              onChange={(e) => handleChange({ moderator_notes: e.target.value })} 
+              value={localPlan.moderator_notes}
+              onChange={(e) => handleChange({ moderator_notes: e.target.value })}
               onBlur={(e) => handleAutoSave({ moderator_notes: e.target.value })}
-              rows={3} 
+              rows={3}
               placeholder="Ej: Recordar pedir al usuario que piense en voz alta..."
             />
           </div>
