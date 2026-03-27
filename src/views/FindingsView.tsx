@@ -17,39 +17,134 @@ function useWindowWidth() {
 
 // ─── Colores accesibles (contraste ≥ 4.5:1) ─────────────────────────────────
 const SEVERITY_STYLES: Record<Severity, { bg: string; color: string; border: string }> = {
-  Baja:    { bg: '#dcfce7', color: '#14532d', border: '#86efac' },
-  Media:   { bg: '#fef9c3', color: '#713f12', border: '#fde047' },
-  Alta:    { bg: '#ffedd5', color: '#7c2d12', border: '#fdba74' },
+  Baja: { bg: '#dcfce7', color: '#14532d', border: '#86efac' },
+  Media: { bg: '#fef9c3', color: '#713f12', border: '#fde047' },
+  Alta: { bg: '#ffedd5', color: '#7c2d12', border: '#fdba74' },
   Crítica: { bg: '#fee2e2', color: '#7f1d1d', border: '#fca5a5' },
 };
 
 const PRIORITY_STYLES: Record<Priority, { bg: string; color: string }> = {
-  Baja:  { bg: '#e0f2fe', color: '#0c4a6e' },
+  Baja: { bg: '#e0f2fe', color: '#0c4a6e' },
   Media: { bg: '#fef9c3', color: '#78350f' },
-  Alta:  { bg: '#fce7f3', color: '#701a75' },
+  Alta: { bg: '#fce7f3', color: '#701a75' },
 };
 
 const STATUS_STYLES: Record<TaskStatus, { bg: string; color: string; icon: string }> = {
-  Pendiente:     { bg: '#f1f5f9', color: '#334155', icon: '⏳' },
+  Pendiente: { bg: '#f1f5f9', color: '#334155', icon: '⏳' },
   'En progreso': { bg: '#eff6ff', color: '#1e3a5f', icon: '🔄' },
-  Resuelto:      { bg: '#f0fdf4', color: '#14532d', icon: '✅' },
+  Resuelto: { bg: '#f0fdf4', color: '#14532d', icon: '✅' },
 };
 
 // ─── Componente Tooltip Personalizado ────────────────────────────────────────
 const Tooltip: React.FC<{ text: string; children: React.ReactNode }> = ({ text, children }) => {
   const [visible, setVisible] = useState(false);
+  const [above, setAbove] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const isTouchDevice = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!visible) return;
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setVisible(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [visible]);
+
+  const calcPosition = () => {
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setAbove(window.innerHeight - rect.bottom < 160);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    isTouchDevice.current = true;
+    e.stopPropagation();
+    calcPosition();
+    setVisible(v => !v);
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isTouchDevice.current) return;
+    e.stopPropagation();
+    calcPosition();
+    setVisible(v => !v);
+  };
+
   return (
-    <div 
-      className="tooltip-container"
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-      onClick={() => setVisible(!visible)}
+    <div
+      ref={ref}
+      onMouseEnter={() => {
+        if (isTouchDevice.current) return;
+        calcPosition();
+        setVisible(true);
+      }}
+      onMouseLeave={() => {
+        if (isTouchDevice.current) return;
+        setVisible(false);
+      }}
+      onTouchStart={handleTouchStart}
+      onClick={handleClick}
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
     >
       {children}
       {visible && (
-        <div className="tooltip-box">
+        <div
+          role="tooltip"
+          style={{
+            position: 'absolute',
+            ...(above
+              ? { bottom: 'calc(100% + 8px)' }
+              : { top: 'calc(100% + 8px)' }
+            ),
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: '#1e293b',
+            color: '#fff',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            fontSize: '0.78rem',
+            lineHeight: '1.4',
+            width: '200px',
+            zIndex: 9999,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            pointerEvents: 'none',
+            whiteSpace: 'normal',
+            textAlign: 'left',
+            textTransform: 'none',
+            fontWeight: 400,
+            letterSpacing: 'normal',
+          }}
+        >
+          {above ? (
+            <div style={{
+              position: 'absolute',
+              top: '100%', left: '50%',
+              transform: 'translateX(-50%)',
+              width: 0, height: 0,
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderTop: '6px solid #1e293b',
+            }} />
+          ) : (
+            <div style={{
+              position: 'absolute',
+              bottom: '100%', left: '50%',
+              transform: 'translateX(-50%)',
+              width: 0, height: 0,
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderBottom: '6px solid #1e293b',
+            }} />
+          )}
           {text}
-          <div className="tooltip-arrow" />
         </div>
       )}
     </div>
@@ -80,7 +175,7 @@ const FindingCard: React.FC<{
   const [confirmDelete, setConfirmDelete] = useState(false);
   const sev = SEVERITY_STYLES[f.severity] ?? SEVERITY_STYLES.Baja;
   const pri = PRIORITY_STYLES[f.priority] ?? PRIORITY_STYLES.Baja;
-  const sta = STATUS_STYLES[f.status]    ?? STATUS_STYLES.Pendiente;
+  const sta = STATUS_STYLES[f.status] ?? STATUS_STYLES.Pendiente;
 
   return (
     <article
@@ -160,8 +255,11 @@ const FindingCard: React.FC<{
             />
           </div>
           <div className="form-group">
-            <label htmlFor={`m-sev-${f.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <label htmlFor={`m-sev-${f.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '4px' }}>
               Severidad
+              <Tooltip text="Nivel de impacto del problema en la experiencia del usuario (Baja, Media, Alta, Crítica).">
+                <Info size={14} style={{ cursor: 'pointer', color: '#64748b' }} aria-hidden="true" />
+              </Tooltip>
             </label>
             <select
               id={`m-sev-${f.id}`}
@@ -200,8 +298,11 @@ const FindingCard: React.FC<{
         {/* Fila: Prioridad + Estado */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
           <div className="form-group">
-            <label htmlFor={`m-pri-${f.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <label htmlFor={`m-pri-${f.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '4px' }}>
               Prioridad
+              <Tooltip text="Urgencia recomendada para resolver el hallazgo según el impacto y esfuerzo (Baja, Media, Alta).">
+                <Info size={14} style={{ cursor: 'pointer', color: '#64748b' }} aria-hidden="true" />
+              </Tooltip>
             </label>
             <select
               id={`m-pri-${f.id}`}
@@ -394,7 +495,7 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                     {data.length > 0 ? data.map((f, idx) => {
                       const sev = SEVERITY_STYLES[f.severity] ?? SEVERITY_STYLES.Baja;
                       const pri = PRIORITY_STYLES[f.priority] ?? PRIORITY_STYLES.Baja;
-                      const sta = STATUS_STYLES[f.status]    ?? STATUS_STYLES.Pendiente;
+                      const sta = STATUS_STYLES[f.status] ?? STATUS_STYLES.Pendiente;
                       return (
                         <tr key={f.id}>
                           <td style={{ textAlign: 'center' }}>
