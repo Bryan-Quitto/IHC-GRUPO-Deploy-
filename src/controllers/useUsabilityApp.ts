@@ -3,14 +3,10 @@ import { supabase } from '../lib/supabaseClient';
 import { TestPlan, TestTask, Observation, Finding, DashboardTab } from '../models/types';
 
 export const useUsabilityApp = () => {
-  const [activeTab, setActiveTabState] = useState<DashboardTab>(() => {
-    const saved = localStorage.getItem('activeTab');
-    return (saved as DashboardTab) || 'plan';
-  });
+  const [activeTab, setActiveTabState] = useState<DashboardTab>('plan');
 
   const setActiveTab = (tab: DashboardTab) => {
     setActiveTabState(tab);
-    localStorage.setItem('activeTab', tab);
   };
 
   // ── Vista activa: null = dashboard global, plan = detalle de ese plan ──
@@ -61,43 +57,15 @@ export const useUsabilityApp = () => {
     setHasUnsavedChanges(true);
   };
 
-  // ── Inicialización Unificada (Optimización de Carga) ───────────────────
+  // ── Inicialización Unificada ──────────────────────────────────────────
   useEffect(() => {
     const initialize = async () => {
       setLoading(true);
       try {
-        const savedPlanId = localStorage.getItem('selectedPlanId');
-        
-        // Peticiones paralelas de datos iniciales
-        const fetchPromises: any[] = [
-          supabase.from('test_plans').select('*').order('created_at', { ascending: false }),
-        ];
+        const { data: plans } = await supabase.from('test_plans').select('*').order('created_at', { ascending: false });
+        setAllPlans(plans || []);
 
-        // Si hay un plan guardado, lo cargamos todo en paralelo con el listado inicial
-        if (savedPlanId) {
-          fetchPromises.push(supabase.from('tasks').select('*').eq('test_plan_id', savedPlanId).order('task_index', { ascending: true }));
-          fetchPromises.push(supabase.from('observations').select('*').eq('test_plan_id', savedPlanId).order('created_at', { ascending: true }));
-          fetchPromises.push(supabase.from('findings').select('*').eq('test_plan_id', savedPlanId).order('created_at', { ascending: true }));
-        }
-
-        const results = await Promise.all(fetchPromises);
-        
-        const plans: TestPlan[] = (results[0].data as TestPlan[]) || [];
-        setAllPlans(plans);
-
-        if (savedPlanId && results.length > 1) {
-          const plan = plans.find(p => p.id === savedPlanId);
-          if (plan) {
-            setSelectedPlan(plan);
-            setTestPlanState(plan);
-            setTasksState(results[1].data || []);
-            setObservationsState(results[2].data || []);
-            setFindingsState(results[3].data || []);
-          }
-        }
-
-        // Cargar datos globales para el dashboard en segundo plano para no bloquear el inicio
-        // Esto permite que el dashboard aparezca rápido aunque los gráficos tarden un pelín más
+        // Cargar datos globales para el dashboard
         const [obsRes, findRes] = await Promise.all([
           supabase.from('observations').select('*'),
           supabase.from('findings').select('*'),
@@ -105,8 +73,6 @@ export const useUsabilityApp = () => {
 
         setAllObservations(obsRes.data || []);
         setAllFindings(findRes.data || []);
-        
-        // Asegurar que no hay cambios marcados al iniciar
         setHasUnsavedChanges(false);
       } catch (error) {
         console.error("Error durante la inicialización:", error);
@@ -118,56 +84,59 @@ export const useUsabilityApp = () => {
     initialize();
   }, []);
 
-  // ── Seleccionar un plan y cargar sus datos (para navegación manual) ────
-  const loadFullPlan = useCallback(async (plan: TestPlan, keepTab = false) => {
-    setLoading(true);
+  // ── Seleccionar un plan y cargar sus datos ────────────────────────────
+  const loadFullPlanById = useCallback(async (id: string) => {
+    // Si ya tenemos este plan cargado, no activamos el loading global para evitar parpadeos
+    const isAlreadyLoaded = testPlan.id === id;
+    if (!isAlreadyLoaded) setLoading(true);
+
     try {
-      setSelectedPlan(plan);
-      setTestPlanState(plan);
-      if (plan.id) localStorage.setItem('selectedPlanId', plan.id);
-      if (!keepTab) setActiveTab('plan');
+      // 1. Obtener plan de la lista si ya lo tenemos, o de la base de datos
+      let plan = allPlans.find(p => p.id === id);
+      if (!plan) {
+        const { data } = await supabase.from('test_plans').select('*').eq('id', id).single();
+        plan = data;
+      }
 
-      const [t, o, f] = await Promise.all([
-        supabase.from('tasks').select('*').eq('test_plan_id', plan.id).order('task_index', { ascending: true }),
-        supabase.from('observations').select('*').eq('test_plan_id', plan.id).order('created_at', { ascending: true }),
-        supabase.from('findings').select('*').eq('test_plan_id', plan.id).order('created_at', { ascending: true }),
-      ]);
+      if (plan) {
+        setSelectedPlan(plan);
+        setTestPlanState(plan);
 
-      setTasksState(t.data || []);
-      setObservationsState(o.data || []);
-      setFindingsState(f.data || []);
-      
-      // Limpiar flag al cargar plan
-      setHasUnsavedChanges(false);
+        const [t, o, f] = await Promise.all([
+          supabase.from('tasks').select('*').eq('test_plan_id', id).order('task_index', { ascending: true }),
+          supabase.from('observations').select('*').eq('test_plan_id', id).order('created_at', { ascending: true }),
+          supabase.from('findings').select('*').eq('test_plan_id', id).order('created_at', { ascending: true }),
+        ]);
+
+        setTasksState(t.data || []);
+        setObservationsState(o.data || []);
+        setFindingsState(f.data || []);
+        setHasUnsavedChanges(false);
+      }
+    } catch (err) {
+      console.error("Error cargando el plan:", err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [allPlans, testPlan.id]);
 
   // ── Volver al dashboard global ─────────────────────────────────────────
   const handleGoHome = () => {
     setSelectedPlan(null);
-    setTestPlan(initialPlanState);
-    setTasks([]);
-    setObservations([]);
-    setFindings([]);
-    localStorage.removeItem('selectedPlanId');
-    localStorage.removeItem('activeTab');
-    
-    // Limpiar flag al volver al home
+    setTestPlanState(initialPlanState);
+    setTasksState([]);
+    setObservationsState([]);
+    setFindingsState([]);
     setHasUnsavedChanges(false);
   };
 
   // ── Crear nuevo plan ───────────────────────────────────────────────────
   const handleCreateNewPlan = () => {
     setSelectedPlan({ ...initialPlanState }); // entra al detalle con plan vacío
-    setTestPlan(initialPlanState);
-    setTasks([]);
-    setObservations([]);
-    setFindings([]);
-    setActiveTab('plan');
-    
-    // Limpiar flag para nuevo plan
+    setTestPlanState(initialPlanState);
+    setTasksState([]);
+    setObservationsState([]);
+    setFindingsState([]);
     setHasUnsavedChanges(false);
   };
 
@@ -189,8 +158,8 @@ export const useUsabilityApp = () => {
         setTestPlanState(data);
         setSelectedPlan(data);
         setAllPlans(prev => [data, ...prev]);
-        if (data.id) localStorage.setItem('selectedPlanId', data.id);
         setHasUnsavedChanges(false);
+        return data; // Retornamos para poder navegar a su ID si es nuevo
       }
     } else {
       const { error } = await supabase.from('test_plans').update(fullPlan).eq('id', fullPlan.id);
@@ -290,17 +259,14 @@ export const useUsabilityApp = () => {
   };
 
   return {
-    // navegación
+    // navegación y datos
     activeTab, setActiveTab,
-    selectedPlan,             // null = mostrar dashboard global
+    selectedPlan,
     handleGoHome,
-    hasUnsavedChanges,        // nuevo: indica si hay cambios sin persistir
-    // estado de carga
+    hasUnsavedChanges,
     loading,
-    // datos globales
     allPlans, allObservations, allFindings,
-    // datos del plan seleccionado
-    testPlan, setTestPlan, handleSavePlan, handleCreateNewPlan, loadFullPlan, handleDeletePlan,
+    testPlan, setTestPlan, handleSavePlan, handleCreateNewPlan, loadFullPlanById, handleDeletePlan,
     tasks, setTasks, handleAddTask, handleSaveTask, handleDeleteTask,
     observations, setObservations, handleAddObservation, handleSaveObservation, handleDeleteObservation,
     findings, setFindings, handleAddFinding, handleSaveFinding, handleDeleteFinding,
