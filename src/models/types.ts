@@ -33,6 +33,7 @@ export interface UserProfile {
 
 export interface TestPlan {
   id?: string;
+  profile_id?: string;
   product: string;
   module: string;
   objective: string;

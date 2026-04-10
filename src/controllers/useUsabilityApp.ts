@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { TestPlan, TestTask, Observation, Finding, DashboardTab } from '../models/types';
+import { useAuth } from './useAuth';
 
 export const useUsabilityApp = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTabState] = useState<DashboardTab>('plan');
 
   const setActiveTab = (tab: DashboardTab) => {
@@ -59,30 +61,52 @@ export const useUsabilityApp = () => {
 
   // ── Inicialización Unificada ──────────────────────────────────────────
   useEffect(() => {
+    let isMounted = true;
+
     const initialize = async () => {
-      setLoading(true);
+      if (!user) {
+        if (isMounted) setLoading(false);
+        return;
+      }
+
+      // Solo mostramos el spinner de carga si es la primera vez (no hay planes)
+      // Si ya hay planes, la actualización será "silenciosa" en segundo plano
+      if (allPlans.length === 0) {
+        setLoading(true);
+      }
+
       try {
-        const { data: plans } = await supabase.from('test_plans').select('*').order('created_at', { ascending: false });
+        const { data: plans } = await supabase
+          .from('test_plans')
+          .select('*')
+          .eq('profile_id', user.id)
+          .order('created_at', { ascending: false });
+        
+        if (!isMounted) return;
         setAllPlans(plans || []);
 
-        // Cargar datos globales para el dashboard
         const [obsRes, findRes] = await Promise.all([
           supabase.from('observations').select('*'),
           supabase.from('findings').select('*'),
         ]);
 
+        if (!isMounted) return;
         setAllObservations(obsRes.data || []);
         setAllFindings(findRes.data || []);
         setHasUnsavedChanges(false);
       } catch (error) {
         console.error("Error durante la inicialización:", error);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     initialize();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]); // Usamos user.id como dependencia específica para evitar re-cargas por cambios de referencia del objeto user
 
   // ── Seleccionar un plan y cargar sus datos ────────────────────────────
   const loadFullPlanById = useCallback(async (id: string) => {
@@ -94,7 +118,11 @@ export const useUsabilityApp = () => {
       // 1. Obtener plan de la lista si ya lo tenemos, o de la base de datos
       let plan = allPlans.find(p => p.id === id);
       if (!plan) {
-        const { data } = await supabase.from('test_plans').select('*').eq('id', id).single();
+        const { data } = await supabase
+          .from('test_plans')
+          .select('*')
+          .eq('id', id)
+          .single();
         plan = data;
       }
 
@@ -152,24 +180,62 @@ export const useUsabilityApp = () => {
 
   // ── Guardar plan ───────────────────────────────────────────────────────
   const handleSavePlan = async (fullPlan: TestPlan) => {
-    if (!fullPlan.id) {
-      const { data, error } = await supabase.from('test_plans').insert([fullPlan]).select().single();
-      if (!error && data) {
-        setTestPlanState(data);
-        setSelectedPlan(data);
-        setAllPlans(prev => [data, ...prev]);
-        setHasUnsavedChanges(false);
-        return data; // Retornamos para poder navegar a su ID si es nuevo
+    if (!user) return null;
+
+    // Limpiar el objeto para Supabase
+    // Extraemos campos que NO deben ir en el cuerpo (metadatos o calculados)
+    const { id, created_at, ...rest } = fullPlan;
+
+    // Preparar data asegurando tipos compatibles con Postgres
+    const dataToSave = {
+      ...rest,
+      profile_id: fullPlan.profile_id || user.id,
+      // Si la fecha es un string vacío, enviamos null para evitar error de tipo 'date'
+      test_date: rest.test_date && rest.test_date.trim() !== '' ? rest.test_date : null,
+      closing_questions: rest.closing_questions || []
+    };
+
+    try {
+      if (!id) {
+        // INSERT
+        const { data, error } = await supabase
+          .from('test_plans')
+          .insert([dataToSave])
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          setTestPlanState(data);
+          setSelectedPlan(data);
+          setAllPlans(prev => [data, ...prev]);
+          setHasUnsavedChanges(false);
+          return data;
+        }
+      } else {
+        // UPDATE
+        const { data, error } = await supabase
+          .from('test_plans')
+          .update(dataToSave)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          setTestPlanState(data);
+          setSelectedPlan(data);
+          setAllPlans(prev => prev.map(p => p.id === id ? data : p));
+          setHasUnsavedChanges(false);
+          return data;
+        }
       }
-    } else {
-      const { error } = await supabase.from('test_plans').update(fullPlan).eq('id', fullPlan.id);
-      if (!error) {
-        setTestPlanState(fullPlan);
-        setSelectedPlan(fullPlan);
-        setAllPlans(prev => prev.map(p => p.id === fullPlan.id ? fullPlan : p));
-        setHasUnsavedChanges(false);
-      }
+    } catch (err) {
+      console.error("Error crítico al guardar el plan:", err);
+      // Opcional: podrías añadir un estado de error global aquí
+      return null;
     }
+    return null;
   };
 
   // ── Tareas ─────────────────────────────────────────────────────────────
