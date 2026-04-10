@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TestPlan, TestTask } from '../models/types';
 import { Plus, Trash2, CheckCircle, RefreshCcw, Check, X } from 'lucide-react';
+import AutoGrowTextarea from '../components/AutoGrowTextarea';
 
 function useWindowWidth() {
   const [width, setWidth] = useState(() => window.innerWidth);
@@ -262,7 +263,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
             </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="test-objective" className="text-sm font-bold text-slate-700">Objetivo del test:</label>
-              <textarea
+              <AutoGrowTextarea
                 id="test-objective"
                 className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                 value={localPlan.objective}
@@ -437,7 +438,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
           <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">4. Notas del moderador</h3>
           <div className="p-6">
             <label htmlFor="moderator-notes" className="sr-only">Notas adicionales del moderador</label>
-            <textarea
+            <AutoGrowTextarea
               id="moderator-notes"
               className="w-full p-4 border border-slate-200 rounded-xl text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-slate-50 focus:bg-white min-h-[120px]"
               value={localPlan.moderator_notes}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, CheckCircle, RefreshCcw, ClipboardList, Check, X } from 'lucide-react';
 import { TestPlan, TestTask, ClosingQuestion } from '../models/types';
+import AutoGrowTextarea from '../components/AutoGrowTextarea';
 
 interface ScriptViewProps {
   testPlan: TestPlan;
@@ -33,7 +34,7 @@ const ScriptTaskRow: React.FC<{
         <label htmlFor={`script-text-${task.id}`} className="sr-only">
           Texto de la tarea {task.task_index}
         </label>
-        <textarea
+        <AutoGrowTextarea
           id={`script-text-${task.id}`}
           className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
           value={task.script_task_text || ''}
@@ -52,7 +53,7 @@ const ScriptTaskRow: React.FC<{
         <label htmlFor={`script-followup-${task.id}`} className="sr-only">
           Pregunta de seguimiento {task.task_index}
         </label>
-        <textarea
+        <AutoGrowTextarea
           id={`script-followup-${task.id}`}
           className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
           value={task.script_follow_up || ''}
@@ -71,7 +72,7 @@ const ScriptTaskRow: React.FC<{
         <label htmlFor={`script-success-${task.id}`} className="sr-only">
           Éxito esperado {task.task_index}
         </label>
-        <textarea
+        <AutoGrowTextarea
           id={`script-success-${task.id}`}
           className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
           value={task.script_expected_success || ''}
@@ -357,7 +358,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                       >
                         {index + 1}. {q.question}
                       </label>
-                      <textarea
+                      <AutoGrowTextarea
                         id={`closing-q-${index}`}
                         className="w-full p-4 border border-amber-200 rounded-xl text-base transition-all focus:outline-none focus:ring-4 focus:ring-amber-50 bg-amber-50/50 focus:bg-white text-slate-900 font-medium min-h-[100px]"
                         value={q.answer}

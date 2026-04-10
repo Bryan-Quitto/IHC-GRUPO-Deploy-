@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Finding, Severity, Priority, TaskStatus } from '../models/types';
-import { Trash2, Plus, CheckCircle, RefreshCcw, AlertTriangle, Info, Check, X } from 'lucide-react';
+import { Trash2, Plus, CheckCircle, RefreshCcw, AlertTriangle, Info, Check, X, ChevronDown } from 'lucide-react';
+import AutoGrowTextarea from '../components/AutoGrowTextarea';
 
 // ─── Hook para detectar ancho de ventana ─────────────────────────────────────
 function useWindowWidth() {
@@ -22,6 +24,13 @@ const SEVERITY_STYLES: Record<Severity, { bg: string; text: string; border: stri
   Crítica: { bg: 'bg-red-50',    text: 'text-red-900',    border: 'border-red-200' },
 };
 
+const SEVERITY_WEIGHTS: Record<Severity, number> = {
+  'Crítica': 4,
+  'Alta': 3,
+  'Media': 2,
+  'Baja': 1,
+};
+
 const PRIORITY_STYLES: Record<Priority, { bg: string; text: string; border: string }> = {
   Baja:  { bg: 'bg-blue-50',    text: 'text-blue-900',   border: 'border-blue-200' },
   Media: { bg: 'bg-yellow-50',  text: 'text-yellow-900', border: 'border-yellow-200' },
@@ -37,18 +46,40 @@ const STATUS_STYLES: Record<TaskStatus, { bg: string; text: string; border: stri
 // ─── Componente Tooltip Tailwind ────────────────────────────────────────
 const Tooltip: React.FC<{ text: string; children: React.ReactNode }> = ({ text, children }) => {
   const [visible, setVisible] = useState(false);
+  const [coords, setCoords] = useState({ left: 0, top: 0 });
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (visible && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setCoords({
+        left: rect.left + rect.width / 2,
+        top: rect.top + window.scrollY - 8
+      });
+    }
+  }, [visible]);
+
   return (
     <div
+      ref={triggerRef}
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
-      className="relative inline-flex items-center group"
+      className="relative inline-flex items-center group cursor-help"
     >
       {children}
-      {visible && (
-        <div className="absolute bottom-[140%] left-1/2 -translate-x-1/2 bg-slate-800 text-white px-3 py-2 rounded-lg text-[0.7rem] leading-snug w-[180px] z-[10000] shadow-xl text-center pointer-events-none font-medium normal-case animate-in fade-in zoom-in-95 duration-200">
+      {visible && createPortal(
+        <div 
+          className="absolute bg-slate-800 text-white px-3 py-2 rounded-lg text-[0.7rem] leading-snug w-[180px] z-[99999] shadow-2xl text-center pointer-events-none font-medium normal-case animate-in fade-in zoom-in-95 duration-200"
+          style={{
+            left: coords.left,
+            top: coords.top,
+            transform: 'translate(-50%, -100%)' 
+          }}
+        >
           {text}
           <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-transparent border-t-4 border-t-slate-800" />
-        </div>
+        </div>,
+        document.body 
       )}
     </div>
   );
@@ -99,12 +130,12 @@ const FindingCard: React.FC<{
       <div className="p-4 flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
           <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Problema detectado</label>
-          <textarea className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-bold" value={f.problem || ''} onChange={e => onSync({ problem: e.target.value })} onBlur={e => onAction(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú 'Rendimiento' no es claro" rows={2} />
+          <AutoGrowTextarea className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-bold" value={f.problem || ''} onChange={e => onSync({ problem: e.target.value })} onBlur={e => onAction(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú 'Rendimiento' no es claro" rows={2} />
         </div>
 
         <div className="flex flex-col gap-1.5">
           <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Evidencia observada</label>
-          <textarea className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-medium italic" value={f.evidence || ''} onChange={e => onSync({ evidence: e.target.value })} onBlur={e => onAction(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4 de 5 usuarios dudaron" rows={2} />
+          <AutoGrowTextarea className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-medium italic" value={f.evidence || ''} onChange={e => onSync({ evidence: e.target.value })} onBlur={e => onAction(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4 de 5 usuarios dudaron" rows={2} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -125,7 +156,7 @@ const FindingCard: React.FC<{
 
         <div className="flex flex-col gap-1.5">
           <label className="font-black text-[0.7rem] text-green-800 uppercase tracking-widest">Recomendación de mejora</label>
-          <textarea className="w-full p-2.5 border border-green-100 rounded-lg text-sm bg-green-50/30 focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none transition-all font-medium" value={f.recommendation || ''} onChange={e => onSync({ recommendation: e.target.value })} onBlur={e => onAction(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Ej. Cambiar etiqueta a 'Notas'" rows={2} />
+          <AutoGrowTextarea className="w-full p-2.5 border border-green-100 rounded-lg text-sm bg-green-50/30 focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none transition-all font-medium" value={f.recommendation || ''} onChange={e => onSync({ recommendation: e.target.value })} onBlur={e => onAction(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Ej. Cambiar etiqueta a 'Notas'" rows={2} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -200,10 +231,10 @@ const FindingRow: React.FC<{
         <span className="id-badge">{idx + 1}</span>
       </td>
       <td className="p-2">
-        <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-bold" value={f.problem || ''} onChange={e => handleLocalChange(f.id!, { problem: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" rows={2} />
+        <AutoGrowTextarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-bold" value={f.problem || ''} onChange={e => handleLocalChange(f.id!, { problem: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" rows={2} />
       </td>
       <td className="p-2">
-        <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium italic text-slate-600" value={f.evidence || ''} onChange={e => handleLocalChange(f.id!, { evidence: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4/5 fallaron" rows={2} />
+        <AutoGrowTextarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium italic text-slate-600" value={f.evidence || ''} onChange={e => handleLocalChange(f.id!, { evidence: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4/5 fallaron" rows={2} />
       </td>
       <td className="p-2 text-center">
         <input type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-mono" value={f.frequency || ''} onChange={e => handleLocalChange(f.id!, { frequency: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="4/5" />
@@ -221,7 +252,7 @@ const FindingRow: React.FC<{
         </select>
       </td>
       <td className="p-2">
-        <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none font-medium text-green-900" value={f.recommendation || ''} onChange={e => handleLocalChange(f.id!, { recommendation: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Mejora..." rows={2} />
+        <AutoGrowTextarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none font-medium text-green-900" value={f.recommendation || ''} onChange={e => handleLocalChange(f.id!, { recommendation: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Mejora..." rows={2} />
       </td>
       <td className="p-3">
         <select className={`w-full p-2 border ${pri.border} rounded-lg text-[0.75rem] ${pri.bg} ${pri.text} font-black outline-none cursor-pointer`} value={f.priority} onChange={e => {
@@ -282,6 +313,8 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
   const width = useWindowWidth();
   const isMobile = width < 1024;
   const [isSaving, setIsSaving] = useState(false);
+  const [sortMode, setSortMode] = useState<'desc' | 'asc' | 'default'>('default');
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const isProductEmpty = !productName || productName.trim() === '';
 
   const handleActionWithStatus = (action: () => void) => {
@@ -294,6 +327,15 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
     const updated = data.map(f => f.id === id ? { ...f, ...updates } : f);
     onSync(updated);
   };
+
+  const displayData = React.useMemo(() => {
+    if (sortMode === 'default') return data;
+    return [...data].sort((a, b) => {
+      const weightA = SEVERITY_WEIGHTS[a.severity] || 0;
+      const weightB = SEVERITY_WEIGHTS[b.severity] || 0;
+      return sortMode === 'desc' ? weightB - weightA : weightA - weightB;
+    });
+  }, [data, sortMode]);
 
   return (
     <div className="animate-in fade-in duration-500">
@@ -328,8 +370,8 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
         ) : (
           <>
             {!isMobile && (
-              <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" aria-labelledby="findings-table-heading">
-                <h3 id="findings-table-heading" className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">Registro de hallazgos</h3>
+              <section className="bg-white border border-slate-200 rounded-xl shadow-sm" aria-labelledby="findings-table-heading">
+                <h3 id="findings-table-heading" className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 rounded-t-xl">Registro de hallazgos</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <caption className="sr-only">Tabla editable de hallazgos</caption>
@@ -339,12 +381,42 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                         <th scope="col" className="p-4 text-left border-r border-slate-100">Problema detectado</th>
                         <th scope="col" className="p-4 text-left border-r border-slate-100">Evidencia observada</th>
                         <th scope="col" className="p-4 text-center border-r border-slate-100 w-[100px]">Frecuencia</th>
-                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[130px]">
-                          <div className="flex items-center gap-1.5 justify-center">
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[130px] select-none">
+                          <div className="flex items-center gap-1.5 justify-center relative">
                             Severidad
-                            <Tooltip text="Nivel de impacto del problema en la experiencia del usuario.">
-                              <Info size={12} className="text-slate-400" />
-                            </Tooltip>
+                            <div className="flex items-center gap-0.5">
+                              <Tooltip text="Nivel de impacto del problema en la experiencia del usuario.">
+                                <Info size={12} className="text-slate-400" />
+                              </Tooltip>
+                              
+                              <div className="relative">
+                                <button 
+                                  type="button"
+                                  onClick={() => setShowSortMenu(!showSortMenu)}
+                                  className={`p-1 rounded-md transition-all hover:bg-slate-200 flex items-center justify-center ${sortMode !== 'default' ? 'text-navy bg-slate-100' : 'text-slate-400'}`}
+                                  title="Opciones de ordenamiento"
+                                >
+                                  <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {showSortMenu && (
+                                  <>
+                                    <div className="fixed inset-0 z-[90]" onClick={() => setShowSortMenu(false)} />
+                                    <div className="absolute top-full right-0 mt-2 w-32 bg-white border border-slate-200 rounded-lg shadow-xl z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                      <button onClick={() => { setSortMode('desc'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'desc' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>
+                                        Descendente
+                                      </button>
+                                      <button onClick={() => { setSortMode('asc'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'asc' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>
+                                        Ascendente
+                                      </button>
+                                      <button onClick={() => { setSortMode('default'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'default' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>
+                                        Defecto
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </th>
                         <th scope="col" className="p-4 text-left border-r border-slate-100">Recomendación</th>
@@ -361,7 +433,7 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {data.length > 0 ? data.map((f, idx) => (
+                      {displayData.length > 0 ? displayData.map((f, idx) => (
                         <FindingRow
                           key={f.id}
                           f={f}
@@ -377,7 +449,7 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                     </tbody>
                   </table>
                 </div>
-                <div className="p-4 px-6 bg-slate-50 border-t border-slate-200">
+                <div className="p-4 px-6 bg-slate-50 border-t border-slate-200 rounded-b-xl">
                   <button className="inline-flex items-center gap-2 bg-navy text-white border-none px-6 py-2.5 rounded-lg font-black text-sm uppercase tracking-wider cursor-pointer transition-all hover:bg-navy-dark disabled:bg-slate-300 disabled:cursor-not-allowed shadow-md shadow-navy/10 active:scale-[0.98]" onClick={onAdd} disabled={!planId} type="button">
                     <Plus size={18} aria-hidden="true" /> Añadir Hallazgo
                   </button>
@@ -387,17 +459,43 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
 
             {isMobile && (
               <section aria-labelledby="findings-cards-heading">
-                <h3 id="findings-cards-heading" className="text-[0.9rem] font-black text-navy uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <span className="w-2 h-6 bg-navy rounded-full"></span> Hallazgos registrados
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 id="findings-cards-heading" className="text-[0.9rem] font-black text-navy uppercase tracking-widest flex items-center gap-2 m-0">
+                    <span className="w-2 h-6 bg-navy rounded-full"></span> Hallazgos registrados
+                  </h3>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowSortMenu(!showSortMenu)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.7rem] font-black uppercase tracking-wider transition-all border ${sortMode !== 'default' ? 'bg-navy text-white border-navy shadow-md shadow-navy/20' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
+                    >
+                      Severidad <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showSortMenu && (
+                      <>
+                        <div className="fixed inset-0 z-[90]" onClick={() => setShowSortMenu(false)} />
+                        <div className="absolute top-full right-0 mt-2 w-32 bg-white border border-slate-200 rounded-lg shadow-xl z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                          <button onClick={() => { setSortMode('desc'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'desc' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>
+                            Descendente
+                          </button>
+                          <button onClick={() => { setSortMode('asc'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'asc' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>
+                            Ascendente
+                          </button>
+                          <button onClick={() => { setSortMode('default'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'default' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>
+                            Defecto
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
 
-                {data.length === 0 ? (
+                {displayData.length === 0 ? (
                   <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-400 font-medium italic mb-6">
                     No hay hallazgos todavía.
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {data.map((f, idx) => (
+                    {displayData.map((f, idx) => (
                       <FindingCard
                         key={f.id}
                         f={f}
