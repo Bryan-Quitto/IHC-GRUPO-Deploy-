@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Observation, SuccessStatus, Severity } from '../models/types';
-import { Trash2, Plus, CheckCircle, RefreshCcw, ClipboardList } from 'lucide-react';
+import { Trash2, Plus, CheckCircle, RefreshCcw, ClipboardList, Check, X } from 'lucide-react';
 
 interface ObservationsViewProps {
   data: Observation[];
@@ -160,9 +160,23 @@ const ObservationCard: React.FC<{
         <div className="flex justify-end pt-2 border-t border-slate-100 mt-2">
           {confirmDelete ? (
             <div className="flex gap-2 items-center animate-in zoom-in-95 duration-200">
-              <span className="text-[0.8rem] text-red-600 font-black uppercase">¿Seguro?</span>
-              <button type="button" onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-lg px-4 py-1.5 text-[0.8rem] cursor-pointer font-bold shadow-lg shadow-red-100" aria-label={`Confirmar eliminar observación ${idx + 1}`}>Eliminar</button>
-              <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-100 text-slate-600 border-none rounded-lg px-4 py-1.5 text-[0.8rem] cursor-pointer font-bold">No</button>
+              <span className="text-[0.7rem] text-red-600 font-black uppercase tracking-widest">Confirmar:</span>
+              <button
+                type="button"
+                onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }}
+                className="inline-flex items-center justify-center w-8 h-8 bg-red-600 text-white border-none rounded-lg cursor-pointer transition-all hover:bg-red-700 shadow-md shadow-red-100"
+                title="Confirmar eliminación"
+              >
+                <Check size={16} strokeWidth={3} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-500 border-none rounded-lg cursor-pointer transition-all hover:bg-slate-200"
+                title="Cancelar"
+              >
+                <X size={16} strokeWidth={3} />
+              </button>
             </div>
           ) : (
             <button type="button" className="inline-flex items-center gap-1.5 bg-transparent border-none text-slate-400 cursor-pointer p-2 rounded-lg transition-all hover:bg-red-50 hover:text-red-600" onClick={() => setConfirmDelete(true)} aria-label={`Eliminar observación ${idx + 1}`}>
@@ -173,6 +187,99 @@ const ObservationCard: React.FC<{
         </div>
       </div>
     </article>
+  );
+};
+
+/* ── Fila de la tabla para desktop ── */
+const ObservationRow: React.FC<{
+  obs: Observation;
+  handleLocalChange: (id: string, updates: Partial<Observation>) => void;
+  handleActionWithStatus: (action: () => void) => void;
+  onSave: (id: string, updates: Partial<Observation>) => void;
+  onDelete: (id: string) => void;
+}> = ({ obs, handleLocalChange, handleActionWithStatus, onSave, onDelete }) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const sStyle  = severityStyles[obs.severity]     || severityStyles['Baja'];
+  const okStyle = successStyles[obs.success_level] || successStyles['Sí'];
+
+  return (
+    <tr key={obs.id} className="hover:bg-slate-50/50 transition-colors">
+      <td className="p-2">
+        <label htmlFor={`obs-participant-${obs.id}`} className="sr-only">Participante</label>
+        <input id={`obs-participant-${obs.id}`} type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-bold text-slate-800" value={obs.participant || ''} onChange={e => handleLocalChange(obs.id!, { participant: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { participant: e.target.value }))} placeholder="P1" />
+      </td>
+      <td className="p-2">
+        <label htmlFor={`obs-profile-${obs.id}`} className="sr-only">Perfil</label>
+        <input id={`obs-profile-${obs.id}`} type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" value={obs.profile || ''} onChange={e => handleLocalChange(obs.id!, { profile: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { profile: e.target.value }))} placeholder="Estudiante" />
+      </td>
+      <td className="p-2 text-center">
+        <label htmlFor={`obs-taskref-${obs.id}`} className="sr-only">Tarea</label>
+        <input id={`obs-taskref-${obs.id}`} type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-black text-navy" value={obs.task_ref || ''} onChange={e => handleLocalChange(obs.id!, { task_ref: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { task_ref: e.target.value }))} placeholder="T1" />
+      </td>
+      <td className="p-3">
+        <label htmlFor={`obs-success-${obs.id}`} className="sr-only">Éxito</label>
+        <select id={`obs-success-${obs.id}`} className={`w-full p-2 border ${okStyle.border} rounded-lg text-[0.75rem] ${okStyle.bg} ${okStyle.text} font-black outline-none cursor-pointer`} value={obs.success_level} onChange={e => { const val = e.target.value as SuccessStatus; handleLocalChange(obs.id!, { success_level: val }); handleActionWithStatus(() => onSave(obs.id!, { success_level: val })); }}>
+          <option value="Sí">Sí</option>
+          <option value="No">No</option>
+          <option value="Con ayuda">Con ayuda</option>
+        </select>
+      </td>
+      <td className="p-2">
+        <label htmlFor={`obs-time-${obs.id}`} className="sr-only">Tiempo</label>
+        <input id={`obs-time-${obs.id}`} type="number" min="0" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-mono font-bold" value={obs.time_seconds} onChange={e => handleLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 }))} placeholder="0" />
+      </td>
+      <td className="p-2">
+        <label htmlFor={`obs-errors-${obs.id}`} className="sr-only">Errores</label>
+        <input id={`obs-errors-${obs.id}`} type="number" min="0" className={`w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-mono font-bold ${obs.errors > 2 ? 'text-red-600' : 'text-slate-800'}`} value={obs.errors} onChange={e => handleLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { errors: parseInt(e.target.value) || 0 }))} placeholder="0" />
+      </td>
+      <td className="p-2">
+        <label htmlFor={`obs-comments-${obs.id}`} className="sr-only">Comentarios</label>
+        <textarea id={`obs-comments-${obs.id}`} className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[60px]" value={obs.comments || ''} onChange={e => handleLocalChange(obs.id!, { comments: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { comments: e.target.value }))} placeholder="Ej. Dudó entre opciones" rows={2} />
+      </td>
+      <td className="p-2">
+        <label htmlFor={`obs-problem-${obs.id}`} className="sr-only">Problema</label>
+        <textarea id={`obs-problem-${obs.id}`} className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-red-400 focus:ring-4 focus:ring-red-50 outline-none font-medium italic text-red-900 min-h-[60px]" value={obs.problem || ''} onChange={e => handleLocalChange(obs.id!, { problem: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" rows={2} />
+      </td>
+      <td className="p-3">
+        <label htmlFor={`obs-severity-${obs.id}`} className="sr-only">Severidad</label>
+        <select id={`obs-severity-${obs.id}`} className={`w-full p-2 border ${sStyle.border} rounded-lg text-[0.75rem] ${sStyle.bg} ${sStyle.text} font-black outline-none cursor-pointer`} value={obs.severity} onChange={e => { const val = e.target.value as Severity; handleLocalChange(obs.id!, { severity: val }); handleActionWithStatus(() => onSave(obs.id!, { severity: val })); }}>
+          <option value="Baja">Baja</option>
+          <option value="Media">Media</option>
+          <option value="Alta">Alta</option>
+          <option value="Crítica">Crítica</option>
+        </select>
+      </td>
+      <td className="p-2">
+        <label htmlFor={`obs-proposal-${obs.id}`} className="sr-only">Mejora</label>
+        <textarea id={`obs-proposal-${obs.id}`} className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none font-medium min-h-[60px]" value={obs.proposal || ''} onChange={e => handleLocalChange(obs.id!, { proposal: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { proposal: e.target.value }))} placeholder="Ej. Renombrar menú" rows={2} />
+      </td>
+      <td className="p-3 text-center">
+        {confirmDelete ? (
+          <div className="flex flex-col gap-1 items-center animate-in zoom-in-95 duration-200">
+            <button
+              type="button"
+              onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }}
+              className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm"
+              title="Confirmar eliminación"
+            >
+              <Check size={14} strokeWidth={3} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(false)}
+              className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm"
+              title="Cancelar"
+            >
+              <X size={14} strokeWidth={3} />
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-600 rounded-lg" onClick={() => setConfirmDelete(true)} aria-label={`Eliminar observación de ${obs.participant || 'participante'} en tarea ${obs.task_ref || ''}`}>
+            <Trash2 size={18} aria-hidden="true" />
+          </button>
+        )}
+      </td>
+    </tr>
   );
 };
 
@@ -313,68 +420,16 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {data.length > 0 ? (
-                        data.map((obs) => {
-                          const sStyle  = severityStyles[obs.severity]     || severityStyles['Baja'];
-                          const okStyle = successStyles[obs.success_level] || successStyles['Sí'];
-                          return (
-                            <tr key={obs.id} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="p-2">
-                                <label htmlFor={`obs-participant-${obs.id}`} className="sr-only">Participante</label>
-                                <input id={`obs-participant-${obs.id}`} type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-bold text-slate-800" value={obs.participant || ''} onChange={e => handleLocalChange(obs.id!, { participant: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { participant: e.target.value }))} placeholder="P1" />
-                              </td>
-                              <td className="p-2">
-                                <label htmlFor={`obs-profile-${obs.id}`} className="sr-only">Perfil</label>
-                                <input id={`obs-profile-${obs.id}`} type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" value={obs.profile || ''} onChange={e => handleLocalChange(obs.id!, { profile: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { profile: e.target.value }))} placeholder="Estudiante" />
-                              </td>
-                              <td className="p-2 text-center">
-                                <label htmlFor={`obs-taskref-${obs.id}`} className="sr-only">Tarea</label>
-                                <input id={`obs-taskref-${obs.id}`} type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-black text-navy" value={obs.task_ref || ''} onChange={e => handleLocalChange(obs.id!, { task_ref: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { task_ref: e.target.value }))} placeholder="T1" />
-                              </td>
-                              <td className="p-3">
-                                <label htmlFor={`obs-success-${obs.id}`} className="sr-only">Éxito</label>
-                                <select id={`obs-success-${obs.id}`} className={`w-full p-2 border ${okStyle.border} rounded-lg text-[0.75rem] ${okStyle.bg} ${okStyle.text} font-black outline-none cursor-pointer`} value={obs.success_level} onChange={e => { const val = e.target.value as SuccessStatus; handleLocalChange(obs.id!, { success_level: val }); handleActionWithStatus(() => onSave(obs.id!, { success_level: val })); }}>
-                                  <option value="Sí">Sí</option>
-                                  <option value="No">No</option>
-                                  <option value="Con ayuda">Con ayuda</option>
-                                </select>
-                              </td>
-                              <td className="p-2">
-                                <label htmlFor={`obs-time-${obs.id}`} className="sr-only">Tiempo</label>
-                                <input id={`obs-time-${obs.id}`} type="number" min="0" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-mono font-bold" value={obs.time_seconds} onChange={e => handleLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 }))} placeholder="0" />
-                              </td>
-                              <td className="p-2">
-                                <label htmlFor={`obs-errors-${obs.id}`} className="sr-only">Errores</label>
-                                <input id={`obs-errors-${obs.id}`} type="number" min="0" className={`w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-mono font-bold ${obs.errors > 2 ? 'text-red-600' : 'text-slate-800'}`} value={obs.errors} onChange={e => handleLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { errors: parseInt(e.target.value) || 0 }))} placeholder="0" />
-                              </td>
-                              <td className="p-2">
-                                <label htmlFor={`obs-comments-${obs.id}`} className="sr-only">Comentarios</label>
-                                <textarea id={`obs-comments-${obs.id}`} className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[60px]" value={obs.comments || ''} onChange={e => handleLocalChange(obs.id!, { comments: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { comments: e.target.value }))} placeholder="Ej. Dudó entre opciones" rows={2} />
-                              </td>
-                              <td className="p-2">
-                                <label htmlFor={`obs-problem-${obs.id}`} className="sr-only">Problema</label>
-                                <textarea id={`obs-problem-${obs.id}`} className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-red-400 focus:ring-4 focus:ring-red-50 outline-none font-medium italic text-red-900 min-h-[60px]" value={obs.problem || ''} onChange={e => handleLocalChange(obs.id!, { problem: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" rows={2} />
-                              </td>
-                              <td className="p-3">
-                                <label htmlFor={`obs-severity-${obs.id}`} className="sr-only">Severidad</label>
-                                <select id={`obs-severity-${obs.id}`} className={`w-full p-2 border ${sStyle.border} rounded-lg text-[0.75rem] ${sStyle.bg} ${sStyle.text} font-black outline-none cursor-pointer`} value={obs.severity} onChange={e => { const val = e.target.value as Severity; handleLocalChange(obs.id!, { severity: val }); handleActionWithStatus(() => onSave(obs.id!, { severity: val })); }}>
-                                  <option value="Baja">Baja</option>
-                                  <option value="Media">Media</option>
-                                  <option value="Alta">Alta</option>
-                                  <option value="Crítica">Crítica</option>
-                                </select>
-                              </td>
-                              <td className="p-2">
-                                <label htmlFor={`obs-proposal-${obs.id}`} className="sr-only">Mejora</label>
-                                <textarea id={`obs-proposal-${obs.id}`} className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none font-medium min-h-[60px]" value={obs.proposal || ''} onChange={e => handleLocalChange(obs.id!, { proposal: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { proposal: e.target.value }))} placeholder="Ej. Renombrar menú" rows={2} />
-                              </td>
-                              <td className="p-3 text-center">
-                                <button type="button" className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-600 rounded-lg" onClick={() => onDelete(obs.id!)} aria-label={`Eliminar observación de ${obs.participant || 'participante'} en tarea ${obs.task_ref || ''}`}>
-                                  <Trash2 size={18} aria-hidden="true" />
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })
+                        data.map((obs) => (
+                          <ObservationRow
+                            key={obs.id}
+                            obs={obs}
+                            handleLocalChange={handleLocalChange}
+                            handleActionWithStatus={handleActionWithStatus}
+                            onSave={onSave}
+                            onDelete={onDelete}
+                          />
+                        ))
                       ) : (
                         <tr><td colSpan={11} className="p-12 text-center text-slate-500 italic font-medium">No hay observaciones registradas. Haz clic en el botón de abajo para empezar.</td></tr>
                       )}

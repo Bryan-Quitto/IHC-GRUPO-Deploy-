@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TestPlan, TestTask } from '../models/types';
-import { Plus, Trash2, CheckCircle, RefreshCcw } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, RefreshCcw, Check, X } from 'lucide-react';
 
 function useWindowWidth() {
   const [width, setWidth] = useState(() => window.innerWidth);
@@ -23,6 +23,158 @@ interface PlanViewProps {
   onSaveTask: (id: string, updates: Partial<TestTask>) => void;
   onDeleteTask: (id: string) => void;
 }
+
+/* ── Tarjeta de tarea para móvil ── */
+const TaskCard: React.FC<{
+  task: TestTask;
+  handleTaskChange: (id: string, updates: Partial<TestTask>) => void;
+  onSaveTask: (id: string, updates: Partial<TestTask>) => void;
+  onDeleteTask: (id: string) => void;
+}> = ({ task, handleTaskChange, onSaveTask, onDeleteTask }) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  return (
+    <article
+      className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm"
+      aria-label={`Tarea ${task.task_index}`}
+    >
+      <div className="bg-navy px-4 py-2 flex justify-between items-center text-white">
+        <span className="font-bold text-sm">Tarea {task.task_index}</span>
+        {confirmDelete ? (
+          <div className="flex gap-2 items-center animate-in zoom-in-95 duration-200">
+            <span className="text-[0.65rem] text-red-300 font-black uppercase tracking-widest">¿Eliminar?</span>
+            <button
+              type="button"
+              onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }}
+              className="inline-flex items-center justify-center w-7 h-7 bg-red-600 text-white border-none rounded-md cursor-pointer transition-all hover:bg-red-700"
+              title="Confirmar"
+            >
+              <Check size={14} strokeWidth={3} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(false)}
+              className="inline-flex items-center justify-center w-7 h-7 bg-white/10 text-white border-none rounded-md cursor-pointer transition-all hover:bg-white/20"
+              title="Cancelar"
+            >
+              <X size={14} strokeWidth={3} />
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="bg-transparent border-none text-red-300 p-1 cursor-pointer transition-colors hover:text-red-500" onClick={() => setConfirmDelete(true)} aria-label={`Eliminar ${task.task_index}`}>
+            <Trash2 size={16} aria-hidden="true" />
+          </button>
+        )}
+      </div>
+      <div className="p-4 flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`m-scenario-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Escenario / tarea</label>
+          <input id={`m-scenario-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.scenario || ''} onChange={e => handleTaskChange(task.id!, { scenario: e.target.value })} onBlur={e => onSaveTask(task.id!, { scenario: e.target.value })} placeholder="Ej. Imagina que quieres comprar..." />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`m-expected-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Resultado esperado</label>
+          <input id={`m-expected-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.expected_result || ''} onChange={e => handleTaskChange(task.id!, { expected_result: e.target.value })} onBlur={e => onSaveTask(task.id!, { expected_result: e.target.value })} placeholder="Ej. El usuario llega a la confirmación." />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor={`m-metric-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Métrica</label>
+            <input id={`m-metric-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.main_metric || ''} onChange={e => handleTaskChange(task.id!, { main_metric: e.target.value })} onBlur={e => onSaveTask(task.id!, { main_metric: e.target.value })} placeholder="Tiempo..." />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor={`m-criteria-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Criterio</label>
+            <input id={`m-criteria-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.success_criteria || ''} onChange={e => handleTaskChange(task.id!, { success_criteria: e.target.value })} onBlur={e => onSaveTask(task.id!, { success_criteria: e.target.value })} placeholder="Sin errores..." />
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+};
+
+/* ── Fila de tarea para desktop ── */
+const TaskRow: React.FC<{
+  task: TestTask;
+  handleTaskChange: (id: string, updates: Partial<TestTask>) => void;
+  onSaveTask: (id: string, updates: Partial<TestTask>) => void;
+  onDeleteTask: (id: string) => void;
+}> = ({ task, handleTaskChange, onSaveTask, onDeleteTask }) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  return (
+    <tr className="hover:bg-slate-50 transition-colors">
+      <td className="p-3 text-center"><span className="id-badge">{task.task_index}</span></td>
+      <td className="p-2">
+        <input 
+          type="text" 
+          className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
+          aria-label={`Escenario para ${task.task_index}`} 
+          value={task.scenario || ''} 
+          onChange={e => handleTaskChange(task.id!, { scenario: e.target.value })} 
+          onBlur={e => onSaveTask(task.id!, { scenario: e.target.value })} 
+          placeholder="Ej. Imagina que quieres comprar..." 
+        />
+      </td>
+      <td className="p-2">
+        <input 
+          type="text" 
+          className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
+          aria-label={`Resultado esperado para ${task.task_index}`} 
+          value={task.expected_result || ''} 
+          onChange={e => handleTaskChange(task.id!, { expected_result: e.target.value })} 
+          onBlur={e => onSaveTask(task.id!, { expected_result: e.target.value })} 
+          placeholder="Ej. El usuario llega a la confirmación." 
+        />
+      </td>
+      <td className="p-2">
+        <input 
+          type="text" 
+          className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
+          aria-label={`Métrica para ${task.task_index}`} 
+          value={task.main_metric || ''} 
+          onChange={e => handleTaskChange(task.id!, { main_metric: e.target.value })} 
+          onBlur={e => onSaveTask(task.id!, { main_metric: e.target.value })} 
+          placeholder="Ej. Tiempo, Tasa de éxito..." 
+        />
+      </td>
+      <td className="p-2">
+        <input 
+          type="text" 
+          className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
+          aria-label={`Criterio de éxito para ${task.task_index}`} 
+          value={task.success_criteria || ''} 
+          onChange={e => handleTaskChange(task.id!, { success_criteria: e.target.value })} 
+          onBlur={e => onSaveTask(task.id!, { success_criteria: e.target.value })} 
+          placeholder="Ej. Sin errores críticos..." 
+        />
+      </td>
+      <td className="p-3 text-center">
+        {confirmDelete ? (
+          <div className="flex flex-col gap-1 items-center animate-in zoom-in-95 duration-200">
+            <button
+              type="button"
+              onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }}
+              className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm"
+              title="Confirmar eliminación"
+            >
+              <Check size={14} strokeWidth={3} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(false)}
+              className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm"
+              title="Cancelar"
+            >
+              <X size={14} strokeWidth={3} />
+            </button>
+          </div>
+        ) : (
+          <button className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" onClick={() => setConfirmDelete(true)} type="button" aria-label={`Eliminar ${task.task_index}`}>
+            <Trash2 size={18} aria-hidden="true" />
+          </button>
+        )}
+      </td>
+    </tr>
+  );
+};
 
 export const PlanView: React.FC<PlanViewProps> = ({
   data, tasks, onUpdate, onSyncPlan, onSyncTasks, onAddTask, onSaveTask, onDeleteTask
@@ -198,38 +350,13 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 </p>
               ) : (
                 tasks.map((task) => (
-                  <article
-                    key={task.id}
-                    className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm"
-                    aria-label={`Tarea ${task.task_index}`}
-                  >
-                    <div className="bg-navy px-4 py-2 flex justify-between items-center text-white">
-                      <span className="font-bold text-sm">Tarea {task.task_index}</span>
-                      <button type="button" className="bg-transparent border-none text-red-300 p-1 cursor-pointer transition-colors hover:text-red-500" onClick={() => onDeleteTask(task.id!)} aria-label={`Eliminar ${task.task_index}`}>
-                        <Trash2 size={16} aria-hidden="true" />
-                      </button>
-                    </div>
-                    <div className="p-4 flex flex-col gap-4">
-                      <div className="flex flex-col gap-1.5">
-                        <label htmlFor={`m-scenario-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Escenario / tarea</label>
-                        <input id={`m-scenario-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.scenario || ''} onChange={e => handleTaskChange(task.id!, { scenario: e.target.value })} onBlur={e => onSaveTask(task.id!, { scenario: e.target.value })} placeholder="Ej. Imagina que quieres comprar..." />
-                      </div>
-                      <div className="flex flex-col gap-1.5">
-                        <label htmlFor={`m-expected-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Resultado esperado</label>
-                        <input id={`m-expected-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.expected_result || ''} onChange={e => handleTaskChange(task.id!, { expected_result: e.target.value })} onBlur={e => onSaveTask(task.id!, { expected_result: e.target.value })} placeholder="Ej. El usuario llega a la confirmación." />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-1.5">
-                          <label htmlFor={`m-metric-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Métrica</label>
-                          <input id={`m-metric-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.main_metric || ''} onChange={e => handleTaskChange(task.id!, { main_metric: e.target.value })} onBlur={e => onSaveTask(task.id!, { main_metric: e.target.value })} placeholder="Tiempo..." />
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          <label htmlFor={`m-criteria-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Criterio</label>
-                          <input id={`m-criteria-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.success_criteria || ''} onChange={e => handleTaskChange(task.id!, { success_criteria: e.target.value })} onBlur={e => onSaveTask(task.id!, { success_criteria: e.target.value })} placeholder="Sin errores..." />
-                        </div>
-                      </div>
-                    </div>
-                  </article>
+                  <TaskCard 
+                    key={task.id} 
+                    task={task} 
+                    handleTaskChange={handleTaskChange} 
+                    onSaveTask={onSaveTask} 
+                    onDeleteTask={onDeleteTask} 
+                  />
                 ))
               )}
               <button type="button" className="inline-flex items-center justify-center gap-2 bg-green-600 text-white border-none p-3.5 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-green-100 mt-2" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty}>
@@ -258,58 +385,13 @@ export const PlanView: React.FC<PlanViewProps> = ({
                   <tbody className="divide-y divide-slate-100">
                     {tasks.length > 0 ? (
                       tasks.map((task) => (
-                        <tr key={task.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="p-3 text-center"><span className="id-badge">{task.task_index}</span></td>
-                          <td className="p-2">
-                            <input 
-                              type="text" 
-                              className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
-                              aria-label={`Escenario para ${task.task_index}`} 
-                              value={task.scenario || ''} 
-                              onChange={e => handleTaskChange(task.id!, { scenario: e.target.value })} 
-                              onBlur={e => onSaveTask(task.id!, { scenario: e.target.value })} 
-                              placeholder="Ej. Imagina que quieres comprar..." 
-                            />
-                          </td>
-                          <td className="p-2">
-                            <input 
-                              type="text" 
-                              className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
-                              aria-label={`Resultado esperado para ${task.task_index}`} 
-                              value={task.expected_result || ''} 
-                              onChange={e => handleTaskChange(task.id!, { expected_result: e.target.value })} 
-                              onBlur={e => onSaveTask(task.id!, { expected_result: e.target.value })} 
-                              placeholder="Ej. El usuario llega a la confirmación." 
-                            />
-                          </td>
-                          <td className="p-2">
-                            <input 
-                              type="text" 
-                              className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
-                              aria-label={`Métrica para ${task.task_index}`} 
-                              value={task.main_metric || ''} 
-                              onChange={e => handleTaskChange(task.id!, { main_metric: e.target.value })} 
-                              onBlur={e => onSaveTask(task.id!, { main_metric: e.target.value })} 
-                              placeholder="Ej. Tiempo, Tasa de éxito..." 
-                            />
-                          </td>
-                          <td className="p-2">
-                            <input 
-                              type="text" 
-                              className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
-                              aria-label={`Criterio de éxito para ${task.task_index}`} 
-                              value={task.success_criteria || ''} 
-                              onChange={e => handleTaskChange(task.id!, { success_criteria: e.target.value })} 
-                              onBlur={e => onSaveTask(task.id!, { success_criteria: e.target.value })} 
-                              placeholder="Ej. Sin errores críticos..." 
-                            />
-                          </td>
-                          <td className="p-3 text-center">
-                            <button className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" onClick={() => onDeleteTask(task.id!)} type="button" aria-label={`Eliminar ${task.task_index}`}>
-                              <Trash2 size={18} aria-hidden="true" />
-                            </button>
-                          </td>
-                        </tr>
+                        <TaskRow 
+                          key={task.id} 
+                          task={task} 
+                          handleTaskChange={handleTaskChange} 
+                          onSaveTask={onSaveTask} 
+                          onDeleteTask={onDeleteTask} 
+                        />
                       ))
                     ) : (
                       <tr><td colSpan={6} className="p-12 text-center text-slate-500 italic font-medium">No hay tareas añadidas. Haz clic en el botón de abajo para empezar.</td></tr>

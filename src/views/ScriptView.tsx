@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, CheckCircle, RefreshCcw, ClipboardList } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, RefreshCcw, ClipboardList, Check, X } from 'lucide-react';
 import { TestPlan, TestTask, ClosingQuestion } from '../models/types';
 
 interface ScriptViewProps {
@@ -13,6 +13,113 @@ interface ScriptViewProps {
   onDeleteTask: (id: string) => void;
   onGoToPlan: () => void;
 }
+
+const ScriptTaskRow: React.FC<{
+  task: TestTask;
+  handleTaskChange: (id: string, updates: Partial<TestTask>) => void;
+  handleActionWithStatus: (action: () => void) => void;
+  onSaveTask: (id: string, updates: Partial<TestTask>) => void;
+  onDeleteTask: (id: string) => void;
+}> = ({ task, handleTaskChange, handleActionWithStatus, onSaveTask, onDeleteTask }) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  return (
+    <tr key={task.id} className="hover:bg-slate-50 transition-colors">
+      <td className="p-3 text-center">
+        <span className="id-badge">{task.task_index}</span>
+      </td>
+
+      <td className="p-2">
+        <label htmlFor={`script-text-${task.id}`} className="sr-only">
+          Texto de la tarea {task.task_index}
+        </label>
+        <textarea
+          id={`script-text-${task.id}`}
+          className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
+          value={task.script_task_text || ''}
+          onChange={(e) => handleTaskChange(task.id!, { script_task_text: e.target.value })}
+          onBlur={(e) =>
+            handleActionWithStatus(() =>
+              onSaveTask(task.id!, { script_task_text: e.target.value })
+            )
+          }
+          placeholder="Ej. Imagina que quieres..."
+          rows={3}
+        />
+      </td>
+
+      <td className="p-2">
+        <label htmlFor={`script-followup-${task.id}`} className="sr-only">
+          Pregunta de seguimiento {task.task_index}
+        </label>
+        <textarea
+          id={`script-followup-${task.id}`}
+          className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
+          value={task.script_follow_up || ''}
+          onChange={(e) => handleTaskChange(task.id!, { script_follow_up: e.target.value })}
+          onBlur={(e) =>
+            handleActionWithStatus(() =>
+              onSaveTask(task.id!, { script_follow_up: e.target.value })
+            )
+          }
+          placeholder="Ej. ¿Qué esperabas...?"
+          rows={3}
+        />
+      </td>
+
+      <td className="p-2">
+        <label htmlFor={`script-success-${task.id}`} className="sr-only">
+          Éxito esperado {task.task_index}
+        </label>
+        <textarea
+          id={`script-success-${task.id}`}
+          className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
+          value={task.script_expected_success || ''}
+          onChange={(e) => handleTaskChange(task.id!, { script_expected_success: e.target.value })}
+          onBlur={(e) =>
+            handleActionWithStatus(() =>
+              onSaveTask(task.id!, { script_expected_success: e.target.value })
+            )
+          }
+          placeholder="Ej. Encuentra la nota..."
+          rows={3}
+        />
+      </td>
+
+      <td className="p-3 text-center">
+        {confirmDelete ? (
+          <div className="flex flex-col gap-1 items-center animate-in zoom-in-95 duration-200">
+            <button
+              type="button"
+              onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }}
+              className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm"
+              title="Confirmar eliminación"
+            >
+              <Check size={14} strokeWidth={3} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(false)}
+              className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm"
+              title="Cancelar"
+            >
+              <X size={14} strokeWidth={3} />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg"
+            onClick={() => setConfirmDelete(true)}
+            aria-label={`Eliminar tarea ${task.task_index}`}
+          >
+            <Trash2 size={18} aria-hidden="true" />
+          </button>
+        )}
+      </td>
+    </tr>
+  );
+};
 
 export const ScriptView: React.FC<ScriptViewProps> = ({
   testPlan,
@@ -199,79 +306,14 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                   <tbody className="divide-y divide-slate-100">
                     {tasks.length > 0 ? (
                       tasks.map((task) => (
-                        <tr key={task.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="p-3 text-center">
-                            <span className="id-badge">{task.task_index}</span>
-                          </td>
-
-                          <td className="p-2">
-                            <label htmlFor={`script-text-${task.id}`} className="sr-only">
-                              Texto de la tarea {task.task_index}
-                            </label>
-                            <textarea
-                              id={`script-text-${task.id}`}
-                              className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
-                              value={task.script_task_text || ''}
-                              onChange={(e) => handleTaskChange(task.id!, { script_task_text: e.target.value })}
-                              onBlur={(e) =>
-                                handleActionWithStatus(() =>
-                                  onSaveTask(task.id!, { script_task_text: e.target.value })
-                                )
-                              }
-                              placeholder="Ej. Imagina que quieres..."
-                              rows={3}
-                            />
-                          </td>
-
-                          <td className="p-2">
-                            <label htmlFor={`script-followup-${task.id}`} className="sr-only">
-                              Pregunta de seguimiento {task.task_index}
-                            </label>
-                            <textarea
-                              id={`script-followup-${task.id}`}
-                              className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
-                              value={task.script_follow_up || ''}
-                              onChange={(e) => handleTaskChange(task.id!, { script_follow_up: e.target.value })}
-                              onBlur={(e) =>
-                                handleActionWithStatus(() =>
-                                  onSaveTask(task.id!, { script_follow_up: e.target.value })
-                                )
-                              }
-                              placeholder="Ej. ¿Qué esperabas...?"
-                              rows={3}
-                            />
-                          </td>
-
-                          <td className="p-2">
-                            <label htmlFor={`script-success-${task.id}`} className="sr-only">
-                              Éxito esperado {task.task_index}
-                            </label>
-                            <textarea
-                              id={`script-success-${task.id}`}
-                              className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
-                              value={task.script_expected_success || ''}
-                              onChange={(e) => handleTaskChange(task.id!, { script_expected_success: e.target.value })}
-                              onBlur={(e) =>
-                                handleActionWithStatus(() =>
-                                  onSaveTask(task.id!, { script_expected_success: e.target.value })
-                                )
-                              }
-                              placeholder="Ej. Encuentra la nota..."
-                              rows={3}
-                            />
-                          </td>
-
-                          <td className="p-3 text-center">
-                            <button
-                              type="button"
-                              className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg"
-                              onClick={() => onDeleteTask(task.id!)}
-                              aria-label={`Eliminar tarea ${task.task_index}`}
-                            >
-                              <Trash2 size={18} aria-hidden="true" />
-                            </button>
-                          </td>
-                        </tr>
+                        <ScriptTaskRow
+                          key={task.id}
+                          task={task}
+                          handleTaskChange={handleTaskChange}
+                          handleActionWithStatus={handleActionWithStatus}
+                          onSaveTask={onSaveTask}
+                          onDeleteTask={onDeleteTask}
+                        />
                       ))
                     ) : (
                       <tr>

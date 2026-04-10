@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Finding, Severity, Priority, TaskStatus } from '../models/types';
-import { Trash2, Plus, CheckCircle, RefreshCcw, AlertTriangle, Info } from 'lucide-react';
+import { Trash2, Plus, CheckCircle, RefreshCcw, AlertTriangle, Info, Check, X } from 'lucide-react';
 
 // ─── Hook para detectar ancho de ventana ─────────────────────────────────────
 function useWindowWidth() {
@@ -150,9 +150,23 @@ const FindingCard: React.FC<{
         <div className="flex justify-end pt-2 border-t border-slate-100 mt-2">
           {confirmDelete ? (
             <div className="flex gap-2 items-center animate-in zoom-in-95 duration-200">
-              <span className="text-[0.8rem] text-red-600 font-black uppercase">¿Seguro?</span>
-              <button type="button" onClick={() => { onDelete(f.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-lg px-4 py-1.5 text-[0.8rem] cursor-pointer font-bold shadow-lg shadow-red-100">Eliminar</button>
-              <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-100 text-slate-600 border-none rounded-lg px-4 py-1.5 text-[0.8rem] cursor-pointer font-bold">No</button>
+              <span className="text-[0.7rem] text-red-600 font-black uppercase tracking-widest">Confirmar:</span>
+              <button
+                type="button"
+                onClick={() => { onDelete(f.id!); setConfirmDelete(false); }}
+                className="inline-flex items-center justify-center w-8 h-8 bg-red-600 text-white border-none rounded-lg cursor-pointer transition-all hover:bg-red-700 shadow-md shadow-red-100"
+                title="Confirmar eliminación"
+              >
+                <Check size={16} strokeWidth={3} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-500 border-none rounded-lg cursor-pointer transition-all hover:bg-slate-200"
+                title="Cancelar"
+              >
+                <X size={16} strokeWidth={3} />
+              </button>
             </div>
           ) : (
             <button type="button" className="inline-flex items-center gap-1.5 bg-transparent border-none text-slate-400 cursor-pointer p-2 rounded-lg transition-all hover:bg-red-50 hover:text-red-600" onClick={() => setConfirmDelete(true)}>
@@ -163,6 +177,101 @@ const FindingCard: React.FC<{
         </div>
       </div>
     </article>
+  );
+};
+
+// ─── Fila de la tabla para vista desktop ─────────────────────────────────────
+const FindingRow: React.FC<{
+  f: Finding;
+  idx: number;
+  handleLocalChange: (id: string, updates: Partial<Finding>) => void;
+  handleActionWithStatus: (action: () => void) => void;
+  onSave: (id: string, updates: Partial<Finding>) => void;
+  onDelete: (id: string) => void;
+}> = ({ f, idx, handleLocalChange, handleActionWithStatus, onSave, onDelete }) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const sev = SEVERITY_STYLES[f.severity] ?? SEVERITY_STYLES.Baja;
+  const pri = PRIORITY_STYLES[f.priority] ?? PRIORITY_STYLES.Baja;
+  const sta = STATUS_STYLES[f.status] ?? STATUS_STYLES.Pendiente;
+
+  return (
+    <tr className="hover:bg-slate-50/50 transition-colors">
+      <td className="p-3 text-center">
+        <span className="id-badge">{idx + 1}</span>
+      </td>
+      <td className="p-2">
+        <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-bold" value={f.problem || ''} onChange={e => handleLocalChange(f.id!, { problem: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" rows={2} />
+      </td>
+      <td className="p-2">
+        <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium italic text-slate-600" value={f.evidence || ''} onChange={e => handleLocalChange(f.id!, { evidence: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4/5 fallaron" rows={2} />
+      </td>
+      <td className="p-2 text-center">
+        <input type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-mono" value={f.frequency || ''} onChange={e => handleLocalChange(f.id!, { frequency: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="4/5" />
+      </td>
+      <td className="p-3">
+        <select className={`w-full p-2 border ${sev.border} rounded-lg text-[0.75rem] ${sev.bg} ${sev.text} font-black outline-none cursor-pointer`} value={f.severity} onChange={e => {
+          const val = e.target.value as Severity;
+          handleLocalChange(f.id!, { severity: val });
+          handleActionWithStatus(() => onSave(f.id!, { severity: val }));
+        }}>
+          <option value="Baja">Baja</option>
+          <option value="Media">Media</option>
+          <option value="Alta">Alta</option>
+          <option value="Crítica">Crítica</option>
+        </select>
+      </td>
+      <td className="p-2">
+        <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none font-medium text-green-900" value={f.recommendation || ''} onChange={e => handleLocalChange(f.id!, { recommendation: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Mejora..." rows={2} />
+      </td>
+      <td className="p-3">
+        <select className={`w-full p-2 border ${pri.border} rounded-lg text-[0.75rem] ${pri.bg} ${pri.text} font-black outline-none cursor-pointer`} value={f.priority} onChange={e => {
+          const val = e.target.value as Priority;
+          handleLocalChange(f.id!, { priority: val });
+          handleActionWithStatus(() => onSave(f.id!, { priority: val }));
+        }}>
+          <option value="Baja">Baja</option>
+          <option value="Media">Media</option>
+          <option value="Alta">Alta</option>
+        </select>
+      </td>
+      <td className="p-3">
+        <select className={`w-full p-2 border ${sta.border} rounded-lg text-[0.75rem] ${sta.bg} ${sta.text} font-black outline-none cursor-pointer`} value={f.status} onChange={e => {
+          const val = e.target.value as TaskStatus;
+          handleLocalChange(f.id!, { status: val });
+          handleActionWithStatus(() => onSave(f.id!, { status: val }));
+        }}>
+          <option value="Pendiente">⏳ Pendiente</option>
+          <option value="En progreso">🔄 En progreso</option>
+          <option value="Resuelto">✅ Resuelto</option>
+        </select>
+      </td>
+      <td className="p-3 text-center">
+        {confirmDelete ? (
+          <div className="flex flex-col gap-1 items-center animate-in zoom-in-95 duration-200">
+            <button
+              type="button"
+              onClick={() => { onDelete(f.id!); setConfirmDelete(false); }}
+              className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm"
+              title="Confirmar eliminación"
+            >
+              <Check size={14} strokeWidth={3} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(false)}
+              className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm"
+              title="Cancelar"
+            >
+              <X size={14} strokeWidth={3} />
+            </button>
+          </div>
+        ) : (
+          <button className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" type="button" onClick={() => setConfirmDelete(true)}>
+            <Trash2 size={18} aria-hidden="true" />
+          </button>
+        )}
+      </td>
+    </tr>
   );
 };
 
@@ -252,69 +361,17 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {data.length > 0 ? data.map((f, idx) => {
-                        const sev = SEVERITY_STYLES[f.severity] ?? SEVERITY_STYLES.Baja;
-                        const pri = PRIORITY_STYLES[f.priority] ?? PRIORITY_STYLES.Baja;
-                        const sta = STATUS_STYLES[f.status] ?? STATUS_STYLES.Pendiente;
-                        return (
-                          <tr key={f.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-3 text-center">
-                              <span className="id-badge">{idx + 1}</span>
-                            </td>
-                            <td className="p-2">
-                              <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-bold" value={f.problem || ''} onChange={e => handleLocalChange(f.id!, { problem: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" rows={2} />
-                            </td>
-                            <td className="p-2">
-                              <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium italic text-slate-600" value={f.evidence || ''} onChange={e => handleLocalChange(f.id!, { evidence: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4/5 fallaron" rows={2} />
-                            </td>
-                            <td className="p-2 text-center">
-                              <input type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-mono" value={f.frequency || ''} onChange={e => handleLocalChange(f.id!, { frequency: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="4/5" />
-                            </td>
-                            <td className="p-3">
-                              <select className={`w-full p-2 border ${sev.border} rounded-lg text-[0.75rem] ${sev.bg} ${sev.text} font-black outline-none cursor-pointer`} value={f.severity} onChange={e => {
-                                const val = e.target.value as Severity;
-                                handleLocalChange(f.id!, { severity: val });
-                                handleActionWithStatus(() => onSave(f.id!, { severity: val }));
-                              }}>
-                                <option value="Baja">Baja</option>
-                                <option value="Media">Media</option>
-                                <option value="Alta">Alta</option>
-                                <option value="Crítica">Crítica</option>
-                              </select>
-                            </td>
-                            <td className="p-2">
-                              <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none font-medium text-green-900" value={f.recommendation || ''} onChange={e => handleLocalChange(f.id!, { recommendation: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Mejora..." rows={2} />
-                            </td>
-                            <td className="p-3">
-                              <select className={`w-full p-2 border ${pri.border} rounded-lg text-[0.75rem] ${pri.bg} ${pri.text} font-black outline-none cursor-pointer`} value={f.priority} onChange={e => {
-                                const val = e.target.value as Priority;
-                                handleLocalChange(f.id!, { priority: val });
-                                handleActionWithStatus(() => onSave(f.id!, { priority: val }));
-                              }}>
-                                <option value="Baja">Baja</option>
-                                <option value="Media">Media</option>
-                                <option value="Alta">Alta</option>
-                              </select>
-                            </td>
-                            <td className="p-3">
-                              <select className={`w-full p-2 border ${sta.border} rounded-lg text-[0.75rem] ${sta.bg} ${sta.text} font-black outline-none cursor-pointer`} value={f.status} onChange={e => {
-                                const val = e.target.value as TaskStatus;
-                                handleLocalChange(f.id!, { status: val });
-                                handleActionWithStatus(() => onSave(f.id!, { status: val }));
-                              }}>
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En progreso">🔄 En progreso</option>
-                                <option value="Resuelto">✅ Resuelto</option>
-                              </select>
-                            </td>
-                            <td className="p-3 text-center">
-                              <button className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" type="button" onClick={() => onDelete(f.id!)}>
-                                <Trash2 size={18} aria-hidden="true" />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      }) : (
+                      {data.length > 0 ? data.map((f, idx) => (
+                        <FindingRow
+                          key={f.id}
+                          f={f}
+                          idx={idx}
+                          handleLocalChange={handleLocalChange}
+                          handleActionWithStatus={handleActionWithStatus}
+                          onSave={onSave}
+                          onDelete={onDelete}
+                        />
+                      )) : (
                         <tr><td colSpan={9} className="p-12 text-center text-slate-500 italic font-medium">No hay hallazgos todavía.</td></tr>
                       )}
                     </tbody>
