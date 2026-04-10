@@ -1,8 +1,10 @@
 import React, { useState, Suspense, lazy, useEffect } from 'react';
-import { Routes, Route, useParams, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, useParams, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
 import { useUsabilityApp } from './controllers/useUsabilityApp';
+import { useAuth } from './controllers/useAuth';
 import { TabNavigation } from './components/TabNavigation';
+import Header from './components/Header';
 import { Trash2, AlertTriangle, ArrowLeft, Save } from 'lucide-react';
 import { DashboardTab } from './models/types';
 
@@ -13,12 +15,26 @@ const ScriptView = lazy(() => import('./views/ScriptView').then(module => ({ def
 const ObservationsView = lazy(() => import('./views/ObservationsView').then(module => ({ default: module.ObservationsView })));
 const FindingsView = lazy(() => import('./views/FindingsView').then(module => ({ default: module.FindingsView })));
 const ReportsView = lazy(() => import('./views/ReportsView').then(module => ({ default: module.ReportsView })));
+const LoginView = lazy(() => import('./views/LoginView'));
+const RegisterView = lazy(() => import('./views/RegisterView'));
+const SettingsView = lazy(() => import('./views/SettingsView'));
 
 const LazyLoader = () => (
   <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b', fontStyle: 'italic' }}>
     Cargando sección...
   </div>
 );
+
+// Componente para proteger rutas
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { session, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return <div className="loading-screen"><div className="spinner" /></div>;
+  if (!session) return <Navigate to="/login" state={{ from: location }} replace />;
+
+  return <>{children}</>;
+};
 
 const PlanDetailContainer: React.FC<{
   controller: ReturnType<typeof useUsabilityApp>
@@ -269,34 +285,52 @@ const App: React.FC = () => {
 
   return (
     <div className="container">
-      <header className="main-header">
-        <h1>Plan de Test de Usabilidad</h1>
-        <p>Registra, analiza y mejora la experiencia de tus usuarios.</p>
-      </header>
+      <Header />
+      
+      <div style={{ marginTop: '80px' }}>
+        <Routes>
+          {/* Rutas Públicas */}
+          <Route path="/login" element={<Suspense fallback={<LazyLoader />}><LoginView /></Suspense>} />
+          <Route path="/register" element={<Suspense fallback={<LazyLoader />}><RegisterView /></Suspense>} />
+          
+          {/* Rutas Protegidas */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <div className="view-transition">
+                <header className="main-banner">
+                  <h1>Plan de Test de Usabilidad</h1>
+                  <p>Registra, analiza y mejora la experiencia de tus usuarios.</p>
+                </header>
+                <Suspense fallback={<LazyLoader />}>
+                  <GlobalDashboard
+                    loading={loading}
+                    allPlans={allPlans}
+                    allObservations={allObservations}
+                    allFindings={allFindings}
+                    onSelectPlan={(plan) => navigate(`/plan/${plan.id}`)}
+                    onCreatePlan={() => { handleCreateNewPlan(); navigate('/plan/new'); }}
+                    onDeletePlan={handleDeletePlan}
+                  />
+                </Suspense>
+              </div>
+            </ProtectedRoute>
+          } />
 
-      <Routes>
-        <Route path="/" element={
-          <div className="view-transition">
-            <Suspense fallback={<LazyLoader />}>
-              <GlobalDashboard
-                loading={loading}
-                allPlans={allPlans}
-                allObservations={allObservations}
-                allFindings={allFindings}
-                onSelectPlan={(plan) => navigate(`/plan/${plan.id}`)}
-                onCreatePlan={() => { handleCreateNewPlan(); navigate('/plan/new'); }}
-                onDeletePlan={handleDeletePlan}
-              />
-            </Suspense>
-          </div>
-        } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <Suspense fallback={<LazyLoader />}>
+                <SettingsView />
+              </Suspense>
+            </ProtectedRoute>
+          } />
 
-        <Route path="/plan/:id" element={<PlanDetailContainer controller={controller} />} />
-        <Route path="/plan/:id/:tab" element={<PlanDetailContainer controller={controller} />} />
-        
-        {/* Redirección por defecto */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          <Route path="/plan/:id" element={<ProtectedRoute><PlanDetailContainer controller={controller} /></ProtectedRoute>} />
+          <Route path="/plan/:id/:tab" element={<ProtectedRoute><PlanDetailContainer controller={controller} /></ProtectedRoute>} />
+          
+          {/* Redirección por defecto */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
 
       <footer className="main-footer">
         Grupo 3: Mateo Auz, Kerly Chicaiza, Bryan Quitto, Pedro Supe

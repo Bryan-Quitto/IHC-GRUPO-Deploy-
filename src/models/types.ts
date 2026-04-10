@@ -23,6 +23,14 @@ export interface ClosingQuestion {
   answer: string;
 }
 
+export interface UserProfile {
+  id: string;
+  email: string;
+  full_name?: string;
+  avatar_url?: string;
+  updated_at: string;
+}
+
 export interface TestPlan {
   id?: string;
   product: string;
