@@ -560,55 +560,55 @@ ${sec('📋','Conclusiones y Recomendaciones','Síntesis ejecutiva de los hallaz
     <div role="tabpanel" aria-labelledby="reports-tab" className="dashboard-view">
 
       {/* Cabecera de pantalla */}
-      <header className="view-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '1rem 1.5rem' }}>
-        <h2 style={{ margin: 0, flex: 1, textAlign: 'center', fontSize: '1.3rem' }}>
+      <header className="view-header no-print bg-[#003366] text-white p-4 md:px-6 shadow-md flex items-center justify-between gap-4">
+        <div className="flex-1" /> {/* Spacer para centrado */}
+        <h2 className="m-0 text-lg md:text-xl font-black uppercase tracking-wider text-center flex items-center gap-3">
+          <BarChart2 size={24} aria-hidden="true" />
           Reporte de Resultados — Prueba de Usabilidad
         </h2>
-        <button
-          onClick={handleDownloadPDF}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, backgroundColor: '#fff', color: '#003366', border: '2px solid #003366', padding: '10px 20px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem', flexShrink: 0 }}
-          aria-label="Exportar reporte como PDF"
-        >
-          <Download size={18} aria-hidden="true" />
-          Exportar PDF
-        </button>
+        <div className="flex-1 flex justify-end">
+          <button
+            onClick={handleDownloadPDF}
+            className="flex items-center gap-2 bg-white text-[#003366] px-4 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors text-sm shadow-sm"
+            aria-label="Exportar reporte como PDF"
+          >
+            <Download size={18} aria-hidden="true" />
+            Exportar PDF
+          </button>
+        </div>
       </header>
 
       {/* ================================================================
           CONTENIDO IMPRIMIBLE
       ================================================================ */}
-      <div id="report-printable">
+      <div id="report-printable" className="p-4 md:p-6 w-full bg-gray-50 min-h-screen">
 
         {/* PORTADA */}
         <section
           id="print-cover"
           aria-labelledby="report-cover-title"
-          style={{
-            background: 'linear-gradient(135deg, #003366 0%, #004080 60%, #005599 100%)',
-            borderRadius: 16, padding: isMobile ? '2rem 1.25rem' : '2.5rem 3rem',
-            marginBottom: '2rem', color: '#fff', position: 'relative', overflow: 'hidden',
-          }}
+          className="relative overflow-hidden mb-8 text-white rounded-2xl p-8 md:p-12 bg-gradient-to-br from-[#003366] via-[#004080] to-[#005599] mx-auto"
         >
-          <div aria-hidden="true" style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
+          <div aria-hidden="true" className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
 
           {/* Encabezado portada */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: '1.75rem' }}>
-            <div aria-hidden="true" style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 12, padding: '12px', display: 'flex', flexShrink: 0 }}>
+          <div className="flex items-start gap-4 mb-7">
+            <div aria-hidden="true" className="bg-white/20 rounded-xl p-3 flex shrink-0">
               <FileText size={32} color="#fff" />
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
+              <p className="m-0 text-[0.75rem] font-bold text-white/80 uppercase tracking-[1.5px]">
                 Informe de Prueba de Usabilidad
               </p>
-              <h2 id="report-cover-title" style={{ margin: '6px 0 0', fontSize: isMobile ? '1.5rem' : '2.2rem', fontWeight: 800, lineHeight: 1.15, color: '#fff' }}>
+              <h2 id="report-cover-title" className="m-0 mt-1.5 text-2xl md:text-4xl font-extrabold leading-tight text-white">
                 {testPlan.product}
               </h2>
               {testPlan.module && (
-                <p style={{ margin: '8px 0 0', fontSize: '1rem', color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>
+                <p className="m-0 mt-2 text-lg text-white/85 font-medium">
                   Módulo: {testPlan.module}
                 </p>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '6px 16px', marginTop: '12px', fontSize: '0.82rem', color: 'rgba(255,255,255,0.9)' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1.5 mt-3 text-[0.82rem] text-white/90">
                 {testPlan.user_profile && <span><strong>Perfil:</strong> {testPlan.user_profile}</span>}
                 {testPlan.method && <span><strong>Método:</strong> {testPlan.method}</span>}
                 {testPlan.duration && <span><strong>Duración:</strong> {testPlan.duration}</span>}
@@ -619,24 +619,24 @@ ${sec('📋','Conclusiones y Recomendaciones','Síntesis ejecutiva de los hallaz
           </div>
 
           {/* Tarjetas de metadatos */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: '1rem' }}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Participantes',    value: m.participants.length > 0 ? String(m.participants.length) : '—' },
               { label: 'Tareas evaluadas', value: tasks.length > 0 ? String(tasks.length) : '—' },
               { label: 'Observaciones',    value: String(m.total) },
               { label: 'Hallazgos',        value: String(m.totalF) },
             ].map(meta => (
-              <div key={meta.label} className="cover-card" style={{ backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: '1rem' }}>
-                <div className="cover-card-label" style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>
+              <div key={meta.label} className="bg-white/15 rounded-xl p-4">
+                <div className="text-[0.7rem] font-bold text-white/75 uppercase tracking-[0.8px] mb-1.5">
                   {meta.label}
                 </div>
-                <div className="cover-card-value" style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>{meta.value}</div>
+                <div className="text-3xl font-extrabold text-white leading-none">{meta.value}</div>
               </div>
             ))}
           </div>
 
           {/* Pie portada */}
-          <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.25)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, fontSize: '0.8rem', color: 'rgba(255,255,255,0.75)' }}>
+          <div className="mt-6 pt-4 border-t border-white/25 flex justify-between flex-wrap gap-2 text-[0.8rem] text-white/75">
             <span>
               {testPlan.moderator ? `Moderador: ${testPlan.moderator}` : ''}
               {testPlan.observer  ? ` · Observador: ${testPlan.observer}` : ''}
@@ -726,36 +726,38 @@ ${sec('📋','Conclusiones y Recomendaciones','Síntesis ejecutiva de los hallaz
                 </div>
               </Panel>
 
-              <Panel style={{ padding: 0, overflow: 'hidden' }}>
-                <div style={{ overflowX: 'auto' }}>
-                  <table className="data-table" aria-label="Resultados detallados por tarea">
+              <Panel style={{ padding: 0, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left border-collapse" aria-label="Resultados detallados por tarea">
                     <caption className="sr-only">Tasa de éxito, tiempo promedio y errores por tarea evaluada</caption>
-                    <thead>
+                    <thead className="text-xs uppercase bg-[#003366] text-white">
                       <tr>
-                        <th scope="col" style={{ width: 55 }}>Tarea</th>
-                        <th scope="col">Éxito</th>
-                        <th scope="col" style={{ width: 80 }}>Tiempo</th>
-                        <th scope="col" style={{ width: 70 }}>Errores</th>
-                        <th scope="col">Estado</th>
+                        <th scope="col" className="px-4 py-3 text-center w-14">Tarea</th>
+                        <th scope="col" className="px-4 py-3">Éxito</th>
+                        <th scope="col" className="px-4 py-3 text-center w-24">Tiempo</th>
+                        <th scope="col" className="px-4 py-3 text-center w-20">Errores</th>
+                        <th scope="col" className="px-4 py-3">Estado</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-gray-200">
                       {m.taskRates.map(t => {
                         const col  = t.rate >= 80 ? '#14532d' : t.rate >= 50 ? '#92400e' : '#7f1d1d';
                         const solid = t.rate >= 80 ? '#16a34a' : t.rate >= 50 ? '#d97706' : '#dc2626';
                         const bgC  = t.rate >= 80 ? '#dcfce7' : t.rate >= 50 ? '#fef3c7' : '#fee2e2';
                         return (
-                          <tr key={t.label}>
-                            <td style={{ textAlign: 'center' }}><span className="id-badge">{t.label}</span></td>
-                            <td>
-                              <HBar value={t.ok} max={t.total} color={solid} bg={bgC} barLabel={`Exito tarea ${t.label}`} h={10} />
-                              <span style={{ fontSize: '0.73rem', color: col, fontWeight: 700 }}>{t.rate}% ({t.ok}/{t.total})</span>
+                          <tr key={t.label} className="hover:bg-gray-50 bg-white">
+                            <td className="px-4 py-3 text-center border-r border-gray-100">
+                              <span className="inline-block bg-[#003366] text-white px-2 py-0.5 rounded font-bold text-xs">{t.label}</span>
                             </td>
-                            <td style={{ textAlign: 'center', fontWeight: 600, fontSize: '0.85rem' }}>{t.avgTime > 0 ? fmtTime(t.avgTime) : '—'}</td>
-                            <td style={{ textAlign: 'center', fontWeight: 700, color: t.totalErrors > 2 ? '#7f1d1d' : '#1e293b', fontSize: '0.85rem' }}>{t.totalErrors}</td>
-                            <td>
-                              <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 6, backgroundColor: bgC, color: col, fontWeight: 700, fontSize: '0.72rem', border: `1px solid ${solid}55` }}>
-                                {t.rate >= 80 ? '✅ Óptimo' : t.rate >= 50 ? '⚠ Mejorar' : '❌ Crítico'}
+                            <td className="px-4 py-3">
+                              <HBar value={t.ok} max={t.total} color={solid} bg={bgC} barLabel={`Exito tarea ${t.label}`} h={10} />
+                              <span className="text-[0.73rem] font-bold" style={{ color: col }}>{t.rate}% ({t.ok}/{t.total})</span>
+                            </td>
+                            <td className="px-4 py-3 text-center font-semibold text-gray-700">{t.avgTime > 0 ? fmtTime(t.avgTime) : '—'}</td>
+                            <td className="px-4 py-3 text-center font-bold" style={{ color: t.totalErrors > 2 ? '#7f1d1d' : '#1e293b' }}>{t.totalErrors}</td>
+                            <td className="px-4 py-3">
+                              <span className="inline-block px-2 py-1 rounded-md font-bold text-[0.72rem] border" style={{ backgroundColor: bgC, color: col, borderColor: `${solid}55` }}>
+                                {t.rate >= 80 ? '✅ Óptimo' : t.rate >= 50 ? '⚠ Mejorar' : '❌ Crítico'}        
                               </span>
                             </td>
                           </tr>
@@ -861,28 +863,28 @@ ${sec('📋','Conclusiones y Recomendaciones','Síntesis ejecutiva de los hallaz
             </div>
 
             {/* Tabla hallazgos */}
-            <Panel style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ backgroundColor: '#f8fafc', padding: '0.875rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
-                <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
+            <Panel style={{ padding: 0, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+              <div className="bg-gray-50 px-5 py-3.5 border-b border-gray-200">
+                <h4 className="m-0 text-[0.92rem] font-bold text-gray-800">
                   Hallazgos priorizados — ordenados de mayor a menor severidad
                 </h4>
               </div>
-              <div style={{ overflowX: 'auto' }}>
-                <table className="data-table" aria-label="Lista completa de hallazgos ordenados por severidad y prioridad">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left border-collapse" aria-label="Lista completa de hallazgos ordenados por severidad y prioridad">
                   <caption className="sr-only">Hallazgos detectados en la prueba de usabilidad, con problema, evidencia, severidad, recomendación, prioridad y estado</caption>
-                  <thead>
+                  <thead className="text-xs uppercase bg-[#003366] text-white">
                     <tr>
-                      <th scope="col" style={{ width: 36 }}>#</th>
-                      <th scope="col">Problema</th>
-                      <th scope="col">Evidencia</th>
-                      <th scope="col" style={{ width: 85 }}>Frecuencia</th>
-                      <th scope="col" style={{ width: 90 }}>Severidad</th>
-                      <th scope="col">Recomendación</th>
-                      <th scope="col" style={{ width: 80 }}>Prioridad</th>
-                      <th scope="col" style={{ width: 115 }}>Estado</th>
+                      <th scope="col" className="px-4 py-3 text-center w-10">#</th>
+                      <th scope="col" className="px-4 py-3">Problema</th>
+                      <th scope="col" className="px-4 py-3">Evidencia</th>
+                      <th scope="col" className="px-4 py-3 text-center w-24">Frecuencia</th>
+                      <th scope="col" className="px-4 py-3 text-center w-24">Severidad</th>
+                      <th scope="col" className="px-4 py-3">Recomendación</th>
+                      <th scope="col" className="px-4 py-3 text-center w-24">Prioridad</th>
+                      <th scope="col" className="px-4 py-3 text-center w-32">Estado</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-gray-200">
                     {[...findings].sort((a, b) => {
                       const so: Record<string, number> = { 'Crítica': 0, Alta: 1, Media: 2, Baja: 3 };
                       const po: Record<string, number> = { Alta: 0, Media: 1, Baja: 2 };
@@ -890,15 +892,17 @@ ${sec('📋','Conclusiones y Recomendaciones','Síntesis ejecutiva de los hallaz
                     }).map((f, i) => {
                       const sc = SEV_MAP[f.severity] ?? SEV_MAP['Baja'];
                       return (
-                        <tr key={f.id} style={{ borderLeft: `4px solid ${sc.solid}` }}>
-                          <td style={{ textAlign: 'center' }}><span className="id-badge">{i + 1}</span></td>
-                          <td style={{ fontSize: '0.85rem', color: '#1e293b' }}>{f.problem || <em style={{ color: '#64748b' }}>Sin descripción</em>}</td>
-                          <td style={{ fontSize: '0.82rem', color: '#475569', fontStyle: 'italic' }}>{f.evidence || '—'}</td>
-                          <td style={{ textAlign: 'center', fontSize: '0.82rem', fontWeight: 600 }}>{f.frequency || '—'}</td>
-                          <td style={{ textAlign: 'center' }}><SevBadge sev={f.severity} /></td>
-                          <td style={{ fontSize: '0.85rem', color: '#1e293b' }}>{f.recommendation || <em style={{ color: '#64748b' }}>Sin recomendación</em>}</td>
-                          <td style={{ textAlign: 'center' }}><PriBadge pri={f.priority} /></td>
-                          <td style={{ textAlign: 'center' }}><StatusBadge status={f.status} /></td>
+                        <tr key={f.id} className="hover:bg-gray-50 bg-white" style={{ borderLeft: `4px solid ${sc.solid}` }}>
+                          <td className="px-4 py-3 text-center border-r border-gray-100">
+                            <span className="inline-block bg-[#003366] text-white px-1.5 py-0.5 rounded font-bold text-[0.7rem]">{i + 1}</span>
+                          </td>
+                          <td className="px-4 py-3 text-[0.85rem] text-gray-900 leading-relaxed font-medium">{f.problem || <em className="text-gray-400">Sin descripción</em>}</td>
+                          <td className="px-4 py-3 text-[0.82rem] text-gray-600 italic leading-relaxed">{f.evidence || '—'}</td>
+                          <td className="px-4 py-3 text-center text-[0.82rem] font-semibold text-gray-700">{f.frequency || '—'}</td>
+                          <td className="px-4 py-3 text-center"><SevBadge sev={f.severity} /></td>
+                          <td className="px-4 py-3 text-[0.85rem] text-gray-900 leading-relaxed">{f.recommendation || <em className="text-gray-400">Sin recomendación</em>}</td>
+                          <td className="px-4 py-3 text-center"><PriBadge pri={f.priority} /></td>
+                          <td className="px-4 py-3 text-center"><StatusBadge status={f.status} /></td>
                         </tr>
                       );
                     })}
@@ -915,33 +919,33 @@ ${sec('📋','Conclusiones y Recomendaciones','Síntesis ejecutiva de los hallaz
             <SectionHeader headingId="obs-h" icon={<Users size={20} />} title="Detalle de Observaciones" sub="Registro completo de las sesiones de prueba con cada participante" />
 
             {m.participants.length > 0 && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: '1rem' }}>
+              <div className="flex flex-wrap gap-2 mb-4">
                 <span className="sr-only">Participantes:</span>
                 {m.participants.map(p => (
-                  <span key={p} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: '#eff6ff', color: '#1e3a8a', border: '1px solid #bfdbfe', padding: '4px 12px', borderRadius: 99, fontSize: '0.82rem', fontWeight: 700 }}>
+                  <span key={p} className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-900 border border-blue-200 px-3 py-1 rounded-full text-[0.82rem] font-bold">
                     <Users size={12} aria-hidden="true" /> {p}
                   </span>
                 ))}
               </div>
             )}
 
-            <Panel style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ overflowX: 'auto' }}>
-                <table className="data-table" aria-label="Registro detallado de observaciones por participante y tarea">
+            <Panel style={{ padding: 0, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left border-collapse" aria-label="Registro detallado de observaciones por participante y tarea">
                   <caption className="sr-only">Sesiones registradas con participante, tarea, resultado, tiempo, errores y observaciones</caption>
-                  <thead>
+                  <thead className="text-xs uppercase bg-[#003366] text-white">
                     <tr>
-                      <th scope="col" style={{ width: 36 }}>#</th>
-                      <th scope="col" style={{ width: 90 }}>Participante</th>
-                      <th scope="col" style={{ width: 70 }}>Tarea</th>
-                      <th scope="col" style={{ width: 115 }}>Resultado</th>
-                      <th scope="col" style={{ width: 90 }}>Tiempo</th>
-                      <th scope="col" style={{ width: 75 }}>Errores</th>
-                      <th scope="col">Comentarios / Problema</th>
-                      <th scope="col" style={{ width: 90 }}>Severidad</th>
+                      <th scope="col" className="px-4 py-3 text-center w-10">#</th>
+                      <th scope="col" className="px-4 py-3 w-28">Participante</th>
+                      <th scope="col" className="px-4 py-3 text-center w-20">Tarea</th>
+                      <th scope="col" className="px-4 py-3 text-center w-32">Resultado</th>
+                      <th scope="col" className="px-4 py-3 text-center w-24">Tiempo</th>
+                      <th scope="col" className="px-4 py-3 text-center w-20">Errores</th>
+                      <th scope="col" className="px-4 py-3">Comentarios / Problema</th>
+                      <th scope="col" className="px-4 py-3 text-center w-24">Severidad</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-gray-200">
                     {observations.map((o, i) => {
                       const OK_MAP: Record<string, { bg: string; color: string; border: string; icon: string }> = {
                         'Sí':        { bg: '#dcfce7', color: '#14532d', border: '#16a34a', icon: '✅' },
@@ -950,23 +954,27 @@ ${sec('📋','Conclusiones y Recomendaciones','Síntesis ejecutiva de los hallaz
                       };
                       const OK = OK_MAP[o.success_level] ?? { bg: '#f8fafc', color: '#374151', border: '#e2e8f0', icon: '—' };
                       return (
-                        <tr key={o.id}>
-                          <td style={{ textAlign: 'center' }}><span className="id-badge">{i + 1}</span></td>
-                          <td style={{ fontWeight: 600, fontSize: '0.85rem' }}>{o.participant || '—'}</td>
-                          <td style={{ textAlign: 'center' }}>{o.task_ref ? <span className="id-badge">{o.task_ref}</span> : <span style={{ color: '#94a3b8' }}>—</span>}</td>
-                          <td style={{ textAlign: 'center' }}>
-                            <span style={{ display: 'inline-block', padding: '3px 8px', borderRadius: 99, backgroundColor: OK.bg, color: OK.color, border: `1px solid ${OK.border}`, fontWeight: 700, fontSize: '0.75rem' }}>
+                        <tr key={o.id} className="hover:bg-gray-50 bg-white">
+                          <td className="px-4 py-3 text-center border-r border-gray-100">
+                            <span className="inline-block bg-[#003366] text-white px-1.5 py-0.5 rounded font-bold text-[0.7rem]">{i + 1}</span>
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-gray-900 text-[0.85rem]">{o.participant || '—'}</td>
+                          <td className="px-4 py-3 text-center">
+                            {o.task_ref ? <span className="inline-block bg-gray-100 text-gray-800 px-2 py-0.5 rounded font-bold text-xs border border-gray-200">{o.task_ref}</span> : <span className="text-gray-400">—</span>}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="inline-block px-3 py-1 rounded-full font-bold text-[0.75rem] border" style={{ backgroundColor: OK.bg, color: OK.color, borderColor: OK.border }}>
                               {OK.icon} {o.success_level}
                             </span>
                           </td>
-                          <td style={{ textAlign: 'center', fontWeight: 600, fontSize: '0.85rem' }}>{fmtTime(o.time_seconds || 0)}</td>
-                          <td style={{ textAlign: 'center', fontWeight: 700, color: (o.errors || 0) > 2 ? '#7f1d1d' : '#1e293b', fontSize: '0.88rem' }}>{o.errors ?? 0}</td>
-                          <td style={{ fontSize: '0.82rem', color: '#1e293b' }}>
-                            {o.comments && <span>{o.comments}</span>}
-                            {o.problem  && <span style={{ display: 'block', marginTop: 4, color: '#7c2d12', fontStyle: 'italic', fontSize: '0.78rem' }}>Problema: {o.problem}</span>}
-                            {!o.comments && !o.problem && <em style={{ color: '#94a3b8' }}>Sin observaciones</em>}
+                          <td className="px-4 py-3 text-center font-semibold text-gray-700 text-[0.85rem]">{fmtTime(o.time_seconds || 0)}</td>
+                          <td className="px-4 py-3 text-center font-bold text-[0.88rem]" style={{ color: (o.errors || 0) > 2 ? '#7f1d1d' : '#1e293b' }}>{o.errors ?? 0}</td>
+                          <td className="px-4 py-3 text-[0.82rem] text-gray-900 leading-relaxed">
+                            {o.comments && <span className="block">{o.comments}</span>}
+                            {o.problem  && <span className="block mt-1 text-orange-900 italic text-[0.78rem]">Problema: {o.problem}</span>}
+                            {!o.comments && !o.problem && <em className="text-gray-400">Sin observaciones</em>}
                           </td>
-                          <td style={{ textAlign: 'center' }}><SevBadge sev={o.severity} /></td>
+                          <td className="px-4 py-3 text-center"><SevBadge sev={o.severity} /></td>
                         </tr>
                       );
                     })}
@@ -979,7 +987,14 @@ ${sec('📋','Conclusiones y Recomendaciones','Síntesis ejecutiva de los hallaz
 
         {/* ── CONCLUSIONES ── */}
         <section aria-labelledby="conclusions-h" style={{ marginBottom: '2rem' }}>
-          <SectionHeader headingId="conclusions-h" icon={<TrendingUp size={20} />} title="Conclusiones y Recomendaciones" sub="Síntesis ejecutiva de los hallazgos y pasos de mejora sugeridos" />
+          <div className="flex justify-center mb-6">
+            <div className="bg-[#003366] text-white px-8 py-3 rounded-xl shadow-md border-2 border-[#004080]">
+              <h3 id="conclusions-h" className="m-0 text-lg md:text-xl font-black uppercase tracking-wider text-center flex items-center gap-3">
+                <TrendingUp size={24} aria-hidden="true" />
+                Síntesis de hallazgos y plan de mejora
+              </h3>
+            </div>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
 
             <Panel style={{ backgroundColor: '#f8fafc' }}>

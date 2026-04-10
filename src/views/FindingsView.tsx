@@ -8,143 +8,46 @@ function useWindowWidth() {
   useEffect(() => {
     const handler = () => setWidth(window.innerWidth);
     window.addEventListener('resize', handler);
-    // Forzar lectura correcta al montar (por si cambió mientras estaba desmontado)
     handler();
     return () => window.removeEventListener('resize', handler);
   }, []);
   return width;
 }
 
-// ─── Colores accesibles (contraste ≥ 4.5:1) ─────────────────────────────────
-const SEVERITY_STYLES: Record<Severity, { bg: string; color: string; border: string }> = {
-  Baja: { bg: '#dcfce7', color: '#14532d', border: '#86efac' },
-  Media: { bg: '#fef9c3', color: '#713f12', border: '#fde047' },
-  Alta: { bg: '#ffedd5', color: '#7c2d12', border: '#fdba74' },
-  Crítica: { bg: '#fee2e2', color: '#7f1d1d', border: '#fca5a5' },
+// ─── Estilos semánticos con Tailwind ─────────────────────────────────
+const SEVERITY_STYLES: Record<Severity, { bg: string; text: string; border: string }> = {
+  Baja:    { bg: 'bg-green-50',  text: 'text-green-900',  border: 'border-green-200' },
+  Media:   { bg: 'bg-amber-50',  text: 'text-amber-900',  border: 'border-amber-200' },
+  Alta:    { bg: 'bg-orange-50', text: 'text-orange-900', border: 'border-orange-200' },
+  Crítica: { bg: 'bg-red-50',    text: 'text-red-900',    border: 'border-red-200' },
 };
 
-const PRIORITY_STYLES: Record<Priority, { bg: string; color: string }> = {
-  Baja: { bg: '#e0f2fe', color: '#0c4a6e' },
-  Media: { bg: '#fef9c3', color: '#78350f' },
-  Alta: { bg: '#fce7f3', color: '#701a75' },
+const PRIORITY_STYLES: Record<Priority, { bg: string; text: string; border: string }> = {
+  Baja:  { bg: 'bg-blue-50',    text: 'text-blue-900',   border: 'border-blue-200' },
+  Media: { bg: 'bg-yellow-50',  text: 'text-yellow-900', border: 'border-yellow-200' },
+  Alta:  { bg: 'bg-purple-50',  text: 'text-purple-900', border: 'border-purple-200' },
 };
 
-const STATUS_STYLES: Record<TaskStatus, { bg: string; color: string; icon: string }> = {
-  Pendiente: { bg: '#f1f5f9', color: '#334155', icon: '⏳' },
-  'En progreso': { bg: '#eff6ff', color: '#1e3a5f', icon: '🔄' },
-  Resuelto: { bg: '#f0fdf4', color: '#14532d', icon: '✅' },
+const STATUS_STYLES: Record<TaskStatus, { bg: string; text: string; border: string; icon: string }> = {
+  Pendiente:     { bg: 'bg-slate-50',  text: 'text-slate-700', border: 'border-slate-200', icon: '⏳' },
+  'En progreso': { bg: 'bg-indigo-50', text: 'text-indigo-800', border: 'border-indigo-200', icon: '🔄' },
+  Resuelto:      { bg: 'bg-green-50',  text: 'text-green-800', border: 'border-green-200', icon: '✅' },
 };
 
-// ─── Componente Tooltip Personalizado ────────────────────────────────────────
+// ─── Componente Tooltip Tailwind ────────────────────────────────────────
 const Tooltip: React.FC<{ text: string; children: React.ReactNode }> = ({ text, children }) => {
   const [visible, setVisible] = useState(false);
-  const [above, setAbove] = useState(false);
-  const ref = React.useRef<HTMLDivElement>(null);
-  const isTouchDevice = React.useRef(false);
-
-  React.useEffect(() => {
-    if (!visible) return;
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setVisible(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, [visible]);
-
-  const calcPosition = () => {
-    if (ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setAbove(window.innerHeight - rect.bottom < 160);
-    }
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    isTouchDevice.current = true;
-    e.stopPropagation();
-    calcPosition();
-    setVisible(v => !v);
-  };
-
-  const handleClick = (e: React.MouseEvent) => {
-    if (isTouchDevice.current) return;
-    e.stopPropagation();
-    calcPosition();
-    setVisible(v => !v);
-  };
-
   return (
     <div
-      ref={ref}
-      onMouseEnter={() => {
-        if (isTouchDevice.current) return;
-        calcPosition();
-        setVisible(true);
-      }}
-      onMouseLeave={() => {
-        if (isTouchDevice.current) return;
-        setVisible(false);
-      }}
-      onTouchStart={handleTouchStart}
-      onClick={handleClick}
-      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+      className="relative inline-flex items-center group"
     >
       {children}
       {visible && (
-        <div
-          role="tooltip"
-          style={{
-            position: 'absolute',
-            ...(above
-              ? { bottom: 'calc(100% + 8px)' }
-              : { top: 'calc(100% + 8px)' }
-            ),
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: '#1e293b',
-            color: '#fff',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            fontSize: '0.78rem',
-            lineHeight: '1.4',
-            width: '200px',
-            zIndex: 9999,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            pointerEvents: 'none',
-            whiteSpace: 'normal',
-            textAlign: 'left',
-            textTransform: 'none',
-            fontWeight: 400,
-            letterSpacing: 'normal',
-          }}
-        >
-          {above ? (
-            <div style={{
-              position: 'absolute',
-              top: '100%', left: '50%',
-              transform: 'translateX(-50%)',
-              width: 0, height: 0,
-              borderLeft: '6px solid transparent',
-              borderRight: '6px solid transparent',
-              borderTop: '6px solid #1e293b',
-            }} />
-          ) : (
-            <div style={{
-              position: 'absolute',
-              bottom: '100%', left: '50%',
-              transform: 'translateX(-50%)',
-              width: 0, height: 0,
-              borderLeft: '6px solid transparent',
-              borderRight: '6px solid transparent',
-              borderBottom: '6px solid #1e293b',
-            }} />
-          )}
+        <div className="absolute bottom-[140%] left-1/2 -translate-x-1/2 bg-slate-800 text-white px-3 py-2 rounded-lg text-[0.7rem] leading-snug w-[180px] z-[10000] shadow-xl text-center pointer-events-none font-medium normal-case animate-in fade-in zoom-in-95 duration-200">
           {text}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-transparent border-t-4 border-t-slate-800" />
         </div>
       )}
     </div>
@@ -178,99 +81,40 @@ const FindingCard: React.FC<{
   const sta = STATUS_STYLES[f.status] ?? STATUS_STYLES.Pendiente;
 
   return (
-    <article
-      style={{
-        background: '#fff',
-        border: `2px solid ${sev.border}`,
-        borderRadius: 10,
-        marginBottom: '1rem',
-        overflow: 'hidden',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-      }}
-      aria-label={`Hallazgo ${idx + 1}`}
-    >
-      {/* Cabecera de la tarjeta */}
-      <div style={{ background: sev.bg, padding: '0.6rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontWeight: 700, color: sev.color, fontSize: '0.85rem' }}>
-          Hallazgo #{idx + 1} · Severidad: {f.severity}
+    <article className={`bg-white border-2 ${sev.border} rounded-2xl mb-4 overflow-hidden shadow-sm animate-in slide-in-from-left-2 duration-300`}>
+      <div className={`${sev.bg} p-4 flex justify-between items-center flex-wrap gap-2`}>
+        <span className={`font-black ${sev.text} text-[0.8rem] uppercase tracking-tight`}>
+          Hallazgo #{idx + 1} · {f.severity}
         </span>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 99, backgroundColor: pri.bg, color: pri.color, fontWeight: 700, fontSize: '0.75rem', border: `1px solid ${pri.color}` }}>
-            {f.priority}
+        <div className="flex gap-2 items-center flex-wrap">
+          <span className={`px-2.5 py-0.5 rounded-full ${pri.bg} ${pri.text} font-bold text-[0.7rem] border ${pri.border}`}>
+            P: {f.priority}
           </span>
-          <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 4, backgroundColor: sta.bg, color: sta.color, fontWeight: 600, fontSize: '0.75rem', border: `1px solid ${sta.color}` }}>
+          <span className={`px-2.5 py-0.5 rounded-md ${sta.bg} ${sta.text} font-bold text-[0.7rem] border ${sta.border}`}>
             {sta.icon} {f.status}
           </span>
         </div>
       </div>
 
-      {/* Cuerpo de la tarjeta */}
-      <div style={{ padding: '0.875rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-
-        {/* Problema */}
-        <div className="form-group">
-          <label htmlFor={`m-problem-${f.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Problema detectado
-          </label>
-          <textarea
-            id={`m-problem-${f.id}`}
-            value={f.problem || ''}
-            onChange={e => onSync({ problem: e.target.value })}
-            onBlur={e => onAction(() => onSave(f.id!, { problem: e.target.value }))}
-            placeholder="Ej. Menú 'Rendimiento' no comunica que contiene notas"
-            rows={2}
-            style={{ fontSize: '0.9rem' }}
-          />
+      <div className="p-4 flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Problema detectado</label>
+          <textarea className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-bold" value={f.problem || ''} onChange={e => onSync({ problem: e.target.value })} onBlur={e => onAction(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú 'Rendimiento' no es claro" rows={2} />
         </div>
 
-        {/* Evidencia */}
-        <div className="form-group">
-          <label htmlFor={`m-evidence-${f.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Evidencia observada
-          </label>
-          <textarea
-            id={`m-evidence-${f.id}`}
-            value={f.evidence || ''}
-            onChange={e => onSync({ evidence: e.target.value })}
-            onBlur={e => onAction(() => onSave(f.id!, { evidence: e.target.value }))}
-            placeholder="Ej. 4 de 5 usuarios dudaron al segundo intento"
-            rows={2}
-            style={{ fontSize: '0.9rem' }}
-          />
+        <div className="flex flex-col gap-1.5">
+          <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Evidencia observada</label>
+          <textarea className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-medium italic" value={f.evidence || ''} onChange={e => onSync({ evidence: e.target.value })} onBlur={e => onAction(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4 de 5 usuarios dudaron" rows={2} />
         </div>
 
-        {/* Fila: Frecuencia + Severidad */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-          <div className="form-group">
-            <label htmlFor={`m-freq-${f.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Frecuencia
-            </label>
-            <input
-              id={`m-freq-${f.id}`}
-              value={f.frequency || ''}
-              onChange={e => onSync({ frequency: e.target.value })}
-              onBlur={e => onAction(() => onSave(f.id!, { frequency: e.target.value }))}
-              placeholder="Ej. 4/5"
-              style={{ fontSize: '0.9rem' }}
-            />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Frecuencia</label>
+            <input className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-mono" value={f.frequency || ''} onChange={e => onSync({ frequency: e.target.value })} onBlur={e => onAction(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="Ej. 4/5" />
           </div>
-          <div className="form-group">
-            <label htmlFor={`m-sev-${f.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Severidad
-              <Tooltip text="Nivel de impacto del problema en la experiencia del usuario (Baja, Media, Alta, Crítica).">
-                <Info size={14} style={{ cursor: 'pointer', color: '#64748b' }} aria-hidden="true" />
-              </Tooltip>
-            </label>
-            <select
-              id={`m-sev-${f.id}`}
-              value={f.severity}
-              onChange={e => {
-                const val = e.target.value as Severity;
-                onSync({ severity: val });
-                onAction(() => onSave(f.id!, { severity: val }));
-              }}
-              style={{ backgroundColor: sev.bg, color: sev.color, fontWeight: 700, fontSize: '0.9rem' }}
-            >
+          <div className="flex flex-col gap-1.5">
+            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest flex items-center gap-1.5">Severidad <Tooltip text="Nivel de impacto del problema en la experiencia del usuario."><Info size={12} className="text-slate-400" /></Tooltip></label>
+            <select className={`w-full p-2.5 border ${sev.border} rounded-lg text-sm ${sev.bg} ${sev.text} font-bold outline-none cursor-pointer`} value={f.severity} onChange={e => { const val = e.target.value as Severity; onSync({ severity: val }); onAction(() => onSave(f.id!, { severity: val })); }}>
               <option value="Baja">Baja</option>
               <option value="Media">Media</option>
               <option value="Alta">Alta</option>
@@ -279,60 +123,23 @@ const FindingCard: React.FC<{
           </div>
         </div>
 
-        {/* Recomendación */}
-        <div className="form-group">
-          <label htmlFor={`m-rec-${f.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Recomendación de mejora
-          </label>
-          <textarea
-            id={`m-rec-${f.id}`}
-            value={f.recommendation || ''}
-            onChange={e => onSync({ recommendation: e.target.value })}
-            onBlur={e => onAction(() => onSave(f.id!, { recommendation: e.target.value }))}
-            placeholder="Ej. Cambiar etiqueta a 'Notas'"
-            rows={2}
-            style={{ fontSize: '0.9rem' }}
-          />
+        <div className="flex flex-col gap-1.5">
+          <label className="font-black text-[0.7rem] text-green-800 uppercase tracking-widest">Recomendación de mejora</label>
+          <textarea className="w-full p-2.5 border border-green-100 rounded-lg text-sm bg-green-50/30 focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none transition-all font-medium" value={f.recommendation || ''} onChange={e => onSync({ recommendation: e.target.value })} onBlur={e => onAction(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Ej. Cambiar etiqueta a 'Notas'" rows={2} />
         </div>
 
-        {/* Fila: Prioridad + Estado */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-          <div className="form-group">
-            <label htmlFor={`m-pri-${f.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Prioridad
-              <Tooltip text="Urgencia recomendada para resolver el hallazgo según el impacto y esfuerzo (Baja, Media, Alta).">
-                <Info size={14} style={{ cursor: 'pointer', color: '#64748b' }} aria-hidden="true" />
-              </Tooltip>
-            </label>
-            <select
-              id={`m-pri-${f.id}`}
-              value={f.priority}
-              onChange={e => {
-                const val = e.target.value as Priority;
-                onSync({ priority: val });
-                onAction(() => onSave(f.id!, { priority: val }));
-              }}
-              style={{ backgroundColor: pri.bg, color: pri.color, fontWeight: 700, fontSize: '0.9rem' }}
-            >
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest flex items-center gap-1.5">Prioridad <Tooltip text="Urgencia recomendada para resolver el hallazgo."><Info size={12} className="text-slate-400" /></Tooltip></label>
+            <select className={`w-full p-2.5 border ${pri.border} rounded-lg text-sm ${pri.bg} ${pri.text} font-bold outline-none cursor-pointer`} value={f.priority} onChange={e => { const val = e.target.value as Priority; onSync({ priority: val }); onAction(() => onSave(f.id!, { priority: val })); }}>
               <option value="Baja">Baja</option>
               <option value="Media">Media</option>
               <option value="Alta">Alta</option>
             </select>
           </div>
-          <div className="form-group">
-            <label htmlFor={`m-status-${f.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Estado
-            </label>
-            <select
-              id={`m-status-${f.id}`}
-              value={f.status}
-              onChange={e => {
-                const val = e.target.value as TaskStatus;
-                onSync({ status: val });
-                onAction(() => onSave(f.id!, { status: val }));
-              }}
-              style={{ backgroundColor: sta.bg, color: sta.color, fontWeight: 600, fontSize: '0.9rem' }}
-            >
+          <div className="flex flex-col gap-1.5">
+            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Estado</label>
+            <select className={`w-full p-2.5 border ${sta.border} rounded-lg text-sm ${sta.bg} ${sta.text} font-bold outline-none cursor-pointer`} value={f.status} onChange={e => { const val = e.target.value as TaskStatus; onSync({ status: val }); onAction(() => onSave(f.id!, { status: val })); }}>
               <option value="Pendiente">⏳ Pendiente</option>
               <option value="En progreso">🔄 En progreso</option>
               <option value="Resuelto">✅ Resuelto</option>
@@ -340,31 +147,17 @@ const FindingCard: React.FC<{
           </div>
         </div>
 
-        {/* Botón eliminar */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div className="flex justify-end pt-2 border-t border-slate-100 mt-2">
           {confirmDelete ? (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: '0.82rem', color: '#dc2626', fontWeight: 700 }}>¿Eliminar?</span>
-              <button
-                type="button"
-                onClick={() => { onDelete(f.id!); setConfirmDelete(false); }}
-                style={{ background: '#dc2626', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700 }}
-                aria-label={`Confirmar eliminar hallazgo ${idx + 1}`}
-              >Sí</button>
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(false)}
-                style={{ background: '#e2e8f0', color: '#334155', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer' }}
-              >No</button>
+            <div className="flex gap-2 items-center animate-in zoom-in-95 duration-200">
+              <span className="text-[0.8rem] text-red-600 font-black uppercase">¿Seguro?</span>
+              <button type="button" onClick={() => { onDelete(f.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-lg px-4 py-1.5 text-[0.8rem] cursor-pointer font-bold shadow-lg shadow-red-100">Eliminar</button>
+              <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-100 text-slate-600 border-none rounded-lg px-4 py-1.5 text-[0.8rem] cursor-pointer font-bold">No</button>
             </div>
           ) : (
-            <button
-              type="button"
-              className="btn-delete"
-              onClick={() => setConfirmDelete(true)}
-              aria-label={`Eliminar hallazgo ${idx + 1}`}
-            >
-              <Trash2 size={18} aria-hidden="true" /> <span style={{ fontSize: '0.82rem', marginLeft: 4 }}>Eliminar</span>
+            <button type="button" className="inline-flex items-center gap-1.5 bg-transparent border-none text-slate-400 cursor-pointer p-2 rounded-lg transition-all hover:bg-red-50 hover:text-red-600" onClick={() => setConfirmDelete(true)}>
+              <Trash2 size={18} aria-hidden="true" />
+              <span className="text-[0.82rem] font-bold">Eliminar</span>
             </button>
           )}
         </div>
@@ -393,220 +186,182 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
     onSync(updated);
   };
 
-  // Estadísticas rápidas
-  {/*  
-  const stats = {
-    total:     data.length,
-    criticas:  data.filter(f => f.severity === 'Crítica').length,
-    altas:     data.filter(f => f.severity === 'Alta').length,
-    resueltas: data.filter(f => f.status === 'Resuelto').length,
-    pendientes:data.filter(f => f.status === 'Pendiente').length,
-  };
-    */}
   return (
-    <div id="findings-panel" role="tabpanel" aria-labelledby="findings-tab" className="dashboard-view">
-
-      {/* Encabezado */}
-      <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', padding: '1rem' }}>
-        <h2 style={{ margin: 0, flex: '1 1 300px', textAlign: 'center' }}>Síntesis de hallazgos y plan de mejora</h2>
-        <div role="status" aria-live="polite" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', flexShrink: 0, margin: '0 auto' }}>
+    <div className="animate-in fade-in duration-500">
+      <header className="relative flex items-center justify-center bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px]">
+        <h2 className="text-xl md:text-2xl font-bold m-0 text-center px-12">
+          Síntesis de hallazgos y plan de mejora
+        </h2>
+        <div role="status" aria-live="polite" className="absolute right-4 md:right-6 flex items-center gap-2 text-sm font-bold opacity-90">
           {isSaving
-            ? <span style={{ color: '#fff', display: 'flex', alignItems: 'center', gap: 5 }}><RefreshCcw size={14} className="spin" aria-hidden="true" /> Guardando…</span>
-            : <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle size={14} aria-hidden="true" /> Cambios guardados</span>
+            ? <span className="flex items-center gap-1.5 text-white animate-pulse"><RefreshCcw size={14} className="animate-spin" aria-hidden="true" /> Guardando…</span>
+            : <span className="flex items-center gap-1.5 text-emerald-400"><CheckCircle size={14} aria-hidden="true" /> Cambios guardados</span>
           }
         </div>
       </header>
 
-      {/* Sin producto */}
-      {isProductEmpty ? (
-        <section className="card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-          <div style={{ width: 80, height: 80, backgroundColor: '#fffbeb', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 1rem' }} aria-hidden="true">
-            <AlertTriangle size={40} color="#d97706" />
-          </div>
-          <h3 style={{ color: '#1e293b', marginBottom: '0.5rem' }}>¡Falta el nombre del producto!</h3>
-          <p style={{ color: '#64748b', maxWidth: 420, margin: '0 auto 1.5rem' }}>
-            Para generar la síntesis de hallazgos, primero define un nombre al producto en la pestaña Plan.
-          </p>
-          <button onClick={onGoToPlan} style={{ backgroundColor: '#003366', color: 'white', padding: '12px 24px', borderRadius: 6, border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>
-            Ir a definir Producto
-          </button>
-        </section>
-      ) : (
-        <>
-          {/* Tarjetas de resumen — siempre visibles
-          {data.length > 0 && (
-            <section aria-labelledby="findings-summary-heading" style={{ marginBottom: '1.5rem' }}>
-              <h3 id="findings-summary-heading" className="sr-only">Resumen de hallazgos</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
-                {[
-                  { label: 'Total',            value: stats.total,      bg: '#f8fafc', color: '#0f172a', border: '#e2e8f0' },
-                  { label: 'Crítica',          value: stats.criticas,   bg: '#fee2e2', color: '#7f1d1d', border: '#fca5a5' },
-                  { label: 'Alta',             value: stats.altas,      bg: '#ffedd5', color: '#7c2d12', border: '#fdba74' },
-                  { label: 'Resueltos',        value: stats.resueltas,  bg: '#f0fdf4', color: '#14532d', border: '#86efac' },
-                  { label: 'Pendientes',       value: stats.pendientes, bg: '#f1f5f9', color: '#334155', border: '#cbd5e1' },
-                ].map(c => (
-                  <div key={c.label} style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 8, padding: '0.875rem', textAlign: 'center' }}
-                    aria-label={`${c.value} ${c.label}`}>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: c.color }}>{c.value}</div>
-                    <div style={{ fontSize: '0.75rem', color: c.color, fontWeight: 600, marginTop: 2 }}>{c.label}</div>
-                  </div>
-                ))}
+      <div className="space-y-8">
+        {isProductEmpty ? (
+          <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" aria-labelledby="script-empty-heading">
+            <div className="text-center p-12 md:p-16 flex flex-col items-center">
+              <div aria-hidden="true" className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                <AlertTriangle size={40} className="text-amber-600" />
               </div>
-            </section>
-          )}
-           */}
-          {/* ── DISEÑO DESKTOP: tabla ── */}
-          {!isMobile && (
-            <section className="card" aria-labelledby="findings-table-heading">
-              <h3 id="findings-table-heading" className="card-title">Registro de hallazgos</h3>
-              <div className="data-table-container" role="region" aria-label="Tabla de hallazgos">
-                <table className="data-table" aria-describedby="findings-caption">
-                  <caption id="findings-caption" className="sr-only">
-                    Tabla editable de hallazgos con problema, evidencia, frecuencia, severidad, recomendación, prioridad y estado.
-                  </caption>
-                  <thead>
-                    <tr>
-                      <th scope="col" style={{ width: 40 }}>#</th>
-                      <th scope="col">Problema detectado</th>
-                      <th scope="col">Evidencia observada</th>
-                      <th scope="col" style={{ width: 100 }}>Frecuencia</th>
-                      <th scope="col" style={{ width: 120 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
-                          Severidad
-                          <Tooltip text="Nivel de impacto del problema en la experiencia del usuario (Baja, Media, Alta, Crítica).">
-                            <Info size={14} style={{ cursor: 'pointer', color: '#64748b' }} />
-                          </Tooltip>
-                        </div>
-                      </th>
-                      <th scope="col">Recomendación de mejora</th>
-                      <th scope="col" style={{ width: 110 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
-                          Prioridad
-                          <Tooltip text="Urgencia recomendada para resolver el hallazgo según el impacto y esfuerzo (Baja, Media, Alta).">
-                            <Info size={14} style={{ cursor: 'pointer', color: '#64748b' }} />
-                          </Tooltip>
-                        </div>
-                      </th>
-                      <th scope="col" style={{ width: 130 }}>Estado</th>
-                      <th scope="col" style={{ width: 60 }}><span className="sr-only">Acciones</span></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.length > 0 ? data.map((f, idx) => {
-                      const sev = SEVERITY_STYLES[f.severity] ?? SEVERITY_STYLES.Baja;
-                      const pri = PRIORITY_STYLES[f.priority] ?? PRIORITY_STYLES.Baja;
-                      const sta = STATUS_STYLES[f.status] ?? STATUS_STYLES.Pendiente;
-                      return (
-                        <tr key={f.id}>
-                          <td style={{ textAlign: 'center' }}>
-                            <span className="id-badge" aria-label={`Hallazgo ${idx + 1}`}>{idx + 1}</span>
-                          </td>
-                          <td>
-                            <label htmlFor={`d-problem-${f.id}`} className="sr-only">Problema hallazgo {idx + 1}</label>
-                            <textarea id={`d-problem-${f.id}`} value={f.problem || ''} onChange={e => handleLocalChange(f.id!, { problem: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" />
-                          </td>
-                          <td>
-                            <label htmlFor={`d-evidence-${f.id}`} className="sr-only">Evidencia hallazgo {idx + 1}</label>
-                            <textarea id={`d-evidence-${f.id}`} value={f.evidence || ''} onChange={e => handleLocalChange(f.id!, { evidence: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4/5 usuarios fallaron" />
-                          </td>
-                          <td>
-                            <label htmlFor={`d-freq-${f.id}`} className="sr-only">Frecuencia hallazgo {idx + 1}</label>
-                            <input type="text" id={`d-freq-${f.id}`} value={f.frequency || ''} onChange={e => handleLocalChange(f.id!, { frequency: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="Ej. 4/5" />
-                          </td>
-                          <td>
-                            <label htmlFor={`d-sev-${f.id}`} className="sr-only">Severidad hallazgo {idx + 1}</label>
-                            <select id={`d-sev-${f.id}`} value={f.severity} onChange={e => {
-                              const val = e.target.value as Severity;
-                              handleLocalChange(f.id!, { severity: val });
-                              handleActionWithStatus(() => onSave(f.id!, { severity: val }));
-                            }} style={{ backgroundColor: sev.bg, color: sev.color, border: `1px solid ${sev.border}`, fontWeight: 700 }}>
-                              <option value="Baja">Baja</option>
-                              <option value="Media">Media</option>
-                              <option value="Alta">Alta</option>
-                              <option value="Crítica">Crítica</option>
-                            </select>
-                          </td>
-                          <td>
-                            <label htmlFor={`d-rec-${f.id}`} className="sr-only">Recomendación hallazgo {idx + 1}</label>
-                            <textarea id={`d-rec-${f.id}`} value={f.recommendation || ''} onChange={e => handleLocalChange(f.id!, { recommendation: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Ej. Renombrar menú" />
-                          </td>
-                          <td>
-                            <label htmlFor={`d-pri-${f.id}`} className="sr-only">Prioridad hallazgo {idx + 1}</label>
-                            <select id={`d-pri-${f.id}`} value={f.priority} onChange={e => {
-                              const val = e.target.value as Priority;
-                              handleLocalChange(f.id!, { priority: val });
-                              handleActionWithStatus(() => onSave(f.id!, { priority: val }));
-                            }} style={{ backgroundColor: pri.bg, color: pri.color, fontWeight: 700 }}>
-                              <option value="Baja">Baja</option>
-                              <option value="Media">Media</option>
-                              <option value="Alta">Alta</option>
-                            </select>
-                          </td>
-                          <td>
-                            <label htmlFor={`d-status-${f.id}`} className="sr-only">Estado hallazgo {idx + 1}</label>
-                            <select id={`d-status-${f.id}`} value={f.status} onChange={e => {
-                              const val = e.target.value as TaskStatus;
-                              handleLocalChange(f.id!, { status: val });
-                              handleActionWithStatus(() => onSave(f.id!, { status: val }));
-                            }} style={{ backgroundColor: sta.bg, color: sta.color, fontWeight: 600 }}>
-                              <option value="Pendiente">⏳ Pendiente</option>
-                              <option value="En progreso">🔄 En progreso</option>
-                              <option value="Resuelto">✅ Resuelto</option>
-                            </select>
-                          </td>
-                          <td style={{ textAlign: 'center' }}>
-                            <button className="btn-delete" type="button" onClick={() => onDelete(f.id!)} aria-label={`Eliminar hallazgo ${idx + 1}`}>
-                              <Trash2 size={20} aria-hidden="true" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    }) : (
-                      <tr><td colSpan={9} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No hay hallazgos. Haz clic en "Añadir Hallazgo".</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              <div style={{ padding: '1rem' }}>
-                <button className="btn-add" onClick={onAdd} disabled={!planId} type="button" aria-label="Añadir nuevo hallazgo">
-                  <Plus size={18} aria-hidden="true" /> Añadir Hallazgo
-                </button>
-              </div>
-            </section>
-          )}
-
-          {/* ── DISEÑO MOBILE/TABLET: tarjetas ── */}
-          {isMobile && (
-            <section aria-labelledby="findings-cards-heading">
-              <h3 id="findings-cards-heading" className="card-title" style={{ borderRadius: '8px 8px 0 0', marginBottom: '1rem' }}>
-                Registro de hallazgos
-              </h3>
-
-              {data.length === 0 ? (
-                <div className="card" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                  No hay hallazgos. Haz clic en "Añadir Hallazgo".
-                </div>
-              ) : (
-                data.map((f, idx) => (
-                  <FindingCard
-                    key={f.id}
-                    f={f}
-                    idx={idx}
-                    onSync={(updates) => handleLocalChange(f.id!, updates)}
-                    onSave={onSave}
-                    onDelete={onDelete}
-                    onAction={handleActionWithStatus}
-                  />
-                ))
-              )}
-
-              <button className="btn-add" onClick={onAdd} disabled={!planId} type="button" style={{ width: '100%', justifyContent: 'center' }} aria-label="Añadir nuevo hallazgo">
-                <Plus size={18} aria-hidden="true" /> Añadir Hallazgo
+              <h3 id="script-empty-heading" className="text-xl font-black text-slate-900 mb-2">¡Falta el nombre del producto!</h3>
+              <p className="text-slate-500 font-medium max-w-[400px] mb-8 leading-relaxed">
+                Para generar la síntesis de hallazgos, primero define un nombre al producto en la pestaña Plan.
+              </p>
+              <button onClick={onGoToPlan} className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-xl px-8 py-3.5 text-base font-black cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/20 active:scale-[0.98]">
+                Ir a definir Producto
               </button>
-            </section>
-          )}
-        </>
-      )}
+            </div>
+          </section>
+        ) : (
+          <>
+            {!isMobile && (
+              <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" aria-labelledby="findings-table-heading">
+                <h3 id="findings-table-heading" className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">Registro de hallazgos</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <caption className="sr-only">Tabla editable de hallazgos</caption>
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 text-[0.7rem] font-black uppercase tracking-[0.1em] border-b border-slate-200">
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[50px]">#</th>
+                        <th scope="col" className="p-4 text-left border-r border-slate-100">Problema detectado</th>
+                        <th scope="col" className="p-4 text-left border-r border-slate-100">Evidencia observada</th>
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[100px]">Frecuencia</th>
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[130px]">
+                          <div className="flex items-center gap-1.5 justify-center">
+                            Severidad
+                            <Tooltip text="Nivel de impacto del problema en la experiencia del usuario.">
+                              <Info size={12} className="text-slate-400" />
+                            </Tooltip>
+                          </div>
+                        </th>
+                        <th scope="col" className="p-4 text-left border-r border-slate-100">Recomendación</th>
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[120px]">
+                          <div className="flex items-center gap-1.5 justify-center">
+                            Prioridad
+                            <Tooltip text="Urgencia recomendada para resolver el hallazgo.">
+                              <Info size={12} className="text-slate-400" />
+                            </Tooltip>
+                          </div>
+                        </th>
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[140px]">Estado</th>
+                        <th scope="col" className="p-4 text-center w-[60px]"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {data.length > 0 ? data.map((f, idx) => {
+                        const sev = SEVERITY_STYLES[f.severity] ?? SEVERITY_STYLES.Baja;
+                        const pri = PRIORITY_STYLES[f.priority] ?? PRIORITY_STYLES.Baja;
+                        const sta = STATUS_STYLES[f.status] ?? STATUS_STYLES.Pendiente;
+                        return (
+                          <tr key={f.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="p-3 text-center">
+                              <span className="id-badge">{idx + 1}</span>
+                            </td>
+                            <td className="p-2">
+                              <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-bold" value={f.problem || ''} onChange={e => handleLocalChange(f.id!, { problem: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" rows={2} />
+                            </td>
+                            <td className="p-2">
+                              <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium italic text-slate-600" value={f.evidence || ''} onChange={e => handleLocalChange(f.id!, { evidence: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value }))} placeholder="Ej. 4/5 fallaron" rows={2} />
+                            </td>
+                            <td className="p-2 text-center">
+                              <input type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-mono" value={f.frequency || ''} onChange={e => handleLocalChange(f.id!, { frequency: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="4/5" />
+                            </td>
+                            <td className="p-3">
+                              <select className={`w-full p-2 border ${sev.border} rounded-lg text-[0.75rem] ${sev.bg} ${sev.text} font-black outline-none cursor-pointer`} value={f.severity} onChange={e => {
+                                const val = e.target.value as Severity;
+                                handleLocalChange(f.id!, { severity: val });
+                                handleActionWithStatus(() => onSave(f.id!, { severity: val }));
+                              }}>
+                                <option value="Baja">Baja</option>
+                                <option value="Media">Media</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Crítica">Crítica</option>
+                              </select>
+                            </td>
+                            <td className="p-2">
+                              <textarea className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none font-medium text-green-900" value={f.recommendation || ''} onChange={e => handleLocalChange(f.id!, { recommendation: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value }))} placeholder="Mejora..." rows={2} />
+                            </td>
+                            <td className="p-3">
+                              <select className={`w-full p-2 border ${pri.border} rounded-lg text-[0.75rem] ${pri.bg} ${pri.text} font-black outline-none cursor-pointer`} value={f.priority} onChange={e => {
+                                const val = e.target.value as Priority;
+                                handleLocalChange(f.id!, { priority: val });
+                                handleActionWithStatus(() => onSave(f.id!, { priority: val }));
+                              }}>
+                                <option value="Baja">Baja</option>
+                                <option value="Media">Media</option>
+                                <option value="Alta">Alta</option>
+                              </select>
+                            </td>
+                            <td className="p-3">
+                              <select className={`w-full p-2 border ${sta.border} rounded-lg text-[0.75rem] ${sta.bg} ${sta.text} font-black outline-none cursor-pointer`} value={f.status} onChange={e => {
+                                const val = e.target.value as TaskStatus;
+                                handleLocalChange(f.id!, { status: val });
+                                handleActionWithStatus(() => onSave(f.id!, { status: val }));
+                              }}>
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En progreso">🔄 En progreso</option>
+                                <option value="Resuelto">✅ Resuelto</option>
+                              </select>
+                            </td>
+                            <td className="p-3 text-center">
+                              <button className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" type="button" onClick={() => onDelete(f.id!)}>
+                                <Trash2 size={18} aria-hidden="true" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      }) : (
+                        <tr><td colSpan={9} className="p-12 text-center text-slate-500 italic font-medium">No hay hallazgos todavía.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="p-4 px-6 bg-slate-50 border-t border-slate-200">
+                  <button className="inline-flex items-center gap-2 bg-navy text-white border-none px-6 py-2.5 rounded-lg font-black text-sm uppercase tracking-wider cursor-pointer transition-all hover:bg-navy-dark disabled:bg-slate-300 disabled:cursor-not-allowed shadow-md shadow-navy/10 active:scale-[0.98]" onClick={onAdd} disabled={!planId} type="button">
+                    <Plus size={18} aria-hidden="true" /> Añadir Hallazgo
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {isMobile && (
+              <section aria-labelledby="findings-cards-heading">
+                <h3 id="findings-cards-heading" className="text-[0.9rem] font-black text-navy uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <span className="w-2 h-6 bg-navy rounded-full"></span> Hallazgos registrados
+                </h3>
+
+                {data.length === 0 ? (
+                  <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-400 font-medium italic mb-6">
+                    No hay hallazgos todavía.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {data.map((f, idx) => (
+                      <FindingCard
+                        key={f.id}
+                        f={f}
+                        idx={idx}
+                        onSync={(updates) => handleLocalChange(f.id!, updates)}
+                        onSave={onSave}
+                        onDelete={onDelete}
+                        onAction={handleActionWithStatus}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <button className="inline-flex items-center justify-center gap-2 w-full bg-navy text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/10 mt-4 active:scale-[0.98]" onClick={onAdd} disabled={!planId} type="button">
+                  <Plus size={20} aria-hidden="true" /> Añadir Hallazgo
+                </button>
+              </section>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 };

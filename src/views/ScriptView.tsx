@@ -63,59 +63,51 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
   };
 
   return (
-    <div className="dashboard-view">
+    <div className="animate-in fade-in duration-500">
       {/* ── Encabezado ── */}
-      <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <h2 style={{ margin: 0, flex: 1, textAlign: 'center' }}>Guion de moderación y tareas</h2>
+      <header className="relative flex items-center justify-center bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px]">
+        <h2 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Guion de moderación y tareas</h2>
         <div
           aria-live="polite"
           aria-atomic="true"
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', flexShrink: 0 }}
+          className="absolute right-4 md:right-6 flex items-center gap-2 text-sm font-bold opacity-90 text-right"
         >
           {isSaving ? (
-            <>
-              <RefreshCcw size={14} className="spin" aria-hidden="true" />
-              <span style={{ color: '#ffffff' }}>Guardando...</span>
-            </>
+            <span className="flex items-center gap-1.5 text-white animate-pulse">
+              <RefreshCcw size={14} className="animate-spin" aria-hidden="true" />
+              <span>Guardando...</span>
+            </span>
           ) : (
-            <>
-              <CheckCircle size={14} aria-hidden="true" style={{ color: '#10b981' }} />
-              <span style={{ color: '#10b981' }}>Cambios guardados</span>
-            </>
+            <span className="flex items-center gap-1.5 text-emerald-400">
+              <CheckCircle size={14} aria-hidden="true" />
+              <span>Cambios guardados</span>
+            </span>
           )}
         </div>
       </header>
 
-      <div className="dashboard-content">
+      <div className="space-y-8">
         {/* ── Estado vacío ── */}
         {isProductEmpty ? (
-          <section className="card" aria-labelledby="script-empty-heading">
-            <div className="card-content" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+          <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" aria-labelledby="script-empty-heading">
+            <div className="text-center p-12 md:p-16 flex flex-col items-center">
               <div
                 aria-hidden="true"
-                style={{
-                  width: '80px', height: '80px', backgroundColor: '#fffbeb',
-                  borderRadius: '50%', display: 'flex', justifyContent: 'center',
-                  alignItems: 'center', margin: '0 auto 1rem',
-                }}
+                className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6 shadow-inner"
               >
-                <ClipboardList size={40} color="#d97706" />
+                <ClipboardList size={40} className="text-amber-600" />
               </div>
-              <h3 id="script-empty-heading" style={{ color: '#1e293b', marginBottom: '0.5rem' }}>
+              <h3 id="script-empty-heading" className="text-xl font-black text-slate-900 mb-2">
                 ¡Falta el nombre del producto!
               </h3>
-              <p style={{ color: '#64748b', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
+              <p className="text-slate-500 font-medium max-w-[400px] mb-8 leading-relaxed">
                 Para redactar el guion y las tareas, primero debes asignar un nombre al
                 producto en la pestaña de Plan.
               </p>
               <button
                 type="button"
                 onClick={onGoToPlan}
-                style={{
-                  backgroundColor: '#003366', color: 'white', padding: '12px 24px',
-                  borderRadius: '6px', border: '2px solid transparent',
-                  fontWeight: 'bold', cursor: 'pointer',
-                }}
+                className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-xl px-8 py-3.5 text-base font-black cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/20 active:scale-[0.98]"
               >
                 Ir a definir Producto
               </button>
@@ -125,32 +117,32 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
           <>
             {/* ── 0. Contexto de la sesión ── */}
             {(testPlan.method || testPlan.duration || testPlan.location_channel) && (
-              <section className="card" aria-labelledby="script-contexto-heading">
-                <h3 className="card-title" id="script-contexto-heading">
+              <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" aria-labelledby="script-contexto-heading">
+                <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0" id="script-contexto-heading">
                   Contexto de la sesión
                 </h3>
-                <div className="card-content">
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {testPlan.method && (
-                      <div className="form-group">
-                        <label>Método:</label>
-                        <div style={{ padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid var(--border)', fontWeight: 500 }}>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest">Método</label>
+                        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 font-semibold text-slate-800">
                           {testPlan.method}
                         </div>
                       </div>
                     )}
                     {testPlan.duration && (
-                      <div className="form-group">
-                        <label>Duración estimada:</label>
-                        <div style={{ padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid var(--border)', fontWeight: 500 }}>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest">Duración estimada</label>
+                        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 font-semibold text-slate-800">
                           {testPlan.duration}
                         </div>
                       </div>
                     )}
                     {testPlan.location_channel && (
-                      <div className="form-group">
-                        <label>Lugar / Canal:</label>
-                        <div style={{ padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid var(--border)', fontWeight: 500 }}>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest">Lugar / Canal</label>
+                        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 font-semibold text-slate-800">
                           {testPlan.location_channel}
                         </div>
                       </div>
@@ -161,33 +153,24 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
             )}
 
             {/* ── 1. Inicio de la sesión ── */}
-            <section className="card" aria-labelledby="script-inicio-heading">
-              <h3 className="card-title" id="script-inicio-heading">
+            <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" aria-labelledby="script-inicio-heading">
+              <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0" id="script-inicio-heading">
                 Inicio de la sesión
               </h3>
-              <div className="card-content">
-                <ol
-                  style={{
-                    paddingLeft: 0, listStyle: 'none', margin: 0,
-                    display: 'flex', flexDirection: 'column', gap: '0.8rem',
-                  }}
-                >
+              <div className="p-6">
+                <ol className="p-0 m-0 list-none space-y-3">
                   {openingSteps.map((step, index) => (
                     <li
                       key={index}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '1rem',
-                        padding: '0.75rem 1rem', backgroundColor: '#f8fafc',
-                        borderRadius: '6px', borderLeft: '4px solid var(--primary)',
-                      }}
+                      className="flex items-center gap-4 p-3.5 bg-slate-50 rounded-xl border-l-[6px] border-navy transition-all hover:bg-slate-100 shadow-sm"
                     >
                       <span
                         aria-hidden="true"
-                        style={{ fontWeight: 700, color: 'var(--primary)', minWidth: '24px' }}
+                        className="text-lg font-black text-navy min-w-[24px]"
                       >
                         {index + 1}.
                       </span>
-                      <span style={{ fontSize: '1rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                      <span className="text-base text-slate-800 font-semibold leading-snug">
                         {step}
                       </span>
                     </li>
@@ -197,36 +180,37 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
             </section>
 
             {/* ── 2. Tareas a leer durante el test ── */}
-            <section className="card" aria-labelledby="script-tareas-heading">
-              <h3 className="card-title" id="script-tareas-heading">
+            <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" aria-labelledby="script-tareas-heading">
+              <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0" id="script-tareas-heading">
                 Tareas a leer durante el test
               </h3>
-              <div className="data-table-container">
-                <table className="data-table">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
                   <caption className="sr-only">Tareas a leer durante el test de usabilidad</caption>
                   <thead>
-                    <tr>
-                      <th scope="col" style={{ width: '60px' }}>ID</th>
-                      <th scope="col" style={{ width: '35%' }}>Texto de la tarea</th>
-                      <th scope="col" style={{ width: '30%' }}>Pregunta de seguimiento</th>
-                      <th scope="col">Éxito esperado</th>
-                      <th scope="col" style={{ width: '70px' }}>Acción</th>
+                    <tr className="bg-navy text-white text-[0.75rem] font-black uppercase tracking-[0.1em]">
+                      <th scope="col" className="p-4 text-center border-r border-white/10 w-[60px]">ID</th>
+                      <th scope="col" className="p-4 text-left border-r border-white/10 w-[35%]">Texto de la tarea</th>
+                      <th scope="col" className="p-4 text-left border-r border-white/10 w-[30%]">Pregunta de seguimiento</th>
+                      <th scope="col" className="p-4 text-left border-r border-white/10">Éxito esperado</th>
+                      <th scope="col" className="p-4 text-center w-[70px]">Acción</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-100">
                     {tasks.length > 0 ? (
                       tasks.map((task) => (
-                        <tr key={task.id}>
-                          <td style={{ textAlign: 'center' }}>
+                        <tr key={task.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="p-3 text-center">
                             <span className="id-badge">{task.task_index}</span>
                           </td>
 
-                          <td>
+                          <td className="p-2">
                             <label htmlFor={`script-text-${task.id}`} className="sr-only">
                               Texto de la tarea {task.task_index}
                             </label>
                             <textarea
                               id={`script-text-${task.id}`}
+                              className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
                               value={task.script_task_text || ''}
                               onChange={(e) => handleTaskChange(task.id!, { script_task_text: e.target.value })}
                               onBlur={(e) =>
@@ -239,12 +223,13 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                             />
                           </td>
 
-                          <td>
+                          <td className="p-2">
                             <label htmlFor={`script-followup-${task.id}`} className="sr-only">
                               Pregunta de seguimiento {task.task_index}
                             </label>
                             <textarea
                               id={`script-followup-${task.id}`}
+                              className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
                               value={task.script_follow_up || ''}
                               onChange={(e) => handleTaskChange(task.id!, { script_follow_up: e.target.value })}
                               onBlur={(e) =>
@@ -257,12 +242,13 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                             />
                           </td>
 
-                          <td>
+                          <td className="p-2">
                             <label htmlFor={`script-success-${task.id}`} className="sr-only">
                               Éxito esperado {task.task_index}
                             </label>
                             <textarea
                               id={`script-success-${task.id}`}
+                              className="w-full p-2.5 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[80px]"
                               value={task.script_expected_success || ''}
                               onChange={(e) => handleTaskChange(task.id!, { script_expected_success: e.target.value })}
                               onBlur={(e) =>
@@ -275,10 +261,10 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                             />
                           </td>
 
-                          <td style={{ textAlign: 'center' }}>
+                          <td className="p-3 text-center">
                             <button
                               type="button"
-                              className="btn-delete"
+                              className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg"
                               onClick={() => onDeleteTask(task.id!)}
                               aria-label={`Eliminar tarea ${task.task_index}`}
                             >
@@ -291,7 +277,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                       <tr>
                         <td
                           colSpan={5}
-                          style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}
+                          className="p-12 text-center text-slate-500 italic font-medium"
                         >
                           No hay tareas en el guion. Haz clic en el botón de abajo para empezar.
                         </td>
@@ -300,10 +286,10 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                   </tbody>
                 </table>
               </div>
-              <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderTop: '1px solid var(--border)' }}>
+              <div className="p-4 px-6 bg-slate-50 border-t border-slate-200">
                 <button
                   type="button"
-                  className="btn-add"
+                  className="inline-flex items-center gap-2 bg-navy text-white border-none px-6 py-2.5 rounded-lg font-black text-sm uppercase tracking-wider cursor-pointer transition-all hover:bg-navy-dark disabled:bg-slate-300 disabled:cursor-not-allowed shadow-md shadow-navy/10"
                   onClick={onAddTask}
                   disabled={!testPlan.id}
                   aria-label="Añadir tarea al guion"
@@ -315,32 +301,28 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
             </section>
 
             {/* ── 3. Cierre ── */}
-            <section className="card" aria-labelledby="script-cierre-heading">
-              <h3 className="card-title" id="script-cierre-heading">
+            <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" aria-labelledby="script-cierre-heading">
+              <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0" id="script-cierre-heading">
                 Cierre
               </h3>
-              <div className="card-content">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="p-6">
+                <div className="flex flex-col gap-8">
                   {(testPlan.closing_questions || []).map((q: ClosingQuestion, index: number) => (
-                    <div key={index} className="form-group">
+                    <div key={index} className="flex flex-col gap-3">
                       <label
                         htmlFor={`closing-q-${index}`}
-                        style={{ color: '#854d0e', fontSize: '1.05rem', fontWeight: 'bold' }}
+                        className="text-amber-900 text-base font-black tracking-tight"
                       >
                         {index + 1}. {q.question}
                       </label>
                       <textarea
                         id={`closing-q-${index}`}
+                        className="w-full p-4 border border-amber-200 rounded-xl text-base transition-all focus:outline-none focus:ring-4 focus:ring-amber-50 bg-amber-50/50 focus:bg-white text-slate-900 font-medium min-h-[100px]"
                         value={q.answer}
                         onChange={(e) => handleUpdateClosingAnswer(index, e.target.value)}
                         onBlur={(e) => handleSaveClosingAnswer(index, e.target.value)}
                         placeholder="Escribe la respuesta..."
                         rows={3}
-                        style={{
-                          backgroundColor: '#fef9c3',
-                          border: '1px solid #fde047',
-                          color: '#1a1a1a',
-                        }}
                       />
                     </div>
                   ))}

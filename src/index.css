@@ -1,10 +1,110 @@
-*, *::before, *::after {
-  box-sizing: border-box;
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #003366;
+  --color-navy-light: #004080;
+  --color-navy-dark: #002244;
+  --color-page: #f0f4f8;
+  --color-muted: #374151;
+  
+  --animate-gd-float: gd-float 9s ease-in-out infinite;
+  --animate-gd-float-reverse: gd-float 13s ease-in-out infinite reverse;
+  --animate-gd-float-delayed: gd-float 7s ease-in-out infinite 2s;
+  --animate-pulse-fast: pulse 2s infinite;
+
+  @keyframes gd-float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-18px) scale(1.04); }
+  }
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  min-height: 100vh;
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    background-color: var(--color-page);
+  }
+
+  body {
+    font-family: 'Sora', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #1a1a1a;
+  }
+}
+
+@layer components {
+  /* --- Preserved Complex Components --- */
+  
+  /* Save Button with Unsaved State */
+  .btn-save-sticky {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 font-bold text-sm cursor-pointer transition-all duration-200 relative;
+    font-family: inherit;
+  }
+
+  .btn-save-sticky:hover:not(:disabled) {
+    @apply bg-slate-100 border-slate-300 -translate-y-px;
+  }
+
+  .btn-save-sticky.unsaved {
+    @apply bg-navy text-white border-navy shadow-lg shadow-navy/20;
+  }
+
+  .btn-save-sticky.unsaved:hover {
+    @apply bg-navy-light shadow-xl shadow-navy/30;
+  }
+
+  .btn-save-sticky.success {
+    @apply bg-green-100 text-green-700 border-green-300;
+  }
+
+  .btn-save-sticky.saving {
+    @apply bg-blue-50 text-blue-800 border-blue-200 cursor-default;
+  }
+
+  .unsaved-dot {
+    @apply absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full animate-pulse-fast;
+  }
+
+  /* Global Dashboard Badges */
+  .gd-badge {
+    @apply inline-flex items-center gap-1.5 bg-white/15 border border-white/25 backdrop-blur-md px-3.5 py-1 rounded-full text-[0.8rem] font-bold tracking-widest uppercase text-white/90;
+  }
+
+  .id-badge {
+    @apply inline-flex items-center justify-center bg-navy text-white text-[0.75rem] font-bold px-2 py-0.5 rounded-md min-w-[24px];
+  }
+
+  /* Status Badges */
+  .gd-status-badge {
+    @apply inline-block px-2.5 py-1 rounded-full text-[0.8rem] font-bold whitespace-nowrap;
+  }
+
+  /* Spinners */
+  .spinner {
+    @apply w-12 h-12 border-4 border-slate-200 border-t-navy rounded-full animate-spin;
+  }
+
+  .spin {
+    @apply animate-spin;
+  }
+
+  /* Layout Containers */
+  .main-container {
+    @apply w-full bg-white min-h-screen box-border px-4 md:px-8 pb-16;
+  }
+
+  /* Tooltip Custom */
+  .tooltip-box {
+    @apply absolute bottom-[140%] left-1/2 -translate-x-1/2 bg-slate-800 text-white px-3.5 py-2.5 rounded-lg text-[0.75rem] leading-snug w-[240px] max-w-[80vw] z-[10000] shadow-xl text-center pointer-events-none font-medium normal-case break-words;
+  }
+}
+
+/* Utilities */
+.loading-screen {
+  @apply flex flex-col justify-center items-center h-screen gap-4 bg-page;
 }

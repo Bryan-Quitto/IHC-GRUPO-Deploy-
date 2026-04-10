@@ -57,50 +57,50 @@ export const PlanView: React.FC<PlanViewProps> = ({
   const isProductEmpty = !localPlan.product || localPlan.product.trim() === '';
 
   return (
-    <div id="plan-panel" className="dashboard-view">
-      <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', padding: '1rem' }}>
-        <h2 style={{ margin: 0, flex: '1 1 300px', textAlign: 'center' }}>Panel del Plan de Pruebas de Usabilidad</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', flexShrink: 0, margin: '0 auto' }}>
+    <div id="plan-panel" className="animate-in fade-in duration-500">
+      <header className="relative flex items-center justify-center bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px]">
+        <h2 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Plan de Pruebas de Usabilidad</h2>
+        <div className="absolute right-4 md:right-6 flex items-center gap-2 text-sm font-bold opacity-90 text-right">
           {isSaving ? (
-            <span style={{ color: '#ffffff', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <RefreshCcw size={14} className="spin" /> Guardando...
+            <span className="flex items-center gap-1.5 text-white animate-pulse">
+              <RefreshCcw size={14} className="animate-spin" /> Guardando...
             </span>
           ) : (
-            <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span className="flex items-center gap-1.5 text-emerald-400">
               <CheckCircle size={14} /> Cambios guardados
             </span>
           )}
         </div>
       </header>
 
-      <div className="dashboard-content">
-        <section className="card">
-          <h3 className="card-title">1. Contexto general</h3>
-          <div className="card-content">
-            <div className="row-2">
-              <div className="form-group">
-                <label htmlFor="product-name">
+      <div className="space-y-8">
+        <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">1. Contexto general</h3>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="product-name" className="text-sm font-bold text-slate-700 flex items-center gap-2">
                   Producto / servicio:
-                  {isProductEmpty && <span style={{ color: '#d97706', marginLeft: '5px', fontSize: '0.8rem' }}>(Obligatorio)</span>}
+                  {isProductEmpty && <span className="text-amber-600 text-[0.75rem] font-black uppercase">(Obligatorio)</span>}
                 </label>
                 <input
                   id="product-name"
                   type="text"
+                  className={`w-full p-3 border rounded-lg text-base transition-all focus:outline-none focus:ring-4 focus:ring-navy/5 ${
+                    isProductEmpty ? 'border-amber-400 bg-amber-50' : 'border-slate-200 bg-white focus:border-navy'
+                  }`}
                   value={localPlan.product}
                   placeholder="Ej: App de Delivery 'Rápido', E-commerce, etc."
-                  style={{
-                    border: isProductEmpty ? '2px solid #fbbf24' : '1px solid var(--border)',
-                    backgroundColor: isProductEmpty ? '#fffbeb' : 'white'
-                  }}
                   onChange={(e) => handleChange({ product: e.target.value })}
                   onBlur={(e) => handleAutoSave({ product: e.target.value })}
                 />
               </div>
-              <div className="form-group">
-                <label htmlFor="module-name">Pantalla / módulo:</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="module-name" className="text-sm font-bold text-slate-700">Pantalla / módulo:</label>
                 <input
                   id="module-name"
                   type="text"
+                  className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                   value={localPlan.module}
                   placeholder="Ej: Proceso de checkout, Registro de usuario, etc."
                   onChange={(e) => handleChange({ module: e.target.value })}
@@ -108,10 +108,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 />
               </div>
             </div>
-            <div className="form-group">
-              <label htmlFor="test-objective">Objetivo del test:</label>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="test-objective" className="text-sm font-bold text-slate-700">Objetivo del test:</label>
               <textarea
                 id="test-objective"
+                className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                 value={localPlan.objective}
                 placeholder="Ej: Evaluar la facilidad de navegación y el tiempo de completado del flujo de compra."
                 onChange={(e) => handleChange({ objective: e.target.value })}
@@ -119,34 +120,37 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 rows={2}
               />
             </div>
-            <div className="form-group">
-              <label htmlFor="user-profile">Perfil de usuarios:</label>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="user-profile" className="text-sm font-bold text-slate-700">Perfil de usuarios:</label>
               <input
                 id="user-profile"
                 type="text"
+                className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                 value={localPlan.user_profile}
                 placeholder="Ej: Usuarios de 25-40 años, con experiencia en compras online."
                 onChange={(e) => handleChange({ user_profile: e.target.value })}
                 onBlur={(e) => handleAutoSave({ user_profile: e.target.value })}
               />
             </div>
-            <div className="row-2">
-              <div className="form-group">
-                <label htmlFor="test-method">Método:</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="test-method" className="text-sm font-bold text-slate-700">Método:</label>
                 <input
                   id="test-method"
                   type="text"
+                  className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                   value={localPlan.method}
                   placeholder="Ej: Moderado, remoto, presencial..."
                   onChange={(e) => handleChange({ method: e.target.value })}
                   onBlur={(e) => handleAutoSave({ method: e.target.value })}
                 />
               </div>
-              <div className="form-group">
-                <label htmlFor="test-duration">Duración:</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="test-duration" className="text-sm font-bold text-slate-700">Duración:</label>
                 <input
                   id="test-duration"
                   type="text"
+                  className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                   value={localPlan.duration}
                   placeholder="Ej: 45 min por sesión."
                   onChange={(e) => handleChange({ duration: e.target.value })}
@@ -154,22 +158,24 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 />
               </div>
             </div>
-            <div className="row-2">
-              <div className="form-group">
-                <label htmlFor="test-date">Fecha del test:</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="test-date" className="text-sm font-bold text-slate-700">Fecha del test:</label>
                 <input
                   id="test-date"
                   type="date"
+                  className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                   value={localPlan.test_date || ''}
                   onChange={(e) => handleChange({ test_date: e.target.value })}
                   onBlur={(e) => handleAutoSave({ test_date: e.target.value })}
                 />
               </div>
-              <div className="form-group">
-                <label htmlFor="location-channel">Lugar / canal:</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="location-channel" className="text-sm font-bold text-slate-700">Lugar / canal:</label>
                 <input
                   id="location-channel"
                   type="text"
+                  className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                   value={localPlan.location_channel}
                   placeholder="Ej: Google Meet, Oficina 302..."
                   onChange={(e) => handleChange({ location_channel: e.target.value })}
@@ -180,133 +186,178 @@ export const PlanView: React.FC<PlanViewProps> = ({
           </div>
         </section>
 
-        <section className="card">
-          <h3 className="card-title">2. Tareas del test</h3>
+        <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">2. Tareas del test</h3>
 
           {/* ── MÓVIL: tarjetas ── */}
           {isMobile && (
-            <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="p-4 flex flex-col gap-4">
               {tasks.length === 0 ? (
-                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1.5rem 0' }}>
+                <p className="text-center text-slate-500 py-8 italic font-medium">
                   No hay tareas añadidas. Haz clic en el botón de abajo para empezar.
                 </p>
               ) : (
                 tasks.map((task) => (
                   <article
                     key={task.id}
-                    style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}
+                    className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm"
                     aria-label={`Tarea ${task.task_index}`}
                   >
-                    <div style={{ background: 'var(--primary)', padding: '0.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>Tarea {task.task_index}</span>
-                      <button type="button" className="btn-delete" onClick={() => onDeleteTask(task.id!)} aria-label={`Eliminar ${task.task_index}`} style={{ color: '#fca5a5' }}>
+                    <div className="bg-navy px-4 py-2 flex justify-between items-center text-white">
+                      <span className="font-bold text-sm">Tarea {task.task_index}</span>
+                      <button type="button" className="bg-transparent border-none text-red-300 p-1 cursor-pointer transition-colors hover:text-red-500" onClick={() => onDeleteTask(task.id!)} aria-label={`Eliminar ${task.task_index}`}>
                         <Trash2 size={16} aria-hidden="true" />
                       </button>
                     </div>
-                    <div style={{ padding: '0.875rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <div className="form-group">
-                        <label htmlFor={`m-scenario-${task.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Escenario / tarea</label>
-                        <input id={`m-scenario-${task.id}`} type="text" value={task.scenario || ''} onChange={e => handleTaskChange(task.id!, { scenario: e.target.value })} onBlur={e => onSaveTask(task.id!, { scenario: e.target.value })} placeholder="Ej. Imagina que quieres comprar..." />
+                    <div className="p-4 flex flex-col gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor={`m-scenario-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Escenario / tarea</label>
+                        <input id={`m-scenario-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.scenario || ''} onChange={e => handleTaskChange(task.id!, { scenario: e.target.value })} onBlur={e => onSaveTask(task.id!, { scenario: e.target.value })} placeholder="Ej. Imagina que quieres comprar..." />
                       </div>
-                      <div className="form-group">
-                        <label htmlFor={`m-expected-${task.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Resultado esperado</label>
-                        <input id={`m-expected-${task.id}`} type="text" value={task.expected_result || ''} onChange={e => handleTaskChange(task.id!, { expected_result: e.target.value })} onBlur={e => onSaveTask(task.id!, { expected_result: e.target.value })} placeholder="Ej. El usuario llega a la confirmación." />
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor={`m-expected-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Resultado esperado</label>
+                        <input id={`m-expected-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.expected_result || ''} onChange={e => handleTaskChange(task.id!, { expected_result: e.target.value })} onBlur={e => onSaveTask(task.id!, { expected_result: e.target.value })} placeholder="Ej. El usuario llega a la confirmación." />
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                        <div className="form-group">
-                          <label htmlFor={`m-metric-${task.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Métrica principal</label>
-                          <input id={`m-metric-${task.id}`} type="text" value={task.main_metric || ''} onChange={e => handleTaskChange(task.id!, { main_metric: e.target.value })} onBlur={e => onSaveTask(task.id!, { main_metric: e.target.value })} placeholder="Tiempo, Tasa..." />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                          <label htmlFor={`m-metric-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Métrica</label>
+                          <input id={`m-metric-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.main_metric || ''} onChange={e => handleTaskChange(task.id!, { main_metric: e.target.value })} onBlur={e => onSaveTask(task.id!, { main_metric: e.target.value })} placeholder="Tiempo..." />
                         </div>
-                        <div className="form-group">
-                          <label htmlFor={`m-criteria-${task.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Criterio de éxito</label>
-                          <input id={`m-criteria-${task.id}`} type="text" value={task.success_criteria || ''} onChange={e => handleTaskChange(task.id!, { success_criteria: e.target.value })} onBlur={e => onSaveTask(task.id!, { success_criteria: e.target.value })} placeholder="Sin errores críticos..." />
+                        <div className="flex flex-col gap-1.5">
+                          <label htmlFor={`m-criteria-${task.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Criterio</label>
+                          <input id={`m-criteria-${task.id}`} type="text" className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={task.success_criteria || ''} onChange={e => handleTaskChange(task.id!, { success_criteria: e.target.value })} onBlur={e => onSaveTask(task.id!, { success_criteria: e.target.value })} placeholder="Sin errores..." />
                         </div>
                       </div>
                     </div>
                   </article>
                 ))
               )}
-              <button type="button" className="btn-add" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty} style={{ width: '100%', justifyContent: 'center' }}>
+              <button type="button" className="inline-flex items-center justify-center gap-2 bg-green-600 text-white border-none p-3.5 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-green-100 mt-2" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty}>
                 <Plus size={18} aria-hidden="true" /> Añadir Tarea
               </button>
-              {isProductEmpty && <span style={{ color: '#64748b', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center' }}>* Debes definir un nombre de producto para añadir tareas.</span>}
+              {isProductEmpty && <span className="text-[0.8rem] text-slate-500 italic text-center mt-1">* Debes definir un nombre de producto para añadir tareas.</span>}
             </div>
           )}
 
           {/* ── DESKTOP: tabla ── */}
           {!isMobile && (
             <>
-              <div className="data-table-container">
-                <table className="data-table">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
                   <caption className="sr-only">Listado de tareas detalladas para la prueba de usabilidad</caption>
                   <thead>
-                    <tr>
-                      <th scope="col" style={{ width: '50px' }}>ID</th>
-                      <th scope="col">Escenario / tarea</th>
-                      <th scope="col">Resultado esperado</th>
-                      <th scope="col">Métrica principal</th>
-                      <th scope="col">Criterio de éxito</th>
-                      <th scope="col" style={{ width: '80px' }}>Acción</th>
+                    <tr className="bg-navy text-white text-[0.75rem] font-black uppercase tracking-[0.1em]">
+                      <th scope="col" className="p-4 text-center border-r border-white/10 w-[60px]">ID</th>
+                      <th scope="col" className="p-4 text-left border-r border-white/10">Escenario / tarea</th>
+                      <th scope="col" className="p-4 text-left border-r border-white/10">Resultado esperado</th>
+                      <th scope="col" className="p-4 text-left border-r border-white/10">Métrica principal</th>
+                      <th scope="col" className="p-4 text-left border-r border-white/10">Criterio de éxito</th>
+                      <th scope="col" className="p-4 text-center w-[80px]">Acción</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-100">
                     {tasks.length > 0 ? (
                       tasks.map((task) => (
-                        <tr key={task.id}>
-                          <td style={{ textAlign: 'center' }}><span className="id-badge">{task.task_index}</span></td>
-                          <td><input type="text" aria-label={`Escenario para ${task.task_index}`} value={task.scenario || ''} onChange={e => handleTaskChange(task.id!, { scenario: e.target.value })} onBlur={e => onSaveTask(task.id!, { scenario: e.target.value })} placeholder="Ej. Imagina que quieres comprar..." /></td>
-                          <td><input type="text" aria-label={`Resultado esperado para ${task.task_index}`} value={task.expected_result || ''} onChange={e => handleTaskChange(task.id!, { expected_result: e.target.value })} onBlur={e => onSaveTask(task.id!, { expected_result: e.target.value })} placeholder="Ej. El usuario llega a la confirmación." /></td>
-                          <td><input type="text" aria-label={`Métrica para ${task.task_index}`} value={task.main_metric || ''} onChange={e => handleTaskChange(task.id!, { main_metric: e.target.value })} onBlur={e => onSaveTask(task.id!, { main_metric: e.target.value })} placeholder="Ej. Tiempo, Tasa de éxito..." /></td>
-                          <td><input type="text" aria-label={`Criterio de éxito para ${task.task_index}`} value={task.success_criteria || ''} onChange={e => handleTaskChange(task.id!, { success_criteria: e.target.value })} onBlur={e => onSaveTask(task.id!, { success_criteria: e.target.value })} placeholder="Ej. Sin errores críticos..." /></td>
-                          <td style={{ textAlign: 'center' }}><button className="btn-delete" onClick={() => onDeleteTask(task.id!)} type="button" aria-label={`Eliminar ${task.task_index}`}><Trash2 size={20} aria-hidden="true" /></button></td>
+                        <tr key={task.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="p-3 text-center"><span className="id-badge">{task.task_index}</span></td>
+                          <td className="p-2">
+                            <input 
+                              type="text" 
+                              className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
+                              aria-label={`Escenario para ${task.task_index}`} 
+                              value={task.scenario || ''} 
+                              onChange={e => handleTaskChange(task.id!, { scenario: e.target.value })} 
+                              onBlur={e => onSaveTask(task.id!, { scenario: e.target.value })} 
+                              placeholder="Ej. Imagina que quieres comprar..." 
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input 
+                              type="text" 
+                              className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
+                              aria-label={`Resultado esperado para ${task.task_index}`} 
+                              value={task.expected_result || ''} 
+                              onChange={e => handleTaskChange(task.id!, { expected_result: e.target.value })} 
+                              onBlur={e => onSaveTask(task.id!, { expected_result: e.target.value })} 
+                              placeholder="Ej. El usuario llega a la confirmación." 
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input 
+                              type="text" 
+                              className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
+                              aria-label={`Métrica para ${task.task_index}`} 
+                              value={task.main_metric || ''} 
+                              onChange={e => handleTaskChange(task.id!, { main_metric: e.target.value })} 
+                              onBlur={e => onSaveTask(task.id!, { main_metric: e.target.value })} 
+                              placeholder="Ej. Tiempo, Tasa de éxito..." 
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input 
+                              type="text" 
+                              className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" 
+                              aria-label={`Criterio de éxito para ${task.task_index}`} 
+                              value={task.success_criteria || ''} 
+                              onChange={e => handleTaskChange(task.id!, { success_criteria: e.target.value })} 
+                              onBlur={e => onSaveTask(task.id!, { success_criteria: e.target.value })} 
+                              placeholder="Ej. Sin errores críticos..." 
+                            />
+                          </td>
+                          <td className="p-3 text-center">
+                            <button className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" onClick={() => onDeleteTask(task.id!)} type="button" aria-label={`Eliminar ${task.task_index}`}>
+                              <Trash2 size={18} aria-hidden="true" />
+                            </button>
+                          </td>
                         </tr>
                       ))
                     ) : (
-                      <tr><td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No hay tareas añadidas. Haz clic en el botón de abajo para empezar.</td></tr>
+                      <tr><td colSpan={6} className="p-12 text-center text-slate-500 italic font-medium">No hay tareas añadidas. Haz clic en el botón de abajo para empezar.</td></tr>
                     )}
                   </tbody>
                 </table>
               </div>
-              <div style={{ padding: '1rem 1.5rem', backgroundColor: '#f8fafc', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <button type="button" className="btn-add" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty}>
+              <div className="p-4 px-6 bg-slate-50 border-t border-slate-200 flex items-center gap-4">
+                <button type="button" className="inline-flex items-center gap-2 bg-green-600 text-white border-none px-6 py-2.5 rounded-lg font-black text-sm uppercase tracking-wider cursor-pointer transition-all hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-md shadow-green-100" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty}>
                   <Plus size={18} aria-hidden="true" /> Añadir Tarea
                 </button>
-                {isProductEmpty && <span style={{ color: '#64748b', fontSize: '0.9rem', fontStyle: 'italic' }}>* Debes definir un nombre de producto para añadir tareas.</span>}
+                {isProductEmpty && <span className="text-[0.85rem] text-slate-500 font-bold italic">* Debes definir un nombre de producto para añadir tareas.</span>}
               </div>
             </>
           )}
         </section>
 
-        <section className="card">
-          <h3 className="card-title">3. Roles y logística</h3>
-          <div className="card-content">
-            <div className="form-grid">
-              <div className="form-group">
-                <label htmlFor="moderator-name">Moderador:</label>
-                <input id="moderator-name" type="text" value={localPlan.moderator} placeholder="Nombre del facilitador" onChange={(e) => handleChange({ moderator: e.target.value })} onBlur={(e) => handleAutoSave({ moderator: e.target.value })} />
+        <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">3. Roles y logística</h3>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="moderator-name" className="text-sm font-bold text-slate-700">Moderador:</label>
+                <input id="moderator-name" type="text" className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white" value={localPlan.moderator} placeholder="Nombre del facilitador" onChange={(e) => handleChange({ moderator: e.target.value })} onBlur={(e) => handleAutoSave({ moderator: e.target.value })} />
               </div>
-              <div className="form-group">
-                <label htmlFor="observer-name">Observador:</label>
-                <input id="observer-name" type="text" value={localPlan.observer} placeholder="Nombre del que toma notas" onChange={(e) => handleChange({ observer: e.target.value })} onBlur={(e) => handleAutoSave({ observer: e.target.value })} />
+              <div className="flex flex-col gap-2">
+                <label htmlFor="observer-name" className="text-sm font-bold text-slate-700">Observador:</label>
+                <input id="observer-name" type="text" className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white" value={localPlan.observer} placeholder="Nombre del que toma notas" onChange={(e) => handleChange({ observer: e.target.value })} onBlur={(e) => handleAutoSave({ observer: e.target.value })} />
               </div>
-              <div className="form-group">
-                <label htmlFor="tools-used">Herramientas:</label>
-                <input id="tools-used" type="text" value={localPlan.tools} placeholder="Ej: Figma, Zoom, Maze..." onChange={(e) => handleChange({ tools: e.target.value })} onBlur={(e) => handleAutoSave({ tools: e.target.value })} />
+              <div className="flex flex-col gap-2">
+                <label htmlFor="tools-used" className="text-sm font-bold text-slate-700">Herramientas:</label>
+                <input id="tools-used" type="text" className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white" value={localPlan.tools} placeholder="Ej: Figma, Zoom, Maze..." onChange={(e) => handleChange({ tools: e.target.value })} onBlur={(e) => handleAutoSave({ tools: e.target.value })} />
               </div>
-              <div className="form-group">
-                <label htmlFor="project-link">Enlace:</label>
-                <input id="project-link" type="text" value={localPlan.link} placeholder="https://figma.com/proto/..." onChange={(e) => handleChange({ link: e.target.value })} onBlur={(e) => handleAutoSave({ link: e.target.value })} />
+              <div className="flex flex-col gap-2">
+                <label htmlFor="project-link" className="text-sm font-bold text-slate-700">Enlace:</label>
+                <input id="project-link" type="text" className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white" value={localPlan.link} placeholder="https://figma.com/proto/..." onChange={(e) => handleChange({ link: e.target.value })} onBlur={(e) => handleAutoSave({ link: e.target.value })} />
               </div>
             </div>
           </div>
         </section>
 
-        <section className="card">
-          <h3 className="card-title">4. Notas del moderador</h3>
-          <div className="card-content">
+        <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">4. Notas del moderador</h3>
+          <div className="p-6">
             <label htmlFor="moderator-notes" className="sr-only">Notas adicionales del moderador</label>
             <textarea
               id="moderator-notes"
+              className="w-full p-4 border border-slate-200 rounded-xl text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-slate-50 focus:bg-white min-h-[120px]"
               value={localPlan.moderator_notes}
               onChange={(e) => handleChange({ moderator_notes: e.target.value })}
               onBlur={(e) => handleAutoSave({ moderator_notes: e.target.value })}

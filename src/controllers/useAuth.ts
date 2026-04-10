@@ -75,7 +75,16 @@ export function useAuth() {
     return { error };
   };
 
-  const changePassword = async (newPassword: string) => {
+  const changePassword = async (newPassword: string, currentPassword?: string) => {
+    if (currentPassword && user?.email) {
+      // Re-autenticar antes de cambiar contraseña
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      });
+      if (authError) return { data: null, error: authError };
+    }
+
     const { data, error } = await supabase.auth.updateUser({
       password: newPassword
     });

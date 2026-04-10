@@ -13,17 +13,17 @@ interface ObservationsViewProps {
   onGoToPlan: () => void;
 }
 
-const severityStyles: Record<string, { bg: string; color: string; border: string }> = {
-  Baja:    { bg: '#f0fdf4', color: '#166534', border: '#bbf7d0' },
-  Media:   { bg: '#fefce8', color: '#854d0e', border: '#fde68a' },
-  Alta:    { bg: '#fff7ed', color: '#9a3412', border: '#fed7aa' },
-  Crítica: { bg: '#fef2f2', color: '#991b1b', border: '#fecaca' },
+const severityStyles: Record<string, { bg: string; text: string; border: string }> = {
+  Baja:    { bg: 'bg-green-50',  text: 'text-green-900', border: 'border-green-200' },
+  Media:   { bg: 'bg-amber-50',  text: 'text-amber-900', border: 'border-amber-200' },
+  Alta:    { bg: 'bg-orange-50', text: 'text-orange-900', border: 'border-orange-200' },
+  Crítica: { bg: 'bg-red-50',    text: 'text-red-900',    border: 'border-red-200' },
 };
 
-const successStyles: Record<string, { bg: string; color: string; border: string }> = {
-  'Sí':        { bg: '#f0fdf4', color: '#166534', border: '#bbf7d0' },
-  'No':        { bg: '#fef2f2', color: '#991b1b', border: '#fecaca' },
-  'Con ayuda': { bg: '#fefce8', color: '#854d0e', border: '#fde68a' },
+const successStyles: Record<string, { bg: string; text: string; border: string }> = {
+  'Sí':        { bg: 'bg-green-50',  text: 'text-green-900', border: 'border-green-200' },
+  'No':        { bg: 'bg-red-50',    text: 'text-red-900',    border: 'border-red-200' },
+  'Con ayuda': { bg: 'bg-amber-50',  text: 'text-amber-900', border: 'border-amber-200' },
 };
 
 function useWindowWidth() {
@@ -52,104 +52,97 @@ const ObservationCard: React.FC<{
 
   return (
     <article
-      style={{
-        background: '#fff',
-        border: `2px solid ${sStyle.border}`,
-        borderRadius: 10,
-        marginBottom: '1rem',
-        overflow: 'hidden',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-      }}
+      className={`bg-white border-2 ${sStyle.border} rounded-2xl mb-4 overflow-hidden shadow-sm animate-in slide-in-from-left-2 duration-300`}
       aria-label={`Observación ${idx + 1}`}
     >
       {/* Cabecera */}
-      <div style={{ background: sStyle.bg, padding: '0.6rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <span style={{ fontWeight: 700, color: sStyle.color, fontSize: '0.85rem' }}>
+      <div className={`${sStyle.bg} p-4 flex justify-between items-center flex-wrap gap-2`}>
+        <span className={`font-black ${sStyle.text} text-[0.85rem] uppercase tracking-tighter`}>
           Observación #{idx + 1}
         </span>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ padding: '2px 8px', borderRadius: 99, backgroundColor: okStyle.bg, color: okStyle.color, fontWeight: 700, fontSize: '0.75rem', border: `1px solid ${okStyle.border}` }}>
+        <div className="flex gap-2 items-center flex-wrap">
+          <span className={`px-2.5 py-0.5 rounded-full ${okStyle.bg} ${okStyle.text} font-bold text-[0.7rem] border ${okStyle.border}`}>
             {obs.success_level || 'Sí'}
           </span>
-          <span style={{ padding: '2px 8px', borderRadius: 4, backgroundColor: sStyle.bg, color: sStyle.color, fontWeight: 700, fontSize: '0.75rem', border: `1px solid ${sStyle.border}` }}>
+          <span className={`px-2.5 py-0.5 rounded-md ${sStyle.bg} ${sStyle.text} font-bold text-[0.7rem] border ${sStyle.border}`}>
             {obs.severity || 'Baja'}
           </span>
         </div>
       </div>
 
       {/* Cuerpo */}
-      <div style={{ padding: '0.875rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div className="p-4 flex flex-col gap-4">
 
         {/* Fila: Participante + Perfil + Tarea */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 80px', gap: '0.75rem' }}>
-          <div className="form-group">
-            <label htmlFor={`m-obs-participant-${obs.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Participante</label>
-            <input id={`m-obs-participant-${obs.id}`} type="text" value={obs.participant || ''} onChange={e => onLocalChange(obs.id!, { participant: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { participant: e.target.value }))} placeholder="P1" />
+        <div className="grid grid-cols-[1fr_1fr_80px] gap-3">
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`m-obs-participant-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Participante</label>
+            <input id={`m-obs-participant-${obs.id}`} type="text" className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={obs.participant || ''} onChange={e => onLocalChange(obs.id!, { participant: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { participant: e.target.value }))} placeholder="P1" />
           </div>
-          <div className="form-group">
-            <label htmlFor={`m-obs-profile-${obs.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Perfil</label>
-            <input id={`m-obs-profile-${obs.id}`} type="text" value={obs.profile || ''} onChange={e => onLocalChange(obs.id!, { profile: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { profile: e.target.value }))} placeholder="Estudiante" />
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`m-obs-profile-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Perfil</label>
+            <input id={`m-obs-profile-${obs.id}`} type="text" className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={obs.profile || ''} onChange={e => onLocalChange(obs.id!, { profile: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { profile: e.target.value }))} placeholder="Estudiante" />
           </div>
-          <div className="form-group">
-            <label htmlFor={`m-obs-taskref-${obs.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Tarea</label>
-            <input id={`m-obs-taskref-${obs.id}`} type="text" value={obs.task_ref || ''} onChange={e => onLocalChange(obs.id!, { task_ref: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { task_ref: e.target.value }))} placeholder="T1" />
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`m-obs-taskref-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Tarea</label>
+            <input id={`m-obs-taskref-${obs.id}`} type="text" className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all" value={obs.task_ref || ''} onChange={e => onLocalChange(obs.id!, { task_ref: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { task_ref: e.target.value }))} placeholder="T1" />
           </div>
         </div>
 
         {/* Fila: Éxito + Tiempo + Errores */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
-          <div className="form-group">
-            <label htmlFor={`m-obs-success-${obs.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Éxito</label>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`m-obs-success-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Éxito</label>
             <select
               id={`m-obs-success-${obs.id}`}
+              className={`w-full p-2 border ${okStyle.border} rounded-lg text-sm ${okStyle.bg} ${okStyle.text} font-bold outline-none cursor-pointer`}
               value={obs.success_level}
               onChange={e => {
                 const val = e.target.value as SuccessStatus;
                 onLocalChange(obs.id!, { success_level: val });
                 onAction(() => onSave(obs.id!, { success_level: val }));
               }}
-              style={{ backgroundColor: okStyle.bg, color: okStyle.color, border: `1px solid ${okStyle.border}`, fontWeight: 600 }}
             >
               <option value="Sí">Sí</option>
               <option value="No">No</option>
               <option value="Con ayuda">Con ayuda</option>
             </select>
           </div>
-          <div className="form-group">
-            <label htmlFor={`m-obs-time-${obs.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Tiempo (s)</label>
-            <input id={`m-obs-time-${obs.id}`} type="number" min="0" value={obs.time_seconds} onChange={e => onLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={e => onAction(() => onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 }))} placeholder="0" />
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`m-obs-time-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Tiempo (s)</label>
+            <input id={`m-obs-time-${obs.id}`} type="number" min="0" className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-mono font-bold" value={obs.time_seconds} onChange={e => onLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={e => onAction(() => onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 }))} placeholder="0" />
           </div>
-          <div className="form-group">
-            <label htmlFor={`m-obs-errors-${obs.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Errores</label>
-            <input id={`m-obs-errors-${obs.id}`} type="number" min="0" value={obs.errors} onChange={e => onLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={e => onAction(() => onSave(obs.id!, { errors: parseInt(e.target.value) || 0 }))} placeholder="0" />
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`m-obs-errors-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Errores</label>
+            <input id={`m-obs-errors-${obs.id}`} type="number" min="0" className={`w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-mono font-bold ${obs.errors > 2 ? 'text-red-600' : 'text-slate-800'}`} value={obs.errors} onChange={e => onLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={e => onAction(() => onSave(obs.id!, { errors: parseInt(e.target.value) || 0 }))} placeholder="0" />
           </div>
         </div>
 
         {/* Comentarios */}
-        <div className="form-group">
-          <label htmlFor={`m-obs-comments-${obs.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Comentarios clave</label>
-          <textarea id={`m-obs-comments-${obs.id}`} value={obs.comments || ''} onChange={e => onLocalChange(obs.id!, { comments: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { comments: e.target.value }))} placeholder="Ej. Dudó entre 'Notas' y 'Rendimiento'" rows={2} />
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`m-obs-comments-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Comentarios clave</label>
+          <textarea id={`m-obs-comments-${obs.id}`} className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-medium" value={obs.comments || ''} onChange={e => onLocalChange(obs.id!, { comments: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { comments: e.target.value }))} placeholder="Ej. Dudó entre 'Notas' y 'Rendimiento'" rows={2} />
         </div>
 
         {/* Problema */}
-        <div className="form-group">
-          <label htmlFor={`m-obs-problem-${obs.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Problema detectado</label>
-          <textarea id={`m-obs-problem-${obs.id}`} value={obs.problem || ''} onChange={e => onLocalChange(obs.id!, { problem: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { problem: e.target.value }))} placeholder="Ej. Nombre del menú no es claro" rows={2} />
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`m-obs-problem-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest text-red-800">Problema detectado</label>
+          <textarea id={`m-obs-problem-${obs.id}`} className="w-full p-2.5 border border-red-100 rounded-lg text-sm bg-red-50/30 focus:bg-white focus:border-red-400 focus:ring-4 focus:ring-red-50 outline-none transition-all font-medium italic" value={obs.problem || ''} onChange={e => onLocalChange(obs.id!, { problem: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { problem: e.target.value }))} placeholder="Ej. Nombre del menú no es claro" rows={2} />
         </div>
 
         {/* Fila: Severidad + Mejora */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-          <div className="form-group">
-            <label htmlFor={`m-obs-severity-${obs.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Severidad</label>
+        <div className="grid grid-cols-1 gap-4">
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`m-obs-severity-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Severidad</label>
             <select
               id={`m-obs-severity-${obs.id}`}
+              className={`w-full p-2 border ${sStyle.border} rounded-lg text-sm ${sStyle.bg} ${sStyle.text} font-bold outline-none cursor-pointer`}
               value={obs.severity}
               onChange={e => {
                 const val = e.target.value as Severity;
                 onLocalChange(obs.id!, { severity: val });
                 onAction(() => onSave(obs.id!, { severity: val }));
               }}
-              style={{ backgroundColor: sStyle.bg, color: sStyle.color, border: `1px solid ${sStyle.border}`, fontWeight: 600 }}
             >
               <option value="Baja">Baja</option>
               <option value="Media">Media</option>
@@ -157,24 +150,24 @@ const ObservationCard: React.FC<{
               <option value="Crítica">Crítica</option>
             </select>
           </div>
-          <div className="form-group">
-            <label htmlFor={`m-obs-proposal-${obs.id}`} style={{ fontWeight: 600, fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Mejora propuesta</label>
-            <textarea id={`m-obs-proposal-${obs.id}`} value={obs.proposal || ''} onChange={e => onLocalChange(obs.id!, { proposal: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { proposal: e.target.value }))} placeholder="Ej. Renombrar el menú" rows={2} />
+          <div className="flex flex-col gap-1">
+            <label htmlFor={`m-obs-proposal-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest text-green-800">Mejora propuesta</label>
+            <textarea id={`m-obs-proposal-${obs.id}`} className="w-full p-2.5 border border-green-100 rounded-lg text-sm bg-green-50/30 focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none transition-all font-medium" value={obs.proposal || ''} onChange={e => onLocalChange(obs.id!, { proposal: e.target.value })} onBlur={e => onAction(() => onSave(obs.id!, { proposal: e.target.value }))} placeholder="Ej. Renombrar el menú" rows={2} />
           </div>
         </div>
 
         {/* Botón eliminar */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div className="flex justify-end pt-2 border-t border-slate-100 mt-2">
           {confirmDelete ? (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: '0.82rem', color: '#dc2626', fontWeight: 700 }}>¿Eliminar?</span>
-              <button type="button" onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }} style={{ background: '#dc2626', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700 }} aria-label={`Confirmar eliminar observación ${idx + 1}`}>Sí</button>
-              <button type="button" onClick={() => setConfirmDelete(false)} style={{ background: '#e2e8f0', color: '#334155', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer' }}>No</button>
+            <div className="flex gap-2 items-center animate-in zoom-in-95 duration-200">
+              <span className="text-[0.8rem] text-red-600 font-black uppercase">¿Seguro?</span>
+              <button type="button" onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-lg px-4 py-1.5 text-[0.8rem] cursor-pointer font-bold shadow-lg shadow-red-100" aria-label={`Confirmar eliminar observación ${idx + 1}`}>Eliminar</button>
+              <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-100 text-slate-600 border-none rounded-lg px-4 py-1.5 text-[0.8rem] cursor-pointer font-bold">No</button>
             </div>
           ) : (
-            <button type="button" className="btn-delete" onClick={() => setConfirmDelete(true)} aria-label={`Eliminar observación ${idx + 1}`}>
+            <button type="button" className="inline-flex items-center gap-1.5 bg-transparent border-none text-slate-400 cursor-pointer p-2 rounded-lg transition-all hover:bg-red-50 hover:text-red-600" onClick={() => setConfirmDelete(true)} aria-label={`Eliminar observación ${idx + 1}`}>
               <Trash2 size={18} aria-hidden="true" />
-              <span style={{ fontSize: '0.82rem', marginLeft: 4 }}>Eliminar</span>
+              <span className="text-[0.82rem] font-bold">Eliminar</span>
             </button>
           )}
         </div>
@@ -211,30 +204,36 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
     : 0;
 
   return (
-    <div className="dashboard-view">
-      <header className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <h2 style={{ margin: 0, flex: 1, textAlign: 'center' }}>Registro de observación — prueba de usabilidad</h2>
-        <div aria-live="polite" aria-atomic="true" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', flexShrink: 0 }}>
+    <div className="animate-in fade-in duration-500">
+      <header className="relative flex items-center justify-center bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px]">
+        <h2 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Registro de observación — prueba de usabilidad</h2>
+        <div aria-live="polite" aria-atomic="true" className="absolute right-4 md:right-6 flex items-center gap-2 text-sm font-bold opacity-90 text-right">
           {isSaving ? (
-            <><RefreshCcw size={14} className="spin" aria-hidden="true" /><span style={{ color: '#ffffff' }}>Guardando...</span></>
+            <span className="flex items-center gap-1.5 text-white animate-pulse">
+              <RefreshCcw size={14} className="animate-spin" aria-hidden="true" />
+              <span>Guardando...</span>
+            </span>
           ) : (
-            <><CheckCircle size={14} aria-hidden="true" style={{ color: '#10b981' }} /><span style={{ color: '#10b981' }}>Cambios guardados</span></>
+            <span className="flex items-center gap-1.5 text-emerald-400">
+              <CheckCircle size={14} aria-hidden="true" />
+              <span>Cambios guardados</span>
+            </span>
           )}
         </div>
       </header>
 
-      <div className="dashboard-content">
+      <div className="space-y-8">
         {isProductEmpty ? (
-          <section className="card" aria-labelledby="obs-empty-heading">
-            <div className="card-content" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-              <div aria-hidden="true" style={{ width: '80px', height: '80px', backgroundColor: '#fffbeb', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 1rem' }}>
-                <ClipboardList size={40} color="#d97706" />
+          <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" aria-labelledby="obs-empty-heading">
+            <div className="text-center p-12 md:p-16 flex flex-col items-center">
+              <div aria-hidden="true" className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                <ClipboardList size={40} className="text-amber-600" />
               </div>
-              <h3 id="obs-empty-heading" style={{ color: '#1e293b', marginBottom: '0.5rem' }}>¡Falta el nombre del producto!</h3>
-              <p style={{ color: '#64748b', maxWidth: '400px', margin: '0 auto 1.5rem' }}>
+              <h3 id="obs-empty-heading" className="text-xl font-black text-slate-900 mb-2">¡Falta el nombre del producto!</h3>
+              <p className="text-slate-500 font-medium max-w-[400px] mb-8 leading-relaxed">
                 Para registrar observaciones, primero debes asignar un nombre al producto en la pestaña de Plan.
               </p>
-              <button type="button" onClick={onGoToPlan} style={{ backgroundColor: '#003366', color: 'white', padding: '12px 24px', borderRadius: '6px', border: '2px solid transparent', fontWeight: 'bold', cursor: 'pointer' }}>
+              <button type="button" onClick={onGoToPlan} className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-xl px-8 py-3.5 text-base font-black cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/20 active:scale-[0.98]">
                 Ir a definir Producto
               </button>
             </div>
@@ -243,104 +242,147 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
           <>
             {/* Tarjetas de resumen */}
             {totalObs > 0 && (
-              <section aria-labelledby="obs-stats-heading" style={{ marginBottom: '1.5rem' }}>
+              <section aria-labelledby="obs-stats-heading" className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <h3 id="obs-stats-heading" className="sr-only">Resumen de observaciones</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
-                  {[
-                    { label: 'Observaciones',  value: totalObs,    color: 'var(--primary)', suffix: '' },
-                    { label: 'Tareas exitosas', value: totalOk,     color: '#166534',        suffix: '' },
-                    { label: 'Total errores',   value: totalErrors, color: '#dc2626',        suffix: '' },
-                    { label: 'Tiempo promedio', value: avgTime,     color: '#d97706',        suffix: 's' },
-                  ].map(({ label, value, color, suffix }) => (
-                    <div key={label} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '8px', padding: '1.25rem 1rem', textAlign: 'center', borderTop: `4px solid ${color}`, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-                      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
-                      <p style={{ margin: '0.25rem 0 0', fontSize: '2rem', fontWeight: 800, color }}>{value}{suffix}</p>
-                    </div>
-                  ))}
-                </div>
+                {[
+                  { label: 'Observaciones',  value: totalObs,    color: 'text-navy', border: 'border-navy' },
+                  { label: 'Tareas exitosas', value: totalOk,     color: 'text-green-700', border: 'border-green-600' },
+                  { label: 'Total errores',   value: totalErrors, color: 'text-red-600', border: 'border-red-600' },
+                  { label: 'Tiempo promedio', value: avgTime,     color: 'text-amber-600', border: 'border-amber-600', suffix: 's' },
+                ].map(({ label, value, color, border, suffix }) => (
+                  <div key={label} className={`bg-white border border-slate-200 border-t-4 ${border} rounded-xl p-5 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-md`}>
+                    <p className="m-0 text-[0.7rem] text-slate-500 font-black uppercase tracking-widest mb-1">{label}</p>
+                    <p className={`m-0 text-3xl font-black font-mono ${color}`}>{value}{suffix}</p>
+                  </div>
+                ))}
               </section>
             )}
 
             {/* ── MÓVIL: tarjetas ── */}
             {isMobile && (
               <section aria-labelledby="obs-cards-heading">
-                <h3 id="obs-cards-heading" className="card-title" style={{ borderRadius: '8px 8px 0 0', marginBottom: '1rem' }}>
-                  Observaciones registradas
+                <h3 id="obs-cards-heading" className="text-[0.9rem] font-black text-navy uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <span className="w-2 h-6 bg-navy rounded-full"></span> Observaciones registradas
                 </h3>
                 {data.length === 0 ? (
-                  <div className="card" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    No hay observaciones. Haz clic en "Añadir Observación".
+                  <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-400 font-medium italic mb-6">
+                    No hay observaciones todavía.
                   </div>
                 ) : (
-                  data.map((obs, idx) => (
-                    <ObservationCard
-                      key={obs.id}
-                      obs={obs}
-                      idx={idx}
-                      onLocalChange={handleLocalChange}
-                      onSave={onSave}
-                      onDelete={onDelete}
-                      onAction={handleActionWithStatus}
-                    />
-                  ))
+                  <div className="space-y-4">
+                    {data.map((obs, idx) => (
+                      <ObservationCard
+                        key={obs.id}
+                        obs={obs}
+                        idx={idx}
+                        onLocalChange={handleLocalChange}
+                        onSave={onSave}
+                        onDelete={onDelete}
+                        onAction={handleActionWithStatus}
+                      />
+                    ))}
+                  </div>
                 )}
-                <button type="button" className="btn-add" onClick={onAdd} disabled={!planId} style={{ width: '100%', justifyContent: 'center' }} aria-label="Añadir nueva observación">
-                  <Plus size={18} aria-hidden="true" /> Añadir Observación
+                <button type="button" className="inline-flex items-center justify-center gap-2 w-full bg-navy text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/10 mt-4 active:scale-[0.98]" onClick={onAdd} disabled={!planId} aria-label="Añadir nueva observación">
+                  <Plus size={20} aria-hidden="true" /> Añadir Observación
                 </button>
               </section>
             )}
 
             {/* ── DESKTOP: tabla ── */}
             {!isMobile && (
-              <section className="card" aria-labelledby="obs-tabla-heading">
-                <h3 className="card-title" id="obs-tabla-heading">Observaciones registradas</h3>
-                <div className="data-table-container">
-                  <table className="data-table">
+              <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" aria-labelledby="obs-tabla-heading">
+                <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0" id="obs-tabla-heading">Observaciones registradas</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
                     <caption className="sr-only">Registro de observaciones de prueba de usabilidad</caption>
                     <thead>
-                      <tr>
-                        <th scope="col">Participante</th>
-                        <th scope="col">Perfil</th>
-                        <th scope="col">Tarea</th>
-                        <th scope="col">Éxito</th>
-                        <th scope="col">Tiempo (s)</th>
-                        <th scope="col">Errores</th>
-                        <th scope="col">Comentarios clave</th>
-                        <th scope="col">Problema detectado</th>
-                        <th scope="col">Severidad</th>
-                        <th scope="col">Mejora propuesta</th>
-                        <th scope="col">Acción</th>
+                      <tr className="bg-slate-50 text-slate-500 text-[0.7rem] font-black uppercase tracking-[0.1em] border-b border-slate-200">
+                        <th scope="col" className="p-4 text-left border-r border-slate-100">Participante</th>
+                        <th scope="col" className="p-4 text-left border-r border-slate-100">Perfil</th>
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[80px]">Tarea</th>
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[130px]">Éxito</th>
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[100px]">Tiempo (s)</th>
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[80px]">Errores</th>
+                        <th scope="col" className="p-4 text-left border-r border-slate-100">Comentarios clave</th>
+                        <th scope="col" className="p-4 text-left border-r border-slate-100">Problema detectado</th>
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[130px]">Severidad</th>
+                        <th scope="col" className="p-4 text-left border-r border-slate-100">Mejora propuesta</th>
+                        <th scope="col" className="p-4 text-center w-[60px]"></th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100">
                       {data.length > 0 ? (
                         data.map((obs) => {
                           const sStyle  = severityStyles[obs.severity]     || severityStyles['Baja'];
                           const okStyle = successStyles[obs.success_level] || successStyles['Sí'];
                           return (
-                            <tr key={obs.id}>
-                              <td><label htmlFor={`obs-participant-${obs.id}`} className="sr-only">Participante</label><input id={`obs-participant-${obs.id}`} type="text" value={obs.participant || ''} onChange={e => handleLocalChange(obs.id!, { participant: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { participant: e.target.value }))} placeholder="P1" /></td>
-                              <td><label htmlFor={`obs-profile-${obs.id}`} className="sr-only">Perfil</label><input id={`obs-profile-${obs.id}`} type="text" value={obs.profile || ''} onChange={e => handleLocalChange(obs.id!, { profile: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { profile: e.target.value }))} placeholder="Estudiante" /></td>
-                              <td><label htmlFor={`obs-taskref-${obs.id}`} className="sr-only">Tarea</label><input id={`obs-taskref-${obs.id}`} type="text" value={obs.task_ref || ''} onChange={e => handleLocalChange(obs.id!, { task_ref: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { task_ref: e.target.value }))} placeholder="T1" /></td>
-                              <td><label htmlFor={`obs-success-${obs.id}`} className="sr-only">Éxito</label><select id={`obs-success-${obs.id}`} value={obs.success_level} onChange={e => { const val = e.target.value as SuccessStatus; handleLocalChange(obs.id!, { success_level: val }); handleActionWithStatus(() => onSave(obs.id!, { success_level: val })); }} style={{ backgroundColor: okStyle.bg, color: okStyle.color, border: `1px solid ${okStyle.border}`, fontWeight: 600 }}><option value="Sí">Sí</option><option value="No">No</option><option value="Con ayuda">Con ayuda</option></select></td>
-                              <td><label htmlFor={`obs-time-${obs.id}`} className="sr-only">Tiempo</label><input id={`obs-time-${obs.id}`} type="number" min="0" value={obs.time_seconds} onChange={e => handleLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 }))} placeholder="0" /></td>
-                              <td><label htmlFor={`obs-errors-${obs.id}`} className="sr-only">Errores</label><input id={`obs-errors-${obs.id}`} type="number" min="0" value={obs.errors} onChange={e => handleLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { errors: parseInt(e.target.value) || 0 }))} placeholder="0" /></td>
-                              <td><label htmlFor={`obs-comments-${obs.id}`} className="sr-only">Comentarios</label><textarea id={`obs-comments-${obs.id}`} value={obs.comments || ''} onChange={e => handleLocalChange(obs.id!, { comments: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { comments: e.target.value }))} placeholder="Ej. Dudó entre opciones" rows={3} /></td>
-                              <td><label htmlFor={`obs-problem-${obs.id}`} className="sr-only">Problema</label><textarea id={`obs-problem-${obs.id}`} value={obs.problem || ''} onChange={e => handleLocalChange(obs.id!, { problem: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" rows={3} /></td>
-                              <td><label htmlFor={`obs-severity-${obs.id}`} className="sr-only">Severidad</label><select id={`obs-severity-${obs.id}`} value={obs.severity} onChange={e => { const val = e.target.value as Severity; handleLocalChange(obs.id!, { severity: val }); handleActionWithStatus(() => onSave(obs.id!, { severity: val })); }} style={{ backgroundColor: sStyle.bg, color: sStyle.color, border: `1px solid ${sStyle.border}`, fontWeight: 600 }}><option value="Baja">Baja</option><option value="Media">Media</option><option value="Alta">Alta</option><option value="Crítica">Crítica</option></select></td>
-                              <td><label htmlFor={`obs-proposal-${obs.id}`} className="sr-only">Mejora</label><textarea id={`obs-proposal-${obs.id}`} value={obs.proposal || ''} onChange={e => handleLocalChange(obs.id!, { proposal: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { proposal: e.target.value }))} placeholder="Ej. Renombrar menú" rows={3} /></td>
-                              <td style={{ textAlign: 'center' }}><button type="button" className="btn-delete" onClick={() => onDelete(obs.id!)} aria-label={`Eliminar observación de ${obs.participant || 'participante'} en tarea ${obs.task_ref || ''}`}><Trash2 size={18} aria-hidden="true" /></button></td>
+                            <tr key={obs.id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-2">
+                                <label htmlFor={`obs-participant-${obs.id}`} className="sr-only">Participante</label>
+                                <input id={`obs-participant-${obs.id}`} type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-bold text-slate-800" value={obs.participant || ''} onChange={e => handleLocalChange(obs.id!, { participant: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { participant: e.target.value }))} placeholder="P1" />
+                              </td>
+                              <td className="p-2">
+                                <label htmlFor={`obs-profile-${obs.id}`} className="sr-only">Perfil</label>
+                                <input id={`obs-profile-${obs.id}`} type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium" value={obs.profile || ''} onChange={e => handleLocalChange(obs.id!, { profile: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { profile: e.target.value }))} placeholder="Estudiante" />
+                              </td>
+                              <td className="p-2 text-center">
+                                <label htmlFor={`obs-taskref-${obs.id}`} className="sr-only">Tarea</label>
+                                <input id={`obs-taskref-${obs.id}`} type="text" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-black text-navy" value={obs.task_ref || ''} onChange={e => handleLocalChange(obs.id!, { task_ref: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { task_ref: e.target.value }))} placeholder="T1" />
+                              </td>
+                              <td className="p-3">
+                                <label htmlFor={`obs-success-${obs.id}`} className="sr-only">Éxito</label>
+                                <select id={`obs-success-${obs.id}`} className={`w-full p-2 border ${okStyle.border} rounded-lg text-[0.75rem] ${okStyle.bg} ${okStyle.text} font-black outline-none cursor-pointer`} value={obs.success_level} onChange={e => { const val = e.target.value as SuccessStatus; handleLocalChange(obs.id!, { success_level: val }); handleActionWithStatus(() => onSave(obs.id!, { success_level: val })); }}>
+                                  <option value="Sí">Sí</option>
+                                  <option value="No">No</option>
+                                  <option value="Con ayuda">Con ayuda</option>
+                                </select>
+                              </td>
+                              <td className="p-2">
+                                <label htmlFor={`obs-time-${obs.id}`} className="sr-only">Tiempo</label>
+                                <input id={`obs-time-${obs.id}`} type="number" min="0" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-mono font-bold" value={obs.time_seconds} onChange={e => handleLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 }))} placeholder="0" />
+                              </td>
+                              <td className="p-2">
+                                <label htmlFor={`obs-errors-${obs.id}`} className="sr-only">Errores</label>
+                                <input id={`obs-errors-${obs.id}`} type="number" min="0" className={`w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-mono font-bold ${obs.errors > 2 ? 'text-red-600' : 'text-slate-800'}`} value={obs.errors} onChange={e => handleLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { errors: parseInt(e.target.value) || 0 }))} placeholder="0" />
+                              </td>
+                              <td className="p-2">
+                                <label htmlFor={`obs-comments-${obs.id}`} className="sr-only">Comentarios</label>
+                                <textarea id={`obs-comments-${obs.id}`} className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium min-h-[60px]" value={obs.comments || ''} onChange={e => handleLocalChange(obs.id!, { comments: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { comments: e.target.value }))} placeholder="Ej. Dudó entre opciones" rows={2} />
+                              </td>
+                              <td className="p-2">
+                                <label htmlFor={`obs-problem-${obs.id}`} className="sr-only">Problema</label>
+                                <textarea id={`obs-problem-${obs.id}`} className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-red-400 focus:ring-4 focus:ring-red-50 outline-none font-medium italic text-red-900 min-h-[60px]" value={obs.problem || ''} onChange={e => handleLocalChange(obs.id!, { problem: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { problem: e.target.value }))} placeholder="Ej. Menú no es claro" rows={2} />
+                              </td>
+                              <td className="p-3">
+                                <label htmlFor={`obs-severity-${obs.id}`} className="sr-only">Severidad</label>
+                                <select id={`obs-severity-${obs.id}`} className={`w-full p-2 border ${sStyle.border} rounded-lg text-[0.75rem] ${sStyle.bg} ${sStyle.text} font-black outline-none cursor-pointer`} value={obs.severity} onChange={e => { const val = e.target.value as Severity; handleLocalChange(obs.id!, { severity: val }); handleActionWithStatus(() => onSave(obs.id!, { severity: val })); }}>
+                                  <option value="Baja">Baja</option>
+                                  <option value="Media">Media</option>
+                                  <option value="Alta">Alta</option>
+                                  <option value="Crítica">Crítica</option>
+                                </select>
+                              </td>
+                              <td className="p-2">
+                                <label htmlFor={`obs-proposal-${obs.id}`} className="sr-only">Mejora</label>
+                                <textarea id={`obs-proposal-${obs.id}`} className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none font-medium min-h-[60px]" value={obs.proposal || ''} onChange={e => handleLocalChange(obs.id!, { proposal: e.target.value })} onBlur={e => handleActionWithStatus(() => onSave(obs.id!, { proposal: e.target.value }))} placeholder="Ej. Renombrar menú" rows={2} />
+                              </td>
+                              <td className="p-3 text-center">
+                                <button type="button" className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-600 rounded-lg" onClick={() => onDelete(obs.id!)} aria-label={`Eliminar observación de ${obs.participant || 'participante'} en tarea ${obs.task_ref || ''}`}>
+                                  <Trash2 size={18} aria-hidden="true" />
+                                </button>
+                              </td>
                             </tr>
                           );
                         })
                       ) : (
-                        <tr><td colSpan={11} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>No hay observaciones registradas. Haz clic en el botón de abajo para empezar.</td></tr>
+                        <tr><td colSpan={11} className="p-12 text-center text-slate-500 italic font-medium">No hay observaciones registradas. Haz clic en el botón de abajo para empezar.</td></tr>
                       )}
                     </tbody>
                   </table>
                 </div>
-                <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderTop: '1px solid var(--border)' }}>
-                  <button type="button" className="btn-add" onClick={onAdd} disabled={!planId} aria-label="Añadir nueva observación">
+                <div className="p-4 px-6 bg-slate-50 border-t border-slate-200">
+                  <button type="button" className="inline-flex items-center gap-2 bg-navy text-white border-none px-6 py-2.5 rounded-lg font-black text-sm uppercase tracking-wider cursor-pointer transition-all hover:bg-navy-dark shadow-md shadow-navy/10 active:scale-[0.98]" onClick={onAdd} disabled={!planId} aria-label="Añadir nueva observación">
                     <Plus size={18} aria-hidden="true" /> Añadir Observación
                   </button>
                 </div>

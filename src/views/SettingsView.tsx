@@ -1,178 +1,193 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../controllers/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, User, Lock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 const SettingsView: React.FC = () => {
-  const { profile, changePassword, updateProfile, signIn } = useAuth();
+  const { profile, updateProfile, changePassword, session } = useAuth();
   const navigate = useNavigate();
   
-  const [fullName, setFullName] = useState('');
+  const [fullName, setFullName] = useState(profile?.full_name || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
-  const [profileMessage, setProfileMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
-  const [passwordMessage, setPasswordMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   
-  const [loading, setLoading] = useState(false);
+  const [profileMessage, setProfileMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
-    if (profile) {
-      setFullName(profile.full_name || '');
-    }
+    if (profile) setFullName(profile.full_name || '');
   }, [profile]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setProfileLoading(true);
     setProfileMessage(null);
     
     const { error } = await updateProfile({ full_name: fullName });
+    
     if (error) {
-      setProfileMessage({ text: 'Se ha producido un error durante la actualización del perfil.', type: 'error' });
+      setProfileMessage({ type: 'error', text: 'Error al actualizar el perfil.' });
     } else {
-      setProfileMessage({ text: 'La información del perfil se ha actualizado correctamente.', type: 'success' });
+      setProfileMessage({ type: 'success', text: 'Perfil actualizado correctamente.' });
     }
-    setLoading(false);
+    setProfileLoading(false);
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
+  const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPasswordLoading(true);
     setPasswordMessage(null);
 
     if (newPassword !== confirmPassword) {
-      setPasswordMessage({ text: 'Las nuevas contraseñas ingresadas no coinciden.', type: 'error' });
+      setPasswordMessage({ type: 'error', text: 'Las contraseñas no coinciden.' });
+      setPasswordLoading(false);
       return;
     }
 
     if (newPassword.length < 6) {
-      setPasswordMessage({ text: 'La nueva contraseña debe contener al menos 6 caracteres.', type: 'error' });
+      setPasswordMessage({ type: 'error', text: 'La contraseña debe tener al menos 6 caracteres.' });
+      setPasswordLoading(false);
       return;
     }
     
-    setLoading(true);
-
-    if (profile?.email) {
-      const { error: authError } = await signIn(profile.email, currentPassword);
-      if (authError) {
-        setPasswordMessage({ text: 'La contraseña actual proporcionada es incorrecta. No se puede proceder con el cambio.', type: 'error' });
-        setLoading(false);
-        return;
-      }
-    }
-
-    const { error } = await changePassword(newPassword);
+    const { error } = await changePassword(newPassword, currentPassword);
+    
     if (error) {
-      setPasswordMessage({ text: 'Se ha producido un error al intentar modificar la contraseña.', type: 'error' });
+      const errorMsg = error.status === 400 ? 'La contraseña actual es incorrecta.' : error.message;
+      setPasswordMessage({ type: 'error', text: errorMsg });
     } else {
-      setPasswordMessage({ text: 'La contraseña ha sido modificada con éxito.', type: 'success' });
+      setPasswordMessage({ type: 'success', text: 'Contraseña actualizada correctamente.' });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     }
-    setLoading(false);
+    setPasswordLoading(false);
   };
 
   return (
-    <div className="auth-container" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ width: '100%', maxWidth: '550px' }}>
-        <button
+    <div className="animate-in fade-in duration-500 max-w-4xl mx-auto pb-12">
+      <header className="flex items-center gap-4 mb-8">
+        <button 
           onClick={() => navigate('/')}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            background: 'white', color: 'var(--text-muted)',
-            border: '1px solid var(--border)', borderRadius: '8px',
-            padding: '10px 16px', fontWeight: 600, cursor: 'pointer',
-            fontSize: '.9rem', fontFamily: 'inherit', marginBottom: '0.5rem',
-            transition: 'all .2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-          }}
+          className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-all border-none bg-transparent cursor-pointer flex items-center justify-center"
+          title="Volver al inicio"
         >
-          <ArrowLeft size={16} /> Regresar al inicio
+          <ArrowLeft size={24} />
         </button>
+        <h2 className="text-2xl font-black text-navy uppercase tracking-tight m-0">Configuración de Cuenta</h2>
+      </header>
 
-        <div className="auth-card" style={{ maxWidth: '100%' }}>
-          <h2>Configuración de Cuenta</h2>
-          <p className="auth-subtitle">Gestión de la información del perfil y parámetros de seguridad del sistema.</p>
-          
-          <section style={{ marginBottom: '30px' }}>
-            <h3 style={{ color: 'var(--primary)', borderBottom: '2px solid var(--bg-page)', paddingBottom: '10px', fontSize: '1.1rem' }}>
-              Información del Perfil
-            </h3>
-            <form onSubmit={handleUpdateProfile}>
-              <div className="form-group">
-                <label>Correo Electrónico (Solo lectura)</label>
-                <input type="email" value={profile?.email || ''} disabled style={{ backgroundColor: '#f8fafc' }} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Perfil */}
+        <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden h-fit">
+          <div className="bg-navy p-4 text-white flex items-center gap-2">
+            <User size={20} />
+            <h3 className="text-sm font-black uppercase tracking-wider m-0">Información del Perfil</h3>
+          </div>
+          <form onSubmit={handleUpdateProfile} className="p-6 space-y-6">
+            <div className="space-y-2">
+              <label className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest block">Correo Electrónico</label>
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-slate-500 font-medium text-sm">
+                {session?.user?.email}
               </div>
-              <div className="form-group">
-                <label>Nombre Completo</label>
-                <input 
-                  type="text" 
-                  value={fullName} 
-                  onChange={(e) => setFullName(e.target.value)} 
-                  placeholder="Ingrese el nombre completo"
-                  required 
-                />
-              </div>
-              <button type="submit" disabled={loading} style={{ width: 'auto', padding: '10px 24px' }}>
-                Actualizar Información
-              </button>
-              {profileMessage && (
-                <p className={profileMessage.type === 'success' ? 'success-message' : 'error-message'} style={{ marginTop: '15px', marginBottom: '0' }}>
-                  {profileMessage.text}
-                </p>
-              )}
-            </form>
-          </section>
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="full-name" className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest block">Nombre Completo</label>
+              <input 
+                id="full-name"
+                type="text" 
+                className="w-full p-3 border border-slate-200 rounded-lg text-sm font-medium focus:ring-4 focus:ring-navy/5 focus:border-navy outline-none transition-all"
+                value={fullName} 
+                onChange={(e) => setFullName(e.target.value)} 
+                placeholder="Tu nombre completo"
+                required 
+              />
+            </div>
 
-          <hr style={{ margin: '30px 0', border: '0', borderTop: '1px solid #e2e8f0' }} />
+            {profileMessage && (
+              <div className={`p-3 rounded-lg flex items-center gap-2 text-sm font-bold animate-in zoom-in-95 ${profileMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-700 border border-red-100'}`}>
+                {profileMessage.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                {profileMessage.text}
+              </div>
+            )}
 
-          <section>
-            <h3 style={{ color: 'var(--primary)', borderBottom: '2px solid var(--bg-page)', paddingBottom: '10px', fontSize: '1.1rem' }}>
-              Seguridad y Acceso
-            </h3>
-            <form onSubmit={handleChangePassword}>
-              <div className="form-group">
-                <label>Contraseña Actual</label>
-                <input 
-                  type="password" 
-                  value={currentPassword} 
-                  onChange={(e) => setCurrentPassword(e.target.value)} 
-                  placeholder="Requerido para validar cambios"
-                  required 
-                />
+            <button 
+              type="submit" 
+              disabled={profileLoading}
+              className="w-full p-3 bg-navy text-white border-none rounded-xl text-sm font-black cursor-pointer transition-all hover:bg-navy-light disabled:bg-slate-300 shadow-lg shadow-navy/10 flex items-center justify-center gap-2"
+            >
+              {profileLoading ? <Loader2 size={18} className="animate-spin" /> : 'Guardar Cambios'}
+            </button>
+          </form>
+        </section>
+
+        {/* Contraseña */}
+        <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden h-fit">
+          <div className="bg-slate-800 p-4 text-white flex items-center gap-2">
+            <Lock size={20} />
+            <h3 className="text-sm font-black uppercase tracking-wider m-0">Seguridad</h3>
+          </div>
+          <form onSubmit={handleUpdatePassword} className="p-6 space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="current-password" className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest block">Contraseña Actual</label>
+              <input 
+                id="current-password"
+                type="password" 
+                className="w-full p-3 border border-slate-200 rounded-lg text-sm font-medium focus:ring-4 focus:ring-navy/5 focus:border-navy outline-none transition-all"
+                value={currentPassword} 
+                onChange={(e) => setCurrentPassword(e.target.value)} 
+                placeholder="Ingresa tu contraseña actual"
+                required 
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="new-password" className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest block">Nueva Contraseña</label>
+              <input 
+                id="new-password"
+                type="password" 
+                className="w-full p-3 border border-slate-200 rounded-lg text-sm font-medium focus:ring-4 focus:ring-navy/5 focus:border-navy outline-none transition-all"
+                value={newPassword} 
+                onChange={(e) => setNewPassword(e.target.value)} 
+                placeholder="Mínimo 6 caracteres"
+                required 
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="confirm-password" className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest block">Confirmar Nueva Contraseña</label>
+              <input 
+                id="confirm-password"
+                type="password" 
+                className="w-full p-3 border border-slate-200 rounded-lg text-sm font-medium focus:ring-4 focus:ring-navy/5 focus:border-navy outline-none transition-all"
+                value={confirmPassword} 
+                onChange={(e) => setConfirmPassword(e.target.value)} 
+                placeholder="Repite la nueva contraseña"
+                required 
+              />
+            </div>
+
+            {passwordMessage && (
+              <div className={`p-3 rounded-lg flex items-center gap-2 text-sm font-bold animate-in zoom-in-95 ${passwordMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-700 border border-red-100'}`}>
+                {passwordMessage.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                {passwordMessage.text}
               </div>
-              <div className="form-group" style={{ marginTop: '15px' }}>
-                <label>Nueva Contraseña</label>
-                <input 
-                  type="password" 
-                  value={newPassword} 
-                  onChange={(e) => setNewPassword(e.target.value)} 
-                  placeholder="Mínimo 6 caracteres"
-                  required 
-                />
-              </div>
-              <div className="form-group">
-                <label>Confirmar Nueva Contraseña</label>
-                <input 
-                  type="password" 
-                  value={confirmPassword} 
-                  onChange={(e) => setConfirmPassword(e.target.value)} 
-                  placeholder="Repita la nueva contraseña"
-                  required 
-                />
-              </div>
-              <button type="submit" disabled={loading} style={{ width: 'auto', padding: '10px 24px' }}>
-                Modificar Contraseña
-              </button>
-              {passwordMessage && (
-                <p className={passwordMessage.type === 'success' ? 'success-message' : 'error-message'} style={{ marginTop: '15px', marginBottom: '0' }}>
-                  {passwordMessage.text}
-                </p>
-              )}
-            </form>
-          </section>
-        </div>
+            )}
+
+            <button 
+              type="submit" 
+              disabled={passwordLoading}
+              className="w-full p-3 bg-slate-800 text-white border-none rounded-xl text-sm font-black cursor-pointer transition-all hover:bg-slate-900 disabled:bg-slate-300 shadow-lg shadow-black/10 flex items-center justify-center gap-2"
+            >
+              {passwordLoading ? <Loader2 size={18} className="animate-spin" /> : 'Actualizar Contraseña'}
+            </button>
+          </form>
+        </section>
       </div>
     </div>
   );

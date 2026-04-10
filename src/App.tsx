@@ -1,6 +1,5 @@
 import React, { useState, Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, useParams, useNavigate, Navigate, useLocation } from 'react-router-dom';
-import './App.css';
 import { useUsabilityApp } from './controllers/useUsabilityApp';
 import { useAuth } from './controllers/useAuth';
 import { TabNavigation } from './components/TabNavigation';
@@ -20,7 +19,7 @@ const RegisterView = lazy(() => import('./views/RegisterView'));
 const SettingsView = lazy(() => import('./views/SettingsView'));
 
 const LazyLoader = () => (
-  <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b', fontStyle: 'italic' }}>
+  <div className="p-8 text-center text-slate-500 italic">
     Cargando sección...
   </div>
 );
@@ -84,46 +83,34 @@ const PlanDetailContainer: React.FC<{
     navigate(`/plan/${id}/${newTab}`);
   };
 
-  if (loading && id !== 'new') return <div className="loading-state"><LazyLoader /></div>;
+  if (loading && id !== 'new') return <div className="min-h-[50vh]"><LazyLoader /></div>;
 
   return (
-    <div className="view-transition">
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <section className="bg-navy text-white py-12 px-4 -mx-4 md:-mx-8 text-center mb-8 sm:mb-12 rounded-xl">
+        <h1 className="text-3xl md:text-4xl font-black uppercase tracking-widest mb-2">Plan de Test de Usabilidad</h1>
+        <p className="text-white/80 text-base md:text-lg font-medium max-w-2xl mx-auto">Registra, analiza y mejora la experiencia de tus usuarios.</p>
+      </section>
+
       <div
         role="region"
         aria-label="Plan activo"
-        className="plan-context-bar"
-        style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          flexWrap: 'wrap', gap: '1rem', padding: '1rem 1.25rem',
-          backgroundColor: '#f8fafc', borderRadius: '12px',
-          marginBottom: '1.5rem', border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-        }}
+        className="flex justify-between items-center flex-wrap gap-4 p-4 md:px-5 bg-slate-50 rounded-xl mb-6 border border-slate-200 shadow-sm"
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: '1 1 300px', minWidth: 0 }}>
+        <div className="flex items-center gap-4 flex-1 min-w-0 max-w-full sm:max-w-none">
           <button
             onMouseDown={(e) => { e.preventDefault(); handleTryGoHome(); }}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              background: 'transparent', color: '#64748b',
-              border: '1px solid #e2e8f0', borderRadius: '8px',
-              padding: '6px 12px', fontWeight: 600, cursor: 'pointer',
-              fontSize: '.8rem', fontFamily: 'inherit', flexShrink: 0,
-              transition: 'all .2s',
-            }}
+            className="inline-flex items-center gap-1.5 bg-transparent text-slate-500 border border-slate-200 rounded-lg px-3 py-1.5 font-semibold cursor-pointer text-[0.8rem] transition-all flex-shrink-0 hover:bg-slate-100 hover:text-navy hover:border-slate-300"
           >
             <ArrowLeft size={14} /> Volver
           </button>
 
-          <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-            <div style={{
-              fontWeight: 800, color: '#1e293b', fontSize: '1.1rem',
-              wordWrap: 'break-word', letterSpacing: '-0.02em'
-            }}>
+          <div className="flex-1 min-w-0">
+            <div className="font-extrabold text-slate-800 text-lg md:text-xl truncate tracking-tight">
               {testPlan.product || 'Nuevo Plan de Prueba'}
             </div>
             {testPlan.module && (
-              <div style={{ fontSize: '.8rem', color: '#64748b', marginTop: 1 }}>
+              <div className="text-[0.8rem] text-slate-500 mt-0.5 truncate">
                 Módulo: {testPlan.module}
               </div>
             )}
@@ -132,12 +119,7 @@ const PlanDetailContainer: React.FC<{
           {testPlan.id && (
             <button
               onClick={() => setShowDeleteModal(true)}
-              style={{
-                background: 'transparent', border: '1px solid transparent',
-                color: '#94a3b8', cursor: 'pointer', padding: '6px',
-                display: 'flex', alignItems: 'center', borderRadius: '6px',
-                flexShrink: 0, transition: 'all .2s',
-              }}
+              className="bg-transparent border-none text-slate-400 cursor-pointer p-1.5 flex items-center rounded-lg flex-shrink-0 transition-all hover:bg-red-50 hover:text-red-500"
             >
               <Trash2 size={18} />
             </button>
@@ -145,7 +127,7 @@ const PlanDetailContainer: React.FC<{
         </div>
       </div>
 
-      <main id="main-content" style={{ minHeight: '50vh' }}>
+      <main id="main-content" className="min-h-[50vh]">
         <TabNavigation 
           activeTab={activeTab} 
           onTabChange={onTabChange} 
@@ -222,29 +204,48 @@ const PlanDetailContainer: React.FC<{
 
       {/* Modales */}
       {showDeleteModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <AlertTriangle size={48} color="#dc2626" style={{ marginBottom: '1rem' }} />
-            <h3 className="modal-title">¿Eliminar Plan de Prueba?</h3>
-            <p>Estás a punto de borrar el plan <strong>"{testPlan.product}"</strong> y todos sus datos asociados.</p>
-            <div className="modal-buttons">
-              <button className="btn-cancel" onClick={() => setShowDeleteModal(false)}>Cancelar</button>
-              <button className="btn-confirm-delete" onClick={() => { handleDeletePlan(testPlan.id!); navigate('/'); }}>Sí, eliminar</button>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl p-8 max-w-[420px] w-full shadow-2xl text-center animate-in zoom-in-95 duration-200">
+            <div className="inline-flex items-center justify-center bg-red-100 text-red-600 rounded-full w-14 h-14 mb-4">
+              <AlertTriangle size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-3">¿Eliminar Plan de Prueba?</h3>
+            <p className="text-slate-600 text-sm leading-relaxed mb-6">Estás a punto de borrar el plan <strong className="text-slate-900">"{testPlan.product}"</strong> y todos sus datos asociados.</p>
+            <div className="flex gap-3 justify-center">
+              <button 
+                className="px-6 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 text-sm font-semibold cursor-pointer transition-all hover:bg-slate-50" 
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="flex items-center gap-2 px-6 py-2 rounded-lg bg-red-600 text-white text-sm font-bold border-none cursor-pointer transition-all hover:bg-red-700" 
+                onClick={() => { handleDeletePlan(testPlan.id!); navigate('/'); }}
+              >
+                Sí, eliminar
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {showUnsavedModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <Save size={48} color="#003366" style={{ marginBottom: '1rem' }} />
-            <h3 className="modal-title">Cambios sin guardar</h3>
-            <p>Si sales ahora, podrías perder la información que acabas de escribir.</p>
-            <div className="modal-buttons">
-              <button className="btn-cancel" onClick={() => setShowUnsavedModal(false)}>Quedarme aquí</button>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl p-8 max-w-[420px] w-full shadow-2xl text-center animate-in zoom-in-95 duration-200">
+            <div className="inline-flex items-center justify-center bg-navy/10 text-navy rounded-full w-14 h-14 mb-4">
+              <Save size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-3">Cambios sin guardar</h3>
+            <p className="text-slate-600 text-sm leading-relaxed mb-6">Si sales ahora, podrías perder la información que acabas de escribir.</p>
+            <div className="flex gap-3 justify-center">
+              <button 
+                className="px-6 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 text-sm font-semibold cursor-pointer transition-all hover:bg-slate-50" 
+                onClick={() => setShowUnsavedModal(false)}
+              >
+                Quedarme aquí
+              </button>
               <button
-                style={{ backgroundColor: '#003366', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
+                className="px-6 py-2 rounded-lg bg-navy text-white text-sm font-bold border-none cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/20"
                 onClick={() => { navigate('/'); setShowUnsavedModal(false); }}
               >
                 Salir sin guardar
@@ -278,29 +279,24 @@ const App: React.FC = () => {
     return (
       <div className="loading-screen">
         <div className="spinner" />
-        <p>Cargando datos...</p>
+        <p className="text-slate-500 font-medium mt-4 animate-pulse">Cargando datos...</p>
       </div>
     );
   }
 
   return (
-    <div className="container">
-      <Header />
-      
-      <div style={{ marginTop: '80px' }}>
+    <div className="main-container">
+      <div>
         <Routes>
           {/* Rutas Públicas */}
           <Route path="/login" element={<Suspense fallback={<LazyLoader />}><LoginView /></Suspense>} />
           <Route path="/register" element={<Suspense fallback={<LazyLoader />}><RegisterView /></Suspense>} />
-          
+
           {/* Rutas Protegidas */}
           <Route path="/" element={
             <ProtectedRoute>
-              <div className="view-transition">
-                <header className="main-banner">
-                  <h1>Plan de Test de Usabilidad</h1>
-                  <p>Registra, analiza y mejora la experiencia de tus usuarios.</p>
-                </header>
+              <Header />
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 pt-20">
                 <Suspense fallback={<LazyLoader />}>
                   <GlobalDashboard
                     loading={loading}
@@ -326,13 +322,13 @@ const App: React.FC = () => {
 
           <Route path="/plan/:id" element={<ProtectedRoute><PlanDetailContainer controller={controller} /></ProtectedRoute>} />
           <Route path="/plan/:id/:tab" element={<ProtectedRoute><PlanDetailContainer controller={controller} /></ProtectedRoute>} />
-          
+
           {/* Redirección por defecto */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
 
-      <footer className="main-footer">
+      <footer className="mt-12 py-8 border-t border-slate-200 text-center text-[0.85rem] text-slate-500 font-medium">
         Grupo 3: Mateo Auz, Kerly Chicaiza, Bryan Quitto, Pedro Supe
       </footer>
     </div>
