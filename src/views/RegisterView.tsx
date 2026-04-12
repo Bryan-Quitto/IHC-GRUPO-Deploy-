@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../controllers/useAuth';
 import { Link } from 'react-router-dom';
+import { FieldWarning } from '../components/FieldWarning';
+
+const isEmailValid = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 const RegisterView: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -10,28 +13,29 @@ const RegisterView: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const { signUp } = useAuth();
+  const touch = (f: string) => setTouched(prev => ({ ...prev, [f]: true }));
+
+  const warnFullName        = touched.fullName       && (!fullName || fullName.trim() === '');
+  const warnEmail           = touched.email          && (!email || email.trim() === '');
+  const warnEmailFormat     = touched.email          && email.trim() !== '' && !isEmailValid(email);
+  const warnPassword        = touched.password       && password.length < 6;
+  const warnConfirmPassword = touched.confirmPassword && (confirmPassword !== password || confirmPassword === '');
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    touch('fullName'); touch('email'); touch('password'); touch('confirmPassword');
     setError(null);
     setMessage(null);
 
-    if (password !== confirmPassword) {
-      setError('Las contraseñas ingresadas no coinciden.');
-      setLoading(false);
-      return;
-    }
+    if (!fullName.trim()) return;
+    if (!email.trim() || !isEmailValid(email)) return;
+    if (password.length < 6) return;
+    if (password !== confirmPassword) return;
 
-    if (password.length < 6) {
-      setError('La contraseña debe contener al menos 6 caracteres.');
-      setLoading(false);
-      return;
-    }
-    
+    setLoading(true);
     const { error } = await signUp(email, password, fullName);
-    
     if (error) {
       setError(error.message);
     } else {
@@ -44,67 +48,49 @@ const RegisterView: React.FC = () => {
     <div className="flex justify-center items-center min-h-[calc(100vh-140px)] p-6 bg-gradient-to-br from-blue-50 to-sky-100 -mx-4 md:-mx-8 -mb-12">
       <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl shadow-navy/5 w-full max-w-[450px] border border-navy/5 animate-in zoom-in-95 duration-300">
         <h2 className="mt-0 mb-2 text-center text-navy font-black text-2xl uppercase tracking-tight">Crear Cuenta</h2>
-        <p className="text-center text-slate-500 text-sm mb-8 font-medium italic italic">Se solicita el ingreso de los datos requeridos para completar el registro.</p>
-        <form onSubmit={handleRegister} className="space-y-4">
+        <p className="text-center text-slate-500 text-sm mb-8 font-medium italic">Se solicita el ingreso de los datos requeridos para completar el registro.</p>
+        <form onSubmit={handleRegister} className="space-y-4" noValidate>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-bold text-slate-700">Nombre Completo</label>
-            <input 
-              type="text" 
-              className="w-full p-2.5 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/5"
-              value={fullName} 
-              onChange={(e) => setFullName(e.target.value)} 
-              placeholder="Ingrese su nombre completo"
-              required 
-            />
+            <label className="text-sm font-bold text-slate-700">Nombre Completo *</label>
+            <input type="text" maxLength={100}
+              className={`w-full p-2.5 border rounded-lg text-base transition-all focus:outline-none focus:ring-2 focus:ring-navy/5 ${warnFullName ? 'border-amber-400 bg-amber-50' : 'border-slate-200 focus:border-navy'}`}
+              value={fullName} onChange={e => setFullName(e.target.value)}
+              onBlur={() => touch('fullName')}
+              placeholder="Ingrese su nombre completo" />
+            <FieldWarning show={warnFullName} message="El nombre completo es obligatorio." />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-bold text-slate-700">Correo Electrónico</label>
-            <input 
-              type="email" 
-              className="w-full p-2.5 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/5"
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              placeholder="ejemplo@correo.com"
-              required 
-            />
+            <label className="text-sm font-bold text-slate-700">Correo Electrónico *</label>
+            <input type="email"
+              className={`w-full p-2.5 border rounded-lg text-base transition-all focus:outline-none focus:ring-2 focus:ring-navy/5 ${(warnEmail || warnEmailFormat) ? 'border-amber-400 bg-amber-50' : 'border-slate-200 focus:border-navy'}`}
+              value={email} onChange={e => setEmail(e.target.value)}
+              onBlur={() => touch('email')}
+              placeholder="ejemplo@correo.com" />
+            <FieldWarning show={warnEmail} message="El correo electrónico es obligatorio." />
+            <FieldWarning show={warnEmailFormat} message="Ingrese un correo válido (ej. usuario@dominio.com)." />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-bold text-slate-700">Contraseña</label>
-            <input 
-              type="password" 
-              className="w-full p-2.5 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/5"
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              placeholder="Mínimo 6 caracteres"
-              required 
-            />
+            <label className="text-sm font-bold text-slate-700">Contraseña * <span className="text-slate-400 font-normal text-xs">(mín. 6 caracteres)</span></label>
+            <input type="password"
+              className={`w-full p-2.5 border rounded-lg text-base transition-all focus:outline-none focus:ring-2 focus:ring-navy/5 ${warnPassword ? 'border-amber-400 bg-amber-50' : 'border-slate-200 focus:border-navy'}`}
+              value={password} onChange={e => setPassword(e.target.value)}
+              onBlur={() => touch('password')}
+              placeholder="Mínimo 6 caracteres" />
+            <FieldWarning show={warnPassword} message="La contraseña debe tener al menos 6 caracteres." />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-bold text-slate-700">Confirmar Contraseña</label>
-            <input 
-              type="password" 
-              className="w-full p-2.5 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/5"
-              value={confirmPassword} 
-              onChange={(e) => setConfirmPassword(e.target.value)} 
-              placeholder="Repita su contraseña"
-              required 
-            />
+            <label className="text-sm font-bold text-slate-700">Confirmar Contraseña *</label>
+            <input type="password"
+              className={`w-full p-2.5 border rounded-lg text-base transition-all focus:outline-none focus:ring-2 focus:ring-navy/5 ${warnConfirmPassword ? 'border-amber-400 bg-amber-50' : 'border-slate-200 focus:border-navy'}`}
+              value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+              onBlur={() => touch('confirmPassword')}
+              placeholder="Repita su contraseña" />
+            <FieldWarning show={warnConfirmPassword} message="Las contraseñas no coinciden. Verifique e intente de nuevo." />
           </div>
-          {error && (
-            <div className="text-red-600 bg-red-50 p-3 rounded-lg text-sm border border-red-100 font-medium">
-              {error}
-            </div>
-          )}
-          {message && (
-            <div className="text-green-700 bg-green-50 p-3 rounded-lg text-sm border border-green-100 font-medium leading-relaxed">
-              {message}
-            </div>
-          )}
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full p-3.5 bg-navy text-white border-none rounded-xl text-base font-black cursor-pointer transition-all hover:bg-navy-light disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-navy/20 active:scale-[0.98] mt-4"
-          >
+          {error && <div className="text-red-600 bg-red-50 p-3 rounded-lg text-sm border border-red-100 font-medium">{error}</div>}
+          {message && <div className="text-green-700 bg-green-50 p-3 rounded-lg text-sm border border-green-100 font-medium leading-relaxed">{message}</div>}
+          <button type="submit" disabled={loading}
+            className="w-full p-3.5 bg-navy text-white border-none rounded-xl text-base font-black cursor-pointer transition-all hover:bg-navy-light disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-navy/20 active:scale-[0.98] mt-4">
             {loading ? 'Procesando...' : 'Registrar Cuenta'}
           </button>
         </form>

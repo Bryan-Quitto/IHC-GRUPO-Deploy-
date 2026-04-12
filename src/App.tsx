@@ -154,6 +154,7 @@ const PlanDetailContainer: React.FC<{
             <ScriptView
               testPlan={testPlan}
               tasks={tasks}
+              planTasks={tasks}
               onUpdatePlan={handleSavePlan}
               onSyncPlan={setTestPlan}
               onSyncTasks={setTasks}
@@ -174,6 +175,7 @@ const PlanDetailContainer: React.FC<{
               onSave={handleSaveObservation}
               onDelete={handleDeleteObservation}
               onGoToPlan={() => onTabChange('plan')}
+              tasks={tasks}
             />
           )}
 
