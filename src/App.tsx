@@ -128,15 +128,15 @@ const PlanDetailContainer: React.FC<{
         </div>
       </div>
 
-      <main id="main-content" className="min-h-[50vh]">
+      <FlowProgress
+        activeTab={activeTab}
+        testPlan={testPlan}
+        tasksCount={tasks.length}
+        observationsCount={observations.length}
+        findingsCount={findings.length}
+      />  
 
-        <FlowProgress
-          activeTab={activeTab}
-          testPlan={testPlan}
-          tasksCount={tasks.length}
-          observationsCount={observations.length}
-          findingsCount={findings.length}
-        />
+      <main id="main-content" className="min-h-[50vh]">
 
         <TabNavigation 
           activeTab={activeTab} 
