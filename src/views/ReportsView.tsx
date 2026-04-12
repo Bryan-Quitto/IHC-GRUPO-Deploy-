@@ -231,7 +231,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   const isProductEmpty = !testPlan.product || testPlan.product.trim() === '';
 
   const handleDownloadPDF = () => {
-    const pw = window.open('', 'Reporte', 'width=1,height=1');
+    const pw = window.open('', '_blank');
     if (!pw) { alert('Permite ventanas emergentes para exportar el PDF.'); return; }
 
     const bar = (p: number, color: string, bg: string, h = 10) =>
