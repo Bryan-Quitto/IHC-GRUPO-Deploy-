@@ -76,4 +76,5 @@ export interface Finding {
   recommendation: string;
   priority: Priority;
   status: TaskStatus;
+  is_favorite?: boolean;
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Finding, Severity, Priority, TaskStatus } from '../models/types';
-import { Trash2, Plus, CheckCircle, RefreshCcw, AlertTriangle, Info, Check, X, ChevronDown } from 'lucide-react';
+import { Trash2, Plus, CheckCircle, RefreshCcw, AlertTriangle, Info, Check, X, ChevronDown, Star } from 'lucide-react';
 import AutoGrowTextarea from '../components/AutoGrowTextarea';
 import { FieldWarning, CharCounter, fieldClass } from '../components/FieldWarning';
 import { clamp } from '../components/validation';
@@ -100,7 +100,17 @@ const FindingCard: React.FC<{
   return (
     <article className={`bg-white border-2 ${sev.border} rounded-2xl mb-4 overflow-hidden shadow-sm animate-in slide-in-from-left-2 duration-300`}>
       <div className={`${sev.bg} p-4 flex justify-between items-center flex-wrap gap-2`}>
-        <span className={`font-black ${sev.text} text-[0.8rem] uppercase tracking-tight`}>Hallazgo #{idx + 1} · {f.severity}</span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => { onSync({ is_favorite: !f.is_favorite }); onSave(f.id!, { is_favorite: !f.is_favorite }); }}
+            className={`p-1 rounded-lg border-none bg-transparent cursor-pointer transition-all ${f.is_favorite ? 'text-amber-400' : 'text-slate-300 hover:text-amber-300'}`}
+            title={f.is_favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}
+          >
+            <Star size={18} fill={f.is_favorite ? 'currentColor' : 'none'} strokeWidth={2} />
+          </button>
+          <span className={`font-black ${sev.text} text-[0.8rem] uppercase tracking-tight`}>Hallazgo #{idx + 1} · {f.severity}</span>
+        </div>
         <div className="flex gap-2 items-center flex-wrap">
           <span className={`px-2.5 py-0.5 rounded-full ${pri.bg} ${pri.text} font-bold text-[0.7rem] border ${pri.border}`}>P: {f.priority}</span>
           <span className={`px-2.5 py-0.5 rounded-md ${sta.bg} ${sta.text} font-bold text-[0.7rem] border ${sta.border}`}>{sta.icon} {f.status}</span>
@@ -224,7 +234,17 @@ const FindingRow: React.FC<{
 
   return (
     <tr className="hover:bg-slate-50/50 transition-colors">
-      <td className="p-3 text-center"><span className="id-badge">{idx + 1}</span></td>
+    <td className="p-3 text-center"><span className="id-badge">{idx + 1}</span></td>
+        <td className="p-3 text-center">
+          <button
+            type="button"
+            onClick={() => { handleLocalChange(f.id!, { is_favorite: !f.is_favorite }); handleActionWithStatus(() => onSave(f.id!, { is_favorite: !f.is_favorite })); }}
+            className={`p-1.5 rounded-lg border-none bg-transparent cursor-pointer transition-all ${f.is_favorite ? 'text-amber-400' : 'text-slate-300 hover:text-amber-300'}`}
+            title={f.is_favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}
+          >
+            <Star size={18} fill={f.is_favorite ? 'currentColor' : 'none'} strokeWidth={2} />
+          </button>
+        </td>      
       <td className="p-2">
         <AutoGrowTextarea
           className={fieldClass(warnProblem, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-bold", 'error')}
@@ -357,6 +377,9 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                     <thead>
                       <tr className="bg-slate-50 text-slate-500 text-[0.7rem] font-black uppercase tracking-[0.1em] border-b border-slate-200">
                         <th scope="col" className="p-4 text-center border-r border-slate-100 w-[50px]">#</th>
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[50px]">
+                          <Star size={14} className="mx-auto text-amber-400" fill="currentColor" />
+                        </th>
                         <th scope="col" className="p-4 text-left border-r border-slate-100">Problema *</th>
                         <th scope="col" className="p-4 text-left border-r border-slate-100">Evidencia *</th>
                         <th scope="col" className="p-4 text-center border-r border-slate-100 w-[100px]">Frecuencia</th>
@@ -395,7 +418,7 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                       {displayData.length > 0 ? displayData.map((f, idx) => (
                         <FindingRow key={f.id} f={f} idx={idx} handleLocalChange={handleLocalChange} handleActionWithStatus={handleActionWithStatus} onSave={onSave} onDelete={onDelete} />
                       )) : (
-                        <tr><td colSpan={9} className="p-12 text-center text-slate-500 italic font-medium">No hay hallazgos todavía.</td></tr>
+                        <tr><td colSpan={10} className="p-12 text-center text-slate-500 italic font-medium">No hay hallazgos todavía.</td></tr>
                       )}
                     </tbody>
                   </table>
