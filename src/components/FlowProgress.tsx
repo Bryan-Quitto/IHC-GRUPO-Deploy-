@@ -11,72 +11,106 @@ interface FlowProgressProps {
 }
 
 const steps = [
-  { id: 'plan',         label: 'Plan',         desc: 'Define el contexto' },
-  { id: 'script',       label: 'Guion',        desc: 'Prepara las tareas' },
-  { id: 'observations', label: 'Observaciones', desc: 'Registra datos' },
-  { id: 'findings',     label: 'Hallazgos',    desc: 'Sintetiza problemas' },
-  { id: 'reports',      label: 'Reporte',      desc: 'Genera el informe' },
+  { id: 'plan',         label: 'Plan',          },
+  { id: 'script',       label: 'Guion',         },
+  { id: 'observations', label: 'Observaciones', },
+  { id: 'findings',     label: 'Hallazgos',     },
+  { id: 'reports',      label: 'Reporte',       },
 ];
 
 export const FlowProgress: React.FC<FlowProgressProps> = ({
   activeTab, testPlan, tasksCount, observationsCount, findingsCount,
 }) => {
   const isStepComplete = (id: string): boolean => {
-    if (id === 'plan') return !!(testPlan.product && testPlan.objective && testPlan.moderator);
-    if (id === 'script') return tasksCount > 0;
+    if (id === 'plan')         return !!(testPlan.product && testPlan.objective && testPlan.moderator);
+    if (id === 'script')       return tasksCount > 0;
     if (id === 'observations') return observationsCount > 0;
-    if (id === 'findings') return findingsCount > 0;
-    if (id === 'reports') return observationsCount > 0 && findingsCount > 0;
+    if (id === 'findings')     return findingsCount > 0;
+    if (id === 'reports')      return observationsCount > 0 && findingsCount > 0;
     return false;
   };
 
   const completedCount = steps.filter(s => isStepComplete(s.id)).length;
-  const progressPct = Math.round((completedCount / steps.length) * 100);
+  const progressPct    = Math.round((completedCount / steps.length) * 100);
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl px-5 py-4 mb-6 shadow-sm">
-      {/* Barra global */}
-      <div className="flex justify-between items-center mb-3">
-        <span className="text-[0.75rem] font-black text-slate-500 uppercase tracking-widest">
+    <div style={{
+      background: '#fff',
+      border: '1px solid #e2e8f0',
+      borderRadius: '12px',
+      padding: '16px 20px',
+      marginBottom: '16px',
+      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+    }}>
+
+      {/* Encabezado */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           Progreso del plan
         </span>
-        <span className="text-[0.75rem] font-black text-navy">{progressPct}%</span>
+        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#003366' }}>
+          {completedCount} de {steps.length} · {progressPct}%
+        </span>
       </div>
-      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-4">
-        <div
-          className="h-full bg-gradient-to-r from-navy to-blue-500 rounded-full transition-all duration-700"
-          style={{ width: `${progressPct}%` }}
-        />
+
+      {/* Barra global */}
+      <div style={{ width: '100%', height: '6px', background: '#e2e8f0', borderRadius: '99px', overflow: 'hidden', marginBottom: '16px' }}>
+        <div style={{
+          height: '100%',
+          width: `${progressPct}%`,
+          background: 'linear-gradient(90deg, #003366, #3b82f6)',
+          borderRadius: '99px',
+          transition: 'width 0.7s ease',
+        }} />
       </div>
 
       {/* Pasos */}
-      <div className="flex items-center gap-0">
+      <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
         {steps.map((step, idx) => {
           const complete = isStepComplete(step.id);
-          const active = activeTab === step.id;
-          const isLast = idx === steps.length - 1;
+          const active   = activeTab === step.id;
+          const isLast   = idx === steps.length - 1;
+
           return (
             <React.Fragment key={step.id}>
-              <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[0.65rem] font-black border-2 transition-all ${
-                  complete
-                    ? 'bg-emerald-500 border-emerald-500 text-white'
-                    : active
-                    ? 'bg-navy border-navy text-white'
-                    : 'bg-slate-100 border-slate-200 text-slate-400'
-                }`}>
-                  {complete ? <Check size={12} strokeWidth={3} /> : idx + 1}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  border: '2px solid',
+                  transition: 'all 0.3s',
+                  backgroundColor: complete ? '#10b981' : active ? '#003366' : '#f1f5f9',
+                  borderColor:     complete ? '#10b981' : active ? '#003366' : '#cbd5e1',
+                  color:           complete ? '#fff'    : active ? '#fff'    : '#94a3b8',
+                }}>
+                  {complete ? <Check size={14} strokeWidth={3} /> : idx + 1}
                 </div>
-                <span className={`text-[0.6rem] font-bold text-center leading-tight hidden sm:block ${
-                  active ? 'text-navy' : complete ? 'text-emerald-600' : 'text-slate-400'
-                }`}>
+                <span style={{
+                  fontSize: '0.6rem',
+                  fontWeight: 700,
+                  color: complete ? '#059669' : active ? '#003366' : '#94a3b8',
+                  whiteSpace: 'nowrap',
+                }}>
                   {step.label}
                 </span>
               </div>
+
               {!isLast && (
-                <div className={`flex-1 h-0.5 mx-1 rounded-full transition-all duration-500 ${
-                  complete ? 'bg-emerald-400' : 'bg-slate-200'
-                }`} />
+                <div style={{
+                  flex: 1,
+                  height: '2px',
+                  margin: '0 4px',
+                  marginBottom: '18px',
+                  borderRadius: '99px',
+                  backgroundColor: complete ? '#10b981' : '#e2e8f0',
+                  transition: 'background-color 0.5s',
+                }} />
               )}
             </React.Fragment>
           );
