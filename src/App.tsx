@@ -6,6 +6,7 @@ import { TabNavigation } from './components/TabNavigation';
 import Header from './components/Header';
 import { Trash2, AlertTriangle, ArrowLeft, Save } from 'lucide-react';
 import { DashboardTab } from './models/types';
+import { FlowProgress } from './components/FlowProgress';
 
 // Lazy loading de vistas
 const GlobalDashboard = lazy(() => import('./views/GlobalDashboard').then(module => ({ default: module.GlobalDashboard })));
@@ -126,6 +127,14 @@ const PlanDetailContainer: React.FC<{
           )}
         </div>
       </div>
+
+      <FlowProgress
+        activeTab={activeTab}
+        testPlan={testPlan}
+        tasksCount={tasks.length}
+        observationsCount={observations.length}
+        findingsCount={findings.length}
+      />
 
       <main id="main-content" className="min-h-[50vh]">
         <TabNavigation 
