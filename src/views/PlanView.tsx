@@ -348,8 +348,8 @@ export const PlanView: React.FC<PlanViewProps> = ({
                   <TaskCard key={task.id} task={task} handleTaskChange={handleTaskChange} onSaveTask={onSaveTask} onDeleteTask={onDeleteTask} />
                 ))
               )}
-              <button type="button" className="inline-flex items-center justify-center gap-2 bg-green-600 text-white border-none p-3.5 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-green-100 mt-2" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty}>
-                <Plus size={18} aria-hidden="true" /> Añadir Tarea
+              <button type="button" className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl shadow-emerald-200 mt-2 active:scale-[0.97] w-full ring-2 ring-emerald-300 ring-offset-1" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty}>
+                <Plus size={20} aria-hidden="true" /> Añadir Tarea
               </button>
               {isProductEmpty && <span className="text-[0.8rem] text-slate-500 italic text-center mt-1">* Debes definir un nombre de producto para añadir tareas.</span>}
             </div>
@@ -382,8 +382,8 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 </table>
               </div>
               <div className="p-4 px-6 bg-slate-50 border-t border-slate-200 flex items-center gap-4">
-                <button type="button" className="inline-flex items-center gap-2 bg-green-600 text-white border-none px-6 py-2.5 rounded-lg font-black text-sm uppercase tracking-wider cursor-pointer transition-all hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-md shadow-green-100" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty}>
-                  <Plus size={18} aria-hidden="true" /> Añadir Tarea
+                <button type="button" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider cursor-pointer transition-all disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-emerald-200 active:scale-[0.97] ring-2 ring-emerald-300 ring-offset-1" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty}>
+                  <Plus size={20} aria-hidden="true" /> Añadir Tarea
                 </button>
                 {isProductEmpty && <span className="text-[0.85rem] text-slate-500 font-bold italic">* Debes definir un nombre de producto para añadir tareas.</span>}
               </div>

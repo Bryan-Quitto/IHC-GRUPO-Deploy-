@@ -70,7 +70,7 @@ const SettingsView: React.FC = () => {
 
   return (
     <div className="animate-in fade-in duration-500 max-w-4xl mx-auto pb-12 pt-24 px-4">
-      <header className="flex items-center gap-4 mb-8">
+      <header className="flex items-center gap-4 mb-8 flex-wrap">
         <button 
           onClick={() => navigate('/')}
           className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-all border-none bg-transparent cursor-pointer flex items-center justify-center"
@@ -81,7 +81,7 @@ const SettingsView: React.FC = () => {
         <h2 className="text-2xl font-black text-navy uppercase tracking-tight m-0">Configuración de Cuenta</h2>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Perfil */}
         <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden h-fit">
           <div className="bg-navy p-4 text-white flex items-center gap-2">

@@ -401,8 +401,8 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                   </table>
                 </div>
                 <div className="p-4 px-6 bg-slate-50 border-t border-slate-200 rounded-b-xl">
-                  <button className="inline-flex items-center gap-2 bg-navy text-white border-none px-6 py-2.5 rounded-lg font-black text-sm uppercase tracking-wider cursor-pointer transition-all hover:bg-navy-dark disabled:bg-slate-300 disabled:cursor-not-allowed shadow-md shadow-navy/10 active:scale-[0.98]" onClick={onAdd} disabled={!planId} type="button">
-                    <Plus size={18} aria-hidden="true" /> Añadir Hallazgo
+                  <button className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider cursor-pointer transition-all disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-emerald-200 active:scale-[0.97] ring-2 ring-emerald-300 ring-offset-1" onClick={onAdd} disabled={!planId} type="button">
+                    <Plus size={20} aria-hidden="true" /> Añadir Hallazgo
                   </button>
                 </div>
               </section>
@@ -441,7 +441,7 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                   </div>
                 )}
 
-                <button className="inline-flex items-center justify-center gap-2 w-full bg-navy text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/10 mt-4 active:scale-[0.98]" onClick={onAdd} disabled={!planId} type="button">
+                <button className="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl shadow-emerald-200 mt-4 active:scale-[0.97] ring-2 ring-emerald-300 ring-offset-1" onClick={onAdd} disabled={!planId} type="button">
                   <Plus size={20} aria-hidden="true" /> Añadir Hallazgo
                 </button>
               </section>
