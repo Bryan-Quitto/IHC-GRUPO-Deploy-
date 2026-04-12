@@ -26,8 +26,8 @@ const LoginView: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-[calc(100vh-140px)] p-6 bg-gradient-to-br from-blue-50 to-sky-100 -mx-4 md:-mx-8 -mb-12">
-      <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl shadow-navy/5 w-full max-w-[450px] border border-navy/5 animate-in zoom-in-95 duration-300">
+    <div className="flex justify-center items-center min-h-screen p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-sky-100 -mx-4 md:-mx-8 -mt-0">
+      <div className="bg-white p-6 sm:p-10 rounded-2xl shadow-xl shadow-navy/5 w-full max-w-[440px] border border-navy/5 animate-in zoom-in-95 duration-300 mx-4">
         <h2 className="mt-0 mb-2 text-center text-navy font-black text-2xl uppercase tracking-tight">Inicio de Sesión</h2>
         <p className="text-center text-slate-500 text-sm mb-8 font-medium italic">Bienvenido ingrese sus datos.</p>
         <form onSubmit={handleLogin} className="space-y-6">

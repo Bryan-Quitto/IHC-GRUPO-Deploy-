@@ -69,7 +69,7 @@ const SettingsView: React.FC = () => {
   };
 
   return (
-    <div className="animate-in fade-in duration-500 max-w-4xl mx-auto pb-12">
+    <div className="animate-in fade-in duration-500 max-w-4xl mx-auto pb-12 pt-24 px-4">
       <header className="flex items-center gap-4 mb-8">
         <button 
           onClick={() => navigate('/')}
