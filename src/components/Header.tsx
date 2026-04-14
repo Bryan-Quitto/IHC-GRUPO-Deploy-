@@ -28,15 +28,17 @@ const Header: React.FC = () => {
               <button 
                 className="bg-transparent border-none text-slate-500 p-2 rounded-full cursor-pointer transition-all hover:bg-slate-100 hover:text-navy flex items-center justify-center" 
                 onClick={() => navigate('/settings')}
+                aria-label="Abrir configuración"
                 title="Configuración"
               >
-                <Settings size={20} />
+                <Settings size={20} aria-hidden="true" />
               </button>
               <button 
                 className="bg-red-600 text-white border-none px-4 py-2 rounded-lg cursor-pointer text-[0.85rem] font-bold transition-all hover:bg-red-700 flex items-center gap-2" 
                 onClick={handleLogout}
+                aria-label="Cerrar sesión"
               >
-                <LogOut size={16} /> <span className="hidden sm:inline">Cerrar Sesión</span>
+                <LogOut size={16} aria-hidden="true" /> <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
             </div>
           </div>

@@ -26,14 +26,15 @@ const LoginView: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-sky-100 -mx-4 md:-mx-8 -mt-0">
+    <main className="flex justify-center items-center min-h-screen p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-sky-100 -mx-4 md:-mx-8 -mt-0">
       <div className="bg-white p-6 sm:p-10 rounded-2xl shadow-xl shadow-navy/5 w-full max-w-[440px] border border-navy/5 animate-in zoom-in-95 duration-300 mx-4">
-        <h2 className="mt-0 mb-2 text-center text-navy font-black text-2xl uppercase tracking-tight">Inicio de Sesión</h2>
+        <h1 className="mt-0 mb-2 text-center text-navy font-black text-2xl uppercase tracking-tight">Inicio de Sesión</h1>
         <p className="text-center text-slate-500 text-sm mb-8 font-medium italic">Bienvenido ingrese sus datos.</p>
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-slate-700">Correo Electrónico</label>
+            <label htmlFor="email" className="text-sm font-bold text-slate-700">Correo Electrónico</label>
             <input 
+              id="email"
               type="email" 
               className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/5"
               value={email} 
@@ -43,8 +44,9 @@ const LoginView: React.FC = () => {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-slate-700">Contraseña</label>
+            <label htmlFor="password" className="text-sm font-bold text-slate-700">Contraseña</label>
             <input 
+              id="password"
               type="password" 
               className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-2 focus:ring-navy/5"
               value={password} 
@@ -54,7 +56,7 @@ const LoginView: React.FC = () => {
             />
           </div>
           {error && (
-            <div className="text-red-600 bg-red-50 p-3 rounded-lg text-sm border border-red-100 font-medium">
+            <div className="text-red-600 bg-red-50 p-3 rounded-lg text-sm border border-red-100 font-medium" role="alert">
               {error}
             </div>
           )}
@@ -70,7 +72,7 @@ const LoginView: React.FC = () => {
           ¿No dispone de una cuenta? <Link to="/register" className="text-navy font-bold no-underline hover:underline ml-1">Solicitar Registro</Link>
         </p>
       </div>
-    </div>
+    </main>
   );
 };
 

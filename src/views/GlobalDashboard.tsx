@@ -125,7 +125,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
   ];
 
   return (
-    <div className="pb-12">
+    <main className="pb-12">
 
       {/* ══ HERO GLOBAL ══ */}
       <section className="relative bg-gradient-to-br from-navy-dark via-navy to-navy-light rounded-b-[32px] p-8 md:p-12 mb-8 overflow-hidden text-white min-h-[260px]" aria-labelledby="gd-hero-title">
@@ -467,6 +467,6 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
         </div>
       )}
 
-    </div>
+    </main>
   );
 };
