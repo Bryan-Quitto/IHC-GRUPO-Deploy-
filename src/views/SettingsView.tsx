@@ -74,11 +74,11 @@ const SettingsView: React.FC = () => {
         <button 
           onClick={() => navigate('/')}
           className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-all border-none bg-transparent cursor-pointer flex items-center justify-center"
-          title="Volver al inicio"
+          aria-label="Volver al inicio"
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft size={24} aria-hidden="true" />
         </button>
-        <h2 className="text-2xl font-black text-navy uppercase tracking-tight m-0">Configuración de Cuenta</h2>
+        <h1 className="text-2xl font-black text-navy uppercase tracking-tight m-0">Configuración de Cuenta</h1>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

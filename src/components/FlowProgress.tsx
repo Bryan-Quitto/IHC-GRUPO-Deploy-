@@ -70,31 +70,36 @@ export const FlowProgress: React.FC<FlowProgressProps> = ({
           const complete = isStepComplete(step.id);
           const active   = activeTab === step.id;
           const isLast   = idx === steps.length - 1;
+          const statusText = complete ? 'completado' : active ? 'activo' : 'pendiente';
 
           return (
             <React.Fragment key={step.id}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.7rem',
-                  fontWeight: 800,
-                  border: '2px solid',
-                  transition: 'all 0.3s',
-                  backgroundColor: complete ? '#10b981' : active ? '#003366' : '#f1f5f9',
-                  borderColor:     complete ? '#10b981' : active ? '#003366' : '#cbd5e1',
-                  color:           complete ? '#fff'    : active ? '#fff'    : '#94a3b8',
-                }}>
-                  {complete ? <Check size={14} strokeWidth={3} /> : idx + 1}
+                <div 
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    border: '2px solid',
+                    transition: 'all 0.3s',
+                    backgroundColor: complete ? '#059669' : active ? '#003366' : '#f1f5f9',
+                    borderColor:     complete ? '#059669' : active ? '#003366' : '#cbd5e1',
+                    color:           complete ? '#fff'    : active ? '#fff'    : '#1e293b',
+                  }}
+                  role="img"
+                  aria-label={`Paso ${idx + 1}: ${step.label} - ${statusText}`}
+                >
+                  {complete ? <Check size={14} strokeWidth={3} aria-hidden="true" /> : idx + 1}
                 </div>
                 <span style={{
                   fontSize: '0.6rem',
                   fontWeight: 700,
-                  color: complete ? '#059669' : active ? '#003366' : '#94a3b8',
+                  color: complete ? '#059669' : active ? '#003366' : '#1e293b',
                   whiteSpace: 'nowrap',
                 }}>
                   {step.label}
@@ -108,7 +113,7 @@ export const FlowProgress: React.FC<FlowProgressProps> = ({
                   margin: '0 4px',
                   marginBottom: '18px',
                   borderRadius: '99px',
-                  backgroundColor: complete ? '#10b981' : '#e2e8f0',
+                  backgroundColor: complete ? '#059669' : '#e2e8f0',
                   transition: 'background-color 0.5s',
                 }} />
               )}

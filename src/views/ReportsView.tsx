@@ -562,10 +562,10 @@ ${sec('📋','Conclusiones y Recomendaciones','Síntesis ejecutiva de los hallaz
       {/* Cabecera de pantalla */}
       <header className="view-header no-print bg-[#003366] text-white p-4 md:px-6 shadow-md flex items-center justify-between gap-4">
         <div className="flex-1" /> {/* Spacer para centrado */}
-        <h2 className="m-0 text-lg md:text-xl font-black uppercase tracking-wider text-center flex items-center gap-3">
+        <h1 className="m-0 text-lg md:text-xl font-black uppercase tracking-wider text-center flex items-center gap-3">
           <BarChart2 size={24} aria-hidden="true" />
           Reporte de Resultados — Prueba de Usabilidad
-        </h2>
+        </h1>
         <div className="flex-1 flex justify-end">
           <button
             onClick={handleDownloadPDF}

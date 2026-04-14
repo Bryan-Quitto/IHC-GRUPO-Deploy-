@@ -121,8 +121,9 @@ const PlanDetailContainer: React.FC<{
             <button
               onClick={() => setShowDeleteModal(true)}
               className="bg-transparent border-none text-slate-400 cursor-pointer p-1.5 flex items-center rounded-lg flex-shrink-0 transition-all hover:bg-red-50 hover:text-red-500"
+              aria-label="Eliminar plan de prueba"
             >
-              <Trash2 size={18} />
+              <Trash2 size={18} aria-hidden="true" />
             </button>
           )}
         </div>
@@ -221,7 +222,7 @@ const PlanDetailContainer: React.FC<{
             <div className="inline-flex items-center justify-center bg-red-100 text-red-600 rounded-full w-14 h-14 mb-4">
               <AlertTriangle size={32} />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-3">¿Eliminar Plan de Prueba?</h3>
+            <h2 className="text-xl font-bold text-slate-900 mb-3">¿Eliminar Plan de Prueba?</h2>
             <p className="text-slate-600 text-sm leading-relaxed mb-6">Estás a punto de borrar el plan <strong className="text-slate-900">"{testPlan.product}"</strong> y todos sus datos asociados.</p>
             <div className="flex gap-3 justify-center">
               <button 
@@ -247,7 +248,7 @@ const PlanDetailContainer: React.FC<{
             <div className="inline-flex items-center justify-center bg-navy/10 text-navy rounded-full w-14 h-14 mb-4">
               <Save size={32} />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-3">Cambios sin guardar</h3>
+            <h2 className="text-xl font-bold text-slate-900 mb-3">Cambios sin guardar</h2>
             <p className="text-slate-600 text-sm leading-relaxed mb-6">Si sales ahora, podrías perder la información que acabas de escribir.</p>
             <div className="flex gap-3 justify-center">
               <button 

@@ -162,8 +162,8 @@ const ScriptTaskRow: React.FC<{
       <td className="p-3 text-center">
         {confirmDelete ? (
           <div className="flex flex-col gap-1 items-center animate-in zoom-in-95 duration-200">
-            <button type="button" onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm" title="Confirmar eliminación"><Check size={14} strokeWidth={3} /></button>
-            <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm" title="Cancelar"><X size={14} strokeWidth={3} /></button>
+            <button type="button" onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm" aria-label={`Confirmar eliminación de tarea ${task.task_index}`}><Check size={14} strokeWidth={3} aria-hidden="true" /></button>
+            <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm" aria-label="Cancelar eliminación"><X size={14} strokeWidth={3} aria-hidden="true" /></button>
           </div>
         ) : (
           <button type="button" className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" onClick={() => setConfirmDelete(true)} aria-label={`Eliminar tarea ${task.task_index}`}>
@@ -214,9 +214,9 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
   };
 
   return (
-    <div className="animate-in fade-in duration-500">
+    <main className="animate-in fade-in duration-500">
       <header className="relative flex items-center justify-center bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px]">
-        <h2 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Guion de moderación y tareas</h2>
+        <h1 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Guion de moderación y tareas</h1>
         <div aria-live="polite" aria-atomic="true" className="absolute right-4 md:right-6 flex items-center gap-2 text-sm font-bold opacity-90 text-right">
           {isSaving ? (
             <span className="flex items-center gap-1.5 text-white animate-pulse"><RefreshCcw size={14} className="animate-spin" aria-hidden="true" /><span>Guardando...</span></span>
@@ -237,7 +237,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
               <p className="text-slate-500 font-medium max-w-[400px] mb-8 leading-relaxed">
                 Para redactar el guion y las tareas, primero debes asignar un nombre al producto en la pestaña de Plan.
               </p>
-              <button type="button" onClick={onGoToPlan} className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-xl px-8 py-3.5 text-base font-black cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/20 active:scale-[0.98]">
+              <button type="button" onClick={onGoToPlan} className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-xl px-8 py-3.5 text-base font-black cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/20 active:scale-[0.98]" aria-label="Volver al plan para definir el producto">
                 Ir a definir Producto
               </button>
             </div>
@@ -357,6 +357,6 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
           </>
         )}
       </div>
-    </div>
+    </main>
   );
 };

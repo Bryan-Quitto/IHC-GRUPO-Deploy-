@@ -236,6 +236,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
               <button 
                 className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-lg px-6 py-3 text-[0.95rem] font-bold cursor-pointer mt-4 transition-all hover:bg-navy-dark shadow-lg shadow-navy/20" 
                 onClick={onCreatePlan}
+                aria-label="Crear el primer plan de prueba de usabilidad"
               >
                 <Plus size={18} aria-hidden="true" /> Crear primer plan
               </button>

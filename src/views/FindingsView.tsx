@@ -105,9 +105,9 @@ const FindingCard: React.FC<{
             type="button"
             onClick={() => { onSync({ is_favorite: !f.is_favorite }); onSave(f.id!, { is_favorite: !f.is_favorite }); }}
             className={`p-1 rounded-lg border-none bg-transparent cursor-pointer transition-all ${f.is_favorite ? 'text-amber-400' : 'text-slate-300 hover:text-amber-300'}`}
-            title={f.is_favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}
+            aria-label={f.is_favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}
           >
-            <Star size={18} fill={f.is_favorite ? 'currentColor' : 'none'} strokeWidth={2} />
+            <Star size={18} fill={f.is_favorite ? 'currentColor' : 'none'} strokeWidth={2} aria-hidden="true" />
           </button>
           <span className={`font-black ${sev.text} text-[0.8rem] uppercase tracking-tight`}>Hallazgo #{idx + 1} · {f.severity}</span>
         </div>
@@ -119,8 +119,8 @@ const FindingCard: React.FC<{
 
       <div className="p-4 flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Problema detectado *</label>
-          <AutoGrowTextarea
+          <label htmlFor={`find-problem-${f.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Problema detectado *</label>
+          <AutoGrowTextarea id={`find-problem-${f.id}`}
             className={fieldClass(warnProblem, "w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-bold", 'error')}
             value={f.problem || ''} onChange={e => handleChange('problem', e.target.value)}
             onBlur={e => { touch('problem'); onAction(() => onSave(f.id!, { problem: e.target.value })); }} placeholder="Ej. Menú 'Rendimiento' no es claro" rows={2} />
@@ -129,8 +129,8 @@ const FindingCard: React.FC<{
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Evidencia observada *</label>
-          <AutoGrowTextarea
+          <label htmlFor={`find-evidence-${f.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Evidencia observada *</label>
+          <AutoGrowTextarea id={`find-evidence-${f.id}`}
             className={fieldClass(warnEvidence, "w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-medium italic", 'error')}
             value={f.evidence || ''} onChange={e => handleChange('evidence', e.target.value)}
             onBlur={e => { touch('evidence'); onAction(() => onSave(f.id!, { evidence: e.target.value })); }} placeholder="Ej. 4 de 5 usuarios dudaron" rows={2} />
@@ -140,15 +140,15 @@ const FindingCard: React.FC<{
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Frecuencia</label>
-            <input maxLength={20}
+            <label htmlFor={`find-frequency-${f.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Frecuencia</label>
+            <input id={`find-frequency-${f.id}`} maxLength={20}
               className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-mono"
               value={f.frequency || ''} onChange={e => onSync({ frequency: e.target.value })}
               onBlur={e => onAction(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="Ej. 4/5" />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest flex items-center gap-1.5">Severidad <Tooltip text="Nivel de impacto del problema en la experiencia del usuario."><Info size={12} className="text-slate-400" /></Tooltip></label>
-            <select className={`w-full p-2.5 border ${sev.border} rounded-lg text-sm ${sev.bg} ${sev.text} font-bold outline-none cursor-pointer`}
+            <label htmlFor={`find-severity-${f.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest flex items-center gap-1.5">Severidad <Tooltip text="Nivel de impacto del problema en la experiencia del usuario."><Info size={12} className="text-slate-400" /></Tooltip></label>
+            <select id={`find-severity-${f.id}`} className={`w-full p-2.5 border ${sev.border} rounded-lg text-sm ${sev.bg} ${sev.text} font-bold outline-none cursor-pointer`}
               value={f.severity} onChange={e => { const val = e.target.value as Severity; onSync({ severity: val }); onAction(() => onSave(f.id!, { severity: val })); }}>
               <option value="Baja">Baja</option>
               <option value="Media">Media</option>
@@ -159,8 +159,8 @@ const FindingCard: React.FC<{
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="font-black text-[0.7rem] text-green-800 uppercase tracking-widest">Recomendación de mejora *</label>
-          <AutoGrowTextarea
+          <label htmlFor={`find-recommendation-${f.id}`} className="font-black text-[0.7rem] text-green-800 uppercase tracking-widest">Recomendación de mejora *</label>
+          <AutoGrowTextarea id={`find-recommendation-${f.id}`}
             className={fieldClass(warnRecommendation, "w-full p-2.5 border border-green-100 rounded-lg text-sm bg-green-50/30 focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none transition-all font-medium")}
             value={f.recommendation || ''} onChange={e => handleChange('recommendation', e.target.value)}
             onBlur={e => { touch('recommendation'); onAction(() => onSave(f.id!, { recommendation: e.target.value })); }} placeholder="Ej. Cambiar etiqueta a 'Notas'" rows={2} />
@@ -170,8 +170,8 @@ const FindingCard: React.FC<{
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest flex items-center gap-1.5">Prioridad <Tooltip text="Urgencia recomendada para resolver el hallazgo."><Info size={12} className="text-slate-400" /></Tooltip></label>
-            <select className={`w-full p-2.5 border ${pri.border} rounded-lg text-sm ${pri.bg} ${pri.text} font-bold outline-none cursor-pointer`}
+            <label htmlFor={`find-priority-${f.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest flex items-center gap-1.5">Prioridad <Tooltip text="Urgencia recomendada para resolver el hallazgo."><Info size={12} className="text-slate-400" /></Tooltip></label>
+            <select id={`find-priority-${f.id}`} className={`w-full p-2.5 border ${pri.border} rounded-lg text-sm ${pri.bg} ${pri.text} font-bold outline-none cursor-pointer`}
               value={f.priority} onChange={e => { const val = e.target.value as Priority; onSync({ priority: val }); onAction(() => onSave(f.id!, { priority: val })); }}>
               <option value="Baja">Baja</option>
               <option value="Media">Media</option>
@@ -179,8 +179,8 @@ const FindingCard: React.FC<{
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Estado</label>
-            <select className={`w-full p-2.5 border ${sta.border} rounded-lg text-sm ${sta.bg} ${sta.text} font-bold outline-none cursor-pointer`}
+            <label htmlFor={`find-status-${f.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Estado</label>
+            <select id={`find-status-${f.id}`} className={`w-full p-2.5 border ${sta.border} rounded-lg text-sm ${sta.bg} ${sta.text} font-bold outline-none cursor-pointer`}
               value={f.status} onChange={e => { const val = e.target.value as TaskStatus; onSync({ status: val }); onAction(() => onSave(f.id!, { status: val })); }}>
               <option value="Pendiente">⏳ Pendiente</option>
               <option value="En progreso">🔄 En progreso</option>
@@ -193,11 +193,11 @@ const FindingCard: React.FC<{
           {confirmDelete ? (
             <div className="flex gap-2 items-center animate-in zoom-in-95 duration-200">
               <span className="text-[0.7rem] text-red-600 font-black uppercase tracking-widest">Confirmar:</span>
-              <button type="button" onClick={() => { onDelete(f.id!); setConfirmDelete(false); }} className="inline-flex items-center justify-center w-8 h-8 bg-red-600 text-white border-none rounded-lg cursor-pointer transition-all hover:bg-red-700 shadow-md shadow-red-100"><Check size={16} strokeWidth={3} /></button>
-              <button type="button" onClick={() => setConfirmDelete(false)} className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-500 border-none rounded-lg cursor-pointer transition-all hover:bg-slate-200"><X size={16} strokeWidth={3} /></button>
+              <button type="button" onClick={() => { onDelete(f.id!); setConfirmDelete(false); }} className="inline-flex items-center justify-center w-8 h-8 bg-red-600 text-white border-none rounded-lg cursor-pointer transition-all hover:bg-red-700 shadow-md shadow-red-100" aria-label={`Confirmar eliminación de hallazgo ${idx + 1}`}><Check size={16} strokeWidth={3} aria-hidden="true" /></button>
+              <button type="button" onClick={() => setConfirmDelete(false)} className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-500 border-none rounded-lg cursor-pointer transition-all hover:bg-slate-200" aria-label="Cancelar eliminación"><X size={16} strokeWidth={3} aria-hidden="true" /></button>
             </div>
           ) : (
-            <button type="button" className="inline-flex items-center gap-1.5 bg-transparent border-none text-slate-400 cursor-pointer p-2 rounded-lg transition-all hover:bg-red-50 hover:text-red-600" onClick={() => setConfirmDelete(true)}>
+            <button type="button" className="inline-flex items-center gap-1.5 bg-transparent border-none text-slate-400 cursor-pointer p-2 rounded-lg transition-all hover:bg-red-50 hover:text-red-600" onClick={() => setConfirmDelete(true)} aria-label={`Eliminar hallazgo ${idx + 1}`}>
               <Trash2 size={18} aria-hidden="true" />
               <span className="text-[0.82rem] font-bold">Eliminar</span>
             </button>
@@ -240,13 +240,13 @@ const FindingRow: React.FC<{
             type="button"
             onClick={() => { handleLocalChange(f.id!, { is_favorite: !f.is_favorite }); handleActionWithStatus(() => onSave(f.id!, { is_favorite: !f.is_favorite })); }}
             className={`p-1.5 rounded-lg border-none bg-transparent cursor-pointer transition-all ${f.is_favorite ? 'text-amber-400' : 'text-slate-300 hover:text-amber-300'}`}
-            title={f.is_favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}
+            aria-label={f.is_favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}
           >
-            <Star size={18} fill={f.is_favorite ? 'currentColor' : 'none'} strokeWidth={2} />
+            <Star size={18} fill={f.is_favorite ? 'currentColor' : 'none'} strokeWidth={2} aria-hidden="true" />
           </button>
         </td>      
       <td className="p-2">
-        <AutoGrowTextarea
+        <AutoGrowTextarea aria-label="Problema detectado"
           className={fieldClass(warnProblem, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-bold", 'error')}
           value={f.problem || ''} onChange={e => handleChange('problem', e.target.value)}
           onBlur={e => { touch('problem'); handleActionWithStatus(() => onSave(f.id!, { problem: e.target.value })); }} placeholder="Ej. Menú no es claro" rows={2} />
@@ -254,7 +254,7 @@ const FindingRow: React.FC<{
         <FieldWarning show={warnProblem} message="Describe el problema." variant="error" />
       </td>
       <td className="p-2">
-        <AutoGrowTextarea
+        <AutoGrowTextarea aria-label="Evidencia observada"
           className={fieldClass(warnEvidence, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium italic text-slate-600", 'error')}
           value={f.evidence || ''} onChange={e => handleChange('evidence', e.target.value)}
           onBlur={e => { touch('evidence'); handleActionWithStatus(() => onSave(f.id!, { evidence: e.target.value })); }} placeholder="Ej. 4/5 fallaron" rows={2} />
@@ -262,13 +262,13 @@ const FindingRow: React.FC<{
         <FieldWarning show={warnEvidence} message="Añade la evidencia." variant="error" />
       </td>
       <td className="p-2 text-center">
-        <input type="text" maxLength={20}
+        <input type="text" maxLength={20} aria-label="Frecuencia"
           className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-mono"
           value={f.frequency || ''} onChange={e => handleLocalChange(f.id!, { frequency: e.target.value })}
           onBlur={e => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="4/5" />
       </td>
       <td className="p-3">
-        <select className={`w-full p-2 border ${sev.border} rounded-lg text-[0.75rem] ${sev.bg} ${sev.text} font-black outline-none cursor-pointer`}
+        <select aria-label="Severidad" className={`w-full p-2 border ${sev.border} rounded-lg text-[0.75rem] ${sev.bg} ${sev.text} font-black outline-none cursor-pointer`}
           value={f.severity} onChange={e => { const val = e.target.value as Severity; handleLocalChange(f.id!, { severity: val }); handleActionWithStatus(() => onSave(f.id!, { severity: val })); }}>
           <option value="Baja">Baja</option>
           <option value="Media">Media</option>
@@ -277,7 +277,7 @@ const FindingRow: React.FC<{
         </select>
       </td>
       <td className="p-2">
-        <AutoGrowTextarea
+        <AutoGrowTextarea aria-label="Recomendación de mejora"
           className={fieldClass(warnRecommendation, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none font-medium text-green-900")}
           value={f.recommendation || ''} onChange={e => handleChange('recommendation', e.target.value)}
           onBlur={e => { touch('recommendation'); handleActionWithStatus(() => onSave(f.id!, { recommendation: e.target.value })); }} placeholder="Mejora..." rows={2} />
@@ -285,7 +285,7 @@ const FindingRow: React.FC<{
         <FieldWarning show={warnRecommendation} message="Añade una recomendación." variant="warning" />
       </td>
       <td className="p-3">
-        <select className={`w-full p-2 border ${pri.border} rounded-lg text-[0.75rem] ${pri.bg} ${pri.text} font-black outline-none cursor-pointer`}
+        <select aria-label="Prioridad" className={`w-full p-2 border ${pri.border} rounded-lg text-[0.75rem] ${pri.bg} ${pri.text} font-black outline-none cursor-pointer`}
           value={f.priority} onChange={e => { const val = e.target.value as Priority; handleLocalChange(f.id!, { priority: val }); handleActionWithStatus(() => onSave(f.id!, { priority: val })); }}>
           <option value="Baja">Baja</option>
           <option value="Media">Media</option>
@@ -293,7 +293,7 @@ const FindingRow: React.FC<{
         </select>
       </td>
       <td className="p-3">
-        <select className={`w-full p-2 border ${sta.border} rounded-lg text-[0.75rem] ${sta.bg} ${sta.text} font-black outline-none cursor-pointer`}
+        <select aria-label="Estado" className={`w-full p-2 border ${sta.border} rounded-lg text-[0.75rem] ${sta.bg} ${sta.text} font-black outline-none cursor-pointer`}
           value={f.status} onChange={e => { const val = e.target.value as TaskStatus; handleLocalChange(f.id!, { status: val }); handleActionWithStatus(() => onSave(f.id!, { status: val })); }}>
           <option value="Pendiente">⏳ Pendiente</option>
           <option value="En progreso">🔄 En progreso</option>
@@ -303,11 +303,11 @@ const FindingRow: React.FC<{
       <td className="p-3 text-center">
         {confirmDelete ? (
           <div className="flex flex-col gap-1 items-center animate-in zoom-in-95 duration-200">
-            <button type="button" onClick={() => { onDelete(f.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm" title="Confirmar eliminación"><Check size={14} strokeWidth={3} /></button>
-            <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm" title="Cancelar"><X size={14} strokeWidth={3} /></button>
+            <button type="button" onClick={() => { onDelete(f.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm" aria-label={`Confirmar eliminación de hallazgo ${idx + 1}`}><Check size={14} strokeWidth={3} aria-hidden="true" /></button>
+            <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm" aria-label="Cancelar eliminación"><X size={14} strokeWidth={3} aria-hidden="true" /></button>
           </div>
         ) : (
-          <button className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" type="button" onClick={() => setConfirmDelete(true)}><Trash2 size={18} aria-hidden="true" /></button>
+          <button className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" type="button" onClick={() => setConfirmDelete(true)} aria-label={`Eliminar hallazgo ${idx + 1}`}><Trash2 size={18} aria-hidden="true" /></button>
         )}
       </td>
     </tr>
@@ -345,9 +345,9 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
   }, [data, sortMode]);
 
   return (
-    <div className="animate-in fade-in duration-500">
+    <main className="animate-in fade-in duration-500">
       <header className="relative flex items-center justify-center bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px]">
-        <h2 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Síntesis de hallazgos y plan de mejora</h2>
+        <h1 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Síntesis de hallazgos y plan de mejora</h1>
         <div role="status" aria-live="polite" className="absolute right-4 md:right-6 flex items-center gap-2 text-sm font-bold opacity-90">
           {isSaving
             ? <span className="flex items-center gap-1.5 text-white animate-pulse"><RefreshCcw size={14} className="animate-spin" aria-hidden="true" /> Guardando…</span>
@@ -363,7 +363,7 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
               <div aria-hidden="true" className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6 shadow-inner"><AlertTriangle size={40} className="text-amber-600" /></div>
               <h3 className="text-xl font-black text-slate-900 mb-2">¡Falta el nombre del producto!</h3>
               <p className="text-slate-500 font-medium max-w-[400px] mb-8 leading-relaxed">Para generar la síntesis de hallazgos, primero define un nombre al producto en la pestaña Plan.</p>
-              <button onClick={onGoToPlan} className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-xl px-8 py-3.5 text-base font-black cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/20 active:scale-[0.98]">Ir a definir Producto</button>
+              <button onClick={onGoToPlan} className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-xl px-8 py-3.5 text-base font-black cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/20 active:scale-[0.98]" aria-label="Volver al plan para definir el producto">Ir a definir Producto</button>
             </div>
           </section>
         ) : (
@@ -377,8 +377,8 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                     <thead>
                       <tr className="bg-slate-50 text-slate-500 text-[0.7rem] font-black uppercase tracking-[0.1em] border-b border-slate-200">
                         <th scope="col" className="p-4 text-center border-r border-slate-100 w-[50px]">#</th>
-                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[50px]">
-                          <Star size={14} className="mx-auto text-amber-400" fill="currentColor" />
+                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[50px]" aria-label="Favoritos">
+                          <Star size={14} className="mx-auto text-amber-400" fill="currentColor" aria-hidden="true" />
                         </th>
                         <th scope="col" className="p-4 text-left border-r border-slate-100">Problema *</th>
                         <th scope="col" className="p-4 text-left border-r border-slate-100">Evidencia *</th>
@@ -389,8 +389,8 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                             <div className="flex items-center gap-0.5">
                               <Tooltip text="Nivel de impacto del problema en la experiencia del usuario."><Info size={12} className="text-slate-400" /></Tooltip>
                               <div className="relative">
-                                <button type="button" onClick={() => setShowSortMenu(!showSortMenu)} className={`p-1 rounded-md transition-all hover:bg-slate-200 flex items-center justify-center ${sortMode !== 'default' ? 'text-navy bg-slate-100' : 'text-slate-400'}`}>
-                                  <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} />
+                                <button type="button" onClick={() => setShowSortMenu(!showSortMenu)} className={`p-1 rounded-md transition-all hover:bg-slate-200 flex items-center justify-center ${sortMode !== 'default' ? 'text-navy bg-slate-100' : 'text-slate-400'}`} aria-label="Ordenar hallazgos por severidad" aria-expanded={showSortMenu}>
+                                  <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
                                 </button>
                                 {showSortMenu && (
                                   <>
@@ -411,7 +411,7 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
                           <div className="flex items-center gap-1.5 justify-center">Prioridad <Tooltip text="Urgencia recomendada para resolver el hallazgo."><Info size={12} className="text-slate-400" /></Tooltip></div>
                         </th>
                         <th scope="col" className="p-4 text-center border-r border-slate-100 w-[140px]">Estado</th>
-                        <th scope="col" className="p-4 text-center w-[60px]"></th>
+                        <th scope="col" className="p-4 text-center w-[60px]" aria-label="Acciones de eliminación"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -472,6 +472,6 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
           </>
         )}
       </div>
-    </div>
+    </main>
   );
 };

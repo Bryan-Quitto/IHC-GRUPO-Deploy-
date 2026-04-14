@@ -106,8 +106,8 @@ const ObservationCard: React.FC<{
       <div className="p-4 flex flex-col gap-4">
         <div className="grid grid-cols-[1fr_1fr_80px] gap-3">
           <div className="flex flex-col gap-1">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Participante *</label>
-            <input type="text" maxLength={MAX_CHARS}
+            <label htmlFor={`obs-participant-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Participante *</label>
+            <input id={`obs-participant-${obs.id}`} type="text" maxLength={MAX_CHARS}
               className={fieldClass(warnParticipant, "w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all", 'error')}
               value={obs.participant || ''} onChange={e => handleChange('participant', e.target.value)}
               onBlur={e => { touch('participant'); onAction(() => onSave(obs.id!, { participant: e.target.value })); }} placeholder="P1" />
@@ -115,17 +115,17 @@ const ObservationCard: React.FC<{
             <FieldWarning show={warnParticipant} message="Ingrese el nombre o código del participante." variant="error" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Perfil</label>
-            <input type="text" maxLength={MAX_CHARS}
+            <label htmlFor={`obs-profile-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Perfil</label>
+            <input id={`obs-profile-${obs.id}`} type="text" maxLength={MAX_CHARS}
               className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all"
               value={obs.profile || ''} onChange={e => handleChange('profile', e.target.value)}
               onBlur={e => onAction(() => onSave(obs.id!, { profile: e.target.value }))} placeholder="Estudiante" />
             <CharCounter value={obs.profile} />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Tarea *</label>
+            <label htmlFor={`obs-task-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Tarea *</label>
             {tasks.length > 0 ? (
-              <select
+              <select id={`obs-task-${obs.id}`}
                 className={fieldClass(warnTaskRef, "w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy outline-none transition-all font-medium", 'error')}
                 value={obs.task_ref || ''}
                 onChange={e => { touch('task_ref'); onLocalChange(obs.id!, { task_ref: e.target.value }); onAction(() => onSave(obs.id!, { task_ref: e.target.value })); }}
@@ -138,7 +138,7 @@ const ObservationCard: React.FC<{
                 ))}
               </select>
             ) : (
-              <input type="text" maxLength={20}
+              <input id={`obs-task-${obs.id}`} type="text" maxLength={20}
                 className={fieldClass(warnTaskRef, "w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all", 'error')}
                 value={obs.task_ref || ''} onChange={e => onLocalChange(obs.id!, { task_ref: e.target.value })}
                 onBlur={e => { touch('task_ref'); onAction(() => onSave(obs.id!, { task_ref: e.target.value })); }} placeholder="T1" />
@@ -149,8 +149,8 @@ const ObservationCard: React.FC<{
 
         <div className="grid grid-cols-3 gap-3">
           <div className="flex flex-col gap-1">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Éxito</label>
-            <select className={`w-full p-2 border ${okStyle.border} rounded-lg text-sm ${okStyle.bg} ${okStyle.text} font-bold outline-none cursor-pointer`}
+            <label htmlFor={`obs-success-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Éxito</label>
+            <select id={`obs-success-${obs.id}`} className={`w-full p-2 border ${okStyle.border} rounded-lg text-sm ${okStyle.bg} ${okStyle.text} font-bold outline-none cursor-pointer`}
               value={obs.success_level}
               onChange={e => { const val = e.target.value as SuccessStatus; onLocalChange(obs.id!, { success_level: val }); onAction(() => onSave(obs.id!, { success_level: val })); }}>
               <option value="Sí">Sí</option>
@@ -159,18 +159,18 @@ const ObservationCard: React.FC<{
             </select>
           </div>
           <div className="flex flex-col gap-1">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Tiempo (s)</label>
-            <input type="number" min="0" className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-mono font-bold" value={obs.time_seconds} onChange={e => onLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={e => onAction(() => onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 }))} placeholder="0" />
+            <label htmlFor={`obs-time-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Tiempo (s)</label>
+            <input id={`obs-time-${obs.id}`} type="number" min="0" className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-mono font-bold" value={obs.time_seconds} onChange={e => onLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={e => onAction(() => onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 }))} placeholder="0" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Errores</label>
-            <input type="number" min="0" className={`w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-mono font-bold ${obs.errors > 2 ? 'text-red-600' : 'text-slate-800'}`} value={obs.errors} onChange={e => onLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={e => onAction(() => onSave(obs.id!, { errors: parseInt(e.target.value) || 0 }))} placeholder="0" />
+            <label htmlFor={`obs-errors-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Errores</label>
+            <input id={`obs-errors-${obs.id}`} type="number" min="0" className={`w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-mono font-bold ${obs.errors > 2 ? 'text-red-600' : 'text-slate-800'}`} value={obs.errors} onChange={e => onLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={e => onAction(() => onSave(obs.id!, { errors: parseInt(e.target.value) || 0 }))} placeholder="0" />
           </div>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Comentarios clave *</label>
-          <AutoGrowTextarea
+          <label htmlFor={`obs-comments-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Comentarios clave *</label>
+          <AutoGrowTextarea id={`obs-comments-${obs.id}`}
             className={fieldClass(warnComments, "w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-medium", 'error')}
             value={obs.comments || ''} onChange={e => handleChange('comments', e.target.value)}
             onBlur={e => { touch('comments'); onAction(() => onSave(obs.id!, { comments: e.target.value })); }} placeholder="Ej. Dudó..." rows={2} />
@@ -179,8 +179,8 @@ const ObservationCard: React.FC<{
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest text-red-800">Problema detectado *</label>
-          <AutoGrowTextarea
+          <label htmlFor={`obs-problem-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest text-red-800">Problema detectado *</label>
+          <AutoGrowTextarea id={`obs-problem-${obs.id}`}
             className={fieldClass(warnProblem, "w-full p-2.5 border border-red-100 rounded-lg text-sm bg-red-50/30 focus:bg-white focus:border-red-400 focus:ring-4 focus:ring-red-50 outline-none transition-all font-medium italic", 'error')}
             value={obs.problem || ''} onChange={e => handleChange('problem', e.target.value)}
             onBlur={e => { touch('problem'); onAction(() => onSave(obs.id!, { problem: e.target.value })); }} placeholder="Ej. Nombre..." rows={2} />
@@ -190,8 +190,8 @@ const ObservationCard: React.FC<{
 
         <div className="grid grid-cols-1 gap-4">
           <div className="flex flex-col gap-1">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest flex items-center gap-1.5">Severidad <Tooltip text="Nivel de impacto del problema en la experiencia del usuario."><Info size={12} className="text-slate-400" /></Tooltip></label>
-            <select className={`w-full p-2 border ${sStyle.border} rounded-lg text-sm ${sStyle.bg} ${sStyle.text} font-bold outline-none cursor-pointer`}
+            <label htmlFor={`obs-severity-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest flex items-center gap-1.5">Severidad <Tooltip text="Nivel de impacto del problema en la experiencia del usuario."><Info size={12} className="text-slate-400" /></Tooltip></label>
+            <select id={`obs-severity-${obs.id}`} className={`w-full p-2 border ${sStyle.border} rounded-lg text-sm ${sStyle.bg} ${sStyle.text} font-bold outline-none cursor-pointer`}
               value={obs.severity}
               onChange={e => { const val = e.target.value as Severity; onLocalChange(obs.id!, { severity: val }); onAction(() => onSave(obs.id!, { severity: val })); }}>
               <option value="Baja">Baja</option>
@@ -201,8 +201,8 @@ const ObservationCard: React.FC<{
             </select>
           </div>
           <div className="flex flex-col gap-1">
-            <label className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest text-green-800">Mejora propuesta</label>
-            <AutoGrowTextarea
+            <label htmlFor={`obs-proposal-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest text-green-800">Mejora propuesta</label>
+            <AutoGrowTextarea id={`obs-proposal-${obs.id}`}
               className="w-full p-2.5 border border-green-100 rounded-lg text-sm bg-green-50/30 focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none transition-all font-medium"
               value={obs.proposal || ''} onChange={e => handleChange('proposal', e.target.value)}
               onBlur={e => onAction(() => onSave(obs.id!, { proposal: e.target.value }))} placeholder="Ej. Cambiar..." rows={2} />
@@ -214,11 +214,11 @@ const ObservationCard: React.FC<{
           {confirmDelete ? (
             <div className="flex gap-2 items-center animate-in zoom-in-95 duration-200">
               <span className="text-[0.7rem] text-red-600 font-black uppercase tracking-widest">Confirmar:</span>
-              <button type="button" onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }} className="inline-flex items-center justify-center w-8 h-8 bg-red-600 text-white border-none rounded-lg cursor-pointer transition-all hover:bg-red-700 shadow-md shadow-red-100"><Check size={16} strokeWidth={3} /></button>
-              <button type="button" onClick={() => setConfirmDelete(false)} className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-500 border-none rounded-lg cursor-pointer transition-all hover:bg-slate-200"><X size={16} strokeWidth={3} /></button>
+              <button type="button" onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }} className="inline-flex items-center justify-center w-8 h-8 bg-red-600 text-white border-none rounded-lg cursor-pointer transition-all hover:bg-red-700 shadow-md shadow-red-100" aria-label="Confirmar eliminación"><Check size={16} strokeWidth={3} aria-hidden="true" /></button>
+              <button type="button" onClick={() => setConfirmDelete(false)} className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-500 border-none rounded-lg cursor-pointer transition-all hover:bg-slate-200" aria-label="Cancelar eliminación"><X size={16} strokeWidth={3} aria-hidden="true" /></button>
             </div>
           ) : (
-            <button type="button" className="inline-flex items-center gap-1.5 bg-transparent border-none text-slate-400 cursor-pointer p-2 rounded-lg transition-all hover:bg-red-50 hover:text-red-600" onClick={() => setConfirmDelete(true)}>
+            <button type="button" className="inline-flex items-center gap-1.5 bg-transparent border-none text-slate-400 cursor-pointer p-2 rounded-lg transition-all hover:bg-red-50 hover:text-red-600" onClick={() => setConfirmDelete(true)} aria-label="Eliminar observación">
               <Trash2 size={18} aria-hidden="true" />
               <span className="text-[0.82rem] font-bold">Eliminar</span>
             </button>
@@ -256,7 +256,7 @@ const ObservationRow: React.FC<{
   return (
     <tr className="hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
       <td className="p-2 border-r border-slate-100">
-        <input type="text" maxLength={MAX_CHARS}
+        <input aria-label="Participante" type="text" maxLength={MAX_CHARS}
           className={fieldClass(warnParticipant, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy outline-none font-bold", 'error')}
           value={obs.participant || ''} onChange={e => handleChange('participant', e.target.value)}
           onBlur={() => { touch('participant'); handleActionWithStatus(() => onSave(obs.id!, { participant: obs.participant })); }} placeholder="P1" />
@@ -264,7 +264,7 @@ const ObservationRow: React.FC<{
         <FieldWarning show={warnParticipant} message="Ingrese el participante." variant="error" />
       </td>
       <td className="p-2 border-r border-slate-100">
-        <input type="text" maxLength={MAX_CHARS}
+        <input aria-label="Perfil" type="text" maxLength={MAX_CHARS}
           className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy outline-none font-medium"
           value={obs.profile || ''} onChange={e => handleChange('profile', e.target.value)}
           onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { profile: obs.profile }))} placeholder="Perfil" />
@@ -272,7 +272,7 @@ const ObservationRow: React.FC<{
       </td>
       <td className="p-2 text-center border-r border-slate-100">
         {tasks.length > 0 ? (
-          <select
+          <select aria-label="Tarea"
             className={fieldClass(warnTaskRef, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy outline-none font-mono font-bold", 'error')}
             value={obs.task_ref || ''}
             onChange={e => { touch('task_ref'); handleLocalChange(obs.id!, { task_ref: e.target.value }); handleActionWithStatus(() => onSave(obs.id!, { task_ref: e.target.value })); }}
@@ -285,7 +285,7 @@ const ObservationRow: React.FC<{
             ))}
           </select>
         ) : (
-          <input type="text" maxLength={20}
+          <input aria-label="Tarea" type="text" maxLength={20}
             className={fieldClass(warnTaskRef, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy outline-none font-mono font-bold", 'error')}
             value={obs.task_ref || ''} onChange={e => handleLocalChange(obs.id!, { task_ref: e.target.value })}
             onBlur={() => { touch('task_ref'); handleActionWithStatus(() => onSave(obs.id!, { task_ref: obs.task_ref })); }} placeholder="T1" />
@@ -293,7 +293,7 @@ const ObservationRow: React.FC<{
         <FieldWarning show={warnTaskRef} message="Seleccione la tarea." variant="error" />
       </td>
       <td className="p-2 text-center border-r border-slate-100">
-        <select className={`w-full p-2 border ${okStyle.border} rounded-lg text-[0.75rem] ${okStyle.bg} ${okStyle.text} font-black outline-none cursor-pointer shadow-sm`}
+        <select aria-label="Éxito" className={`w-full p-2 border ${okStyle.border} rounded-lg text-[0.75rem] ${okStyle.bg} ${okStyle.text} font-black outline-none cursor-pointer shadow-sm`}
           value={obs.success_level}
           onChange={e => { const val = e.target.value as SuccessStatus; handleLocalChange(obs.id!, { success_level: val }); handleActionWithStatus(() => onSave(obs.id!, { success_level: val })); }}>
           <option value="Sí">Sí</option>
@@ -302,13 +302,13 @@ const ObservationRow: React.FC<{
         </select>
       </td>
       <td className="p-2 text-center border-r border-slate-100 font-mono font-bold">
-        <input type="number" min="0" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy outline-none" value={obs.time_seconds} onChange={e => handleLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { time_seconds: obs.time_seconds }))} placeholder="0" />
+        <input aria-label="Tiempo en segundos" type="number" min="0" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy outline-none" value={obs.time_seconds} onChange={e => handleLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { time_seconds: obs.time_seconds }))} placeholder="0" />
       </td>
       <td className="p-2 text-center border-r border-slate-100 font-mono font-bold">
-        <input type="number" min="0" className={`w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy outline-none ${obs.errors > 2 ? 'text-red-600 font-black' : 'text-slate-800'}`} value={obs.errors} onChange={e => handleLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { errors: obs.errors }))} placeholder="0" />
+        <input aria-label="Errores" type="number" min="0" className={`w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy outline-none ${obs.errors > 2 ? 'text-red-600 font-black' : 'text-slate-800'}`} value={obs.errors} onChange={e => handleLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { errors: obs.errors }))} placeholder="0" />
       </td>
       <td className="p-2 border-r border-slate-100">
-        <AutoGrowTextarea
+        <AutoGrowTextarea aria-label="Comentarios"
           className={fieldClass(warnComments, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy outline-none font-medium resize-none", 'error')}
           value={obs.comments || ''} onChange={e => handleChange('comments', e.target.value)}
           onBlur={() => { touch('comments'); handleActionWithStatus(() => onSave(obs.id!, { comments: obs.comments })); }} placeholder="Comentarios..." rows={1} />
@@ -316,7 +316,7 @@ const ObservationRow: React.FC<{
         <FieldWarning show={warnComments} message="Campo requerido." variant="error" />
       </td>
       <td className="p-2 border-r border-slate-100">
-        <AutoGrowTextarea
+        <AutoGrowTextarea aria-label="Problema"
           className={fieldClass(warnProblem, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-red-400 outline-none font-medium italic text-red-900 resize-none", 'error')}
           value={obs.problem || ''} onChange={e => handleChange('problem', e.target.value)}
           onBlur={() => { touch('problem'); handleActionWithStatus(() => onSave(obs.id!, { problem: obs.problem })); }} placeholder="Problema..." rows={1} />
@@ -324,7 +324,7 @@ const ObservationRow: React.FC<{
         <FieldWarning show={warnProblem} message="Describe el problema." variant="error" />
       </td>
       <td className="p-2 text-center border-r border-slate-100">
-        <select className={`w-full p-2 border ${sStyle.border} rounded-lg text-[0.75rem] ${sStyle.bg} ${sStyle.text} font-black outline-none cursor-pointer shadow-sm`}
+        <select aria-label="Severidad" className={`w-full p-2 border ${sStyle.border} rounded-lg text-[0.75rem] ${sStyle.bg} ${sStyle.text} font-black outline-none cursor-pointer shadow-sm`}
           value={obs.severity}
           onChange={e => { const val = e.target.value as Severity; handleLocalChange(obs.id!, { severity: val }); handleActionWithStatus(() => onSave(obs.id!, { severity: val })); }}>
           <option value="Baja">Baja</option>
@@ -334,7 +334,7 @@ const ObservationRow: React.FC<{
         </select>
       </td>
       <td className="p-2 border-r border-slate-100">
-        <AutoGrowTextarea
+        <AutoGrowTextarea aria-label="Mejora propuesta"
           className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-green-400 outline-none font-medium text-green-900 resize-none"
           value={obs.proposal || ''} onChange={e => handleChange('proposal', e.target.value)}
           onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { proposal: obs.proposal }))} placeholder="Mejora..." rows={1} />
@@ -343,11 +343,11 @@ const ObservationRow: React.FC<{
       <td className="p-2 text-center">
         {confirmDelete ? (
           <div className="flex flex-col gap-1 items-center animate-in zoom-in-95 duration-200">
-            <button type="button" onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm"><Check size={14} strokeWidth={3} /></button>
-            <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm"><X size={14} strokeWidth={3} /></button>
+            <button type="button" onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm" aria-label="Confirmar eliminación"><Check size={14} strokeWidth={3} aria-hidden="true" /></button>
+            <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm" aria-label="Cancelar eliminación"><X size={14} strokeWidth={3} aria-hidden="true" /></button>
           </div>
         ) : (
-          <button type="button" className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" onClick={() => setConfirmDelete(true)}><Trash2 size={18} aria-hidden="true" /></button>
+          <button type="button" className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" onClick={() => setConfirmDelete(true)} aria-label="Eliminar observación"><Trash2 size={18} aria-hidden="true" /></button>
         )}
       </td>
     </tr>
@@ -387,7 +387,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
   return (
     <div className="animate-in fade-in duration-500">
       <header className="relative flex items-center justify-center bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px]">
-        <h2 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Bitácora de observaciones</h2>
+        <h1 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Bitácora de observaciones</h1>
         <div role="status" aria-live="polite" className="absolute right-4 md:right-6 flex items-center gap-2 text-sm font-bold opacity-90">
           {isSaving
             ? <span className="flex items-center gap-1.5 text-white animate-pulse"><RefreshCcw size={14} className="animate-spin" aria-hidden="true" /> Guardando…</span>
@@ -403,7 +403,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
               <div aria-hidden="true" className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6 shadow-inner"><ClipboardList size={40} className="text-amber-600" /></div>
               <h3 className="text-xl font-black text-slate-900 mb-2">¡Falta el nombre del producto!</h3>
               <p className="text-slate-500 font-medium max-w-[400px] mb-8 leading-relaxed">Para registrar observaciones, primero define un nombre al producto en la pestaña Plan.</p>
-              <button onClick={onGoToPlan} className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-xl px-8 py-3.5 text-base font-black cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/20 active:scale-[0.98]">Ir a definir Producto</button>
+              <button onClick={onGoToPlan} className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-xl px-8 py-3.5 text-base font-black cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/20 active:scale-[0.98]" aria-label="Volver al plan para definir el producto">Ir a definir Producto</button>
             </div>
           </section>
         ) : (
@@ -415,8 +415,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                     <span className="w-2 h-6 bg-navy rounded-full"></span> Observaciones
                   </h3>
                   <div className="relative">
-                    <button onClick={() => setShowSortMenu(!showSortMenu)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.7rem] font-black uppercase tracking-wider transition-all border ${sortMode !== 'default' ? 'bg-navy text-white border-navy shadow-md shadow-navy/20' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
-                      Severidad <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} />
+                    <button onClick={() => setShowSortMenu(!showSortMenu)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.7rem] font-black uppercase tracking-wider transition-all border ${sortMode !== 'default' ? 'bg-navy text-white border-navy shadow-md shadow-navy/20' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`} aria-label="Ordenar observaciones por severidad" aria-expanded={showSortMenu}>
+                      Severidad <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
                     </button>
                     {showSortMenu && (
                       <>
@@ -469,8 +469,8 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                             <div className="flex items-center gap-0.5">
                               <Tooltip text="Nivel de impacto del problema en la experiencia del usuario."><Info size={12} className="text-slate-400" /></Tooltip>
                               <div className="relative">
-                                <button type="button" onClick={() => setShowSortMenu(!showSortMenu)} className={`p-1 rounded-md transition-all hover:bg-slate-200 flex items-center justify-center ${sortMode !== 'default' ? 'text-navy bg-slate-100' : 'text-slate-400'}`}>
-                                  <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} />
+                                <button type="button" onClick={() => setShowSortMenu(!showSortMenu)} className={`p-1 rounded-md transition-all hover:bg-slate-200 flex items-center justify-center ${sortMode !== 'default' ? 'text-navy bg-slate-100' : 'text-slate-400'}`} aria-label="Ordenar observaciones por severidad" aria-expanded={showSortMenu}>
+                                  <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
                                 </button>
                                 {showSortMenu && (
                                   <>
@@ -487,7 +487,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           </div>
                         </th>
                         <th scope="col" className="p-4 text-left border-r border-slate-100">Mejora propuesta</th>
-                        <th scope="col" className="p-4 text-center w-[60px]"></th>
+                        <th scope="col" className="p-4 text-center w-[60px]" aria-label="Acciones de eliminación"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">

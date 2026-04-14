@@ -51,11 +51,11 @@ const TaskCard: React.FC<{
         {confirmDelete ? (
           <div className="flex gap-2 items-center animate-in zoom-in-95 duration-200">
             <span className="text-[0.65rem] text-red-300 font-black uppercase tracking-widest">¿Eliminar?</span>
-            <button type="button" onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }} className="inline-flex items-center justify-center w-7 h-7 bg-red-600 text-white border-none rounded-md cursor-pointer transition-all hover:bg-red-700" title="Confirmar"><Check size={14} strokeWidth={3} /></button>
-            <button type="button" onClick={() => setConfirmDelete(false)} className="inline-flex items-center justify-center w-7 h-7 bg-white/10 text-white border-none rounded-md cursor-pointer transition-all hover:bg-white/20" title="Cancelar"><X size={14} strokeWidth={3} /></button>
+            <button type="button" onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }} className="inline-flex items-center justify-center w-7 h-7 bg-red-600 text-white border-none rounded-md cursor-pointer transition-all hover:bg-red-700" aria-label={`Confirmar eliminación de ${task.task_index}`}><Check size={14} strokeWidth={3} aria-hidden="true" /></button>
+            <button type="button" onClick={() => setConfirmDelete(false)} className="inline-flex items-center justify-center w-7 h-7 bg-white/10 text-white border-none rounded-md cursor-pointer transition-all hover:bg-white/20" aria-label="Cancelar eliminación"><X size={14} strokeWidth={3} aria-hidden="true" /></button>
           </div>
         ) : (
-          <button type="button" className="bg-transparent border-none text-red-300 p-1 cursor-pointer transition-colors hover:text-red-500" onClick={() => setConfirmDelete(true)} aria-label={`Eliminar ${task.task_index}`}><Trash2 size={16} aria-hidden="true" /></button>
+          <button type="button" className="bg-transparent border-none text-red-300 p-1 cursor-pointer transition-colors hover:text-red-500" onClick={() => setConfirmDelete(true)} aria-label={`Eliminar ${task.task_index || 'tarea'}`}><Trash2 size={16} aria-hidden="true" /></button>
         )}
       </div>
       <div className="p-4 flex flex-col gap-4">
@@ -154,11 +154,11 @@ const TaskRow: React.FC<{
       <td className="p-3 text-center">
         {confirmDelete ? (
           <div className="flex flex-col gap-1 items-center animate-in zoom-in-95 duration-200">
-            <button type="button" onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm" title="Confirmar eliminación"><Check size={14} strokeWidth={3} /></button>
-            <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm" title="Cancelar"><X size={14} strokeWidth={3} /></button>
+            <button type="button" onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm" aria-label={`Confirmar eliminación de ${task.task_index || 'tarea'}`}><Check size={14} strokeWidth={3} aria-hidden="true" /></button>
+            <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm" aria-label="Cancelar eliminación"><X size={14} strokeWidth={3} aria-hidden="true" /></button>
           </div>
         ) : (
-          <button className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" onClick={() => setConfirmDelete(true)} type="button" aria-label={`Eliminar ${task.task_index}`}><Trash2 size={18} aria-hidden="true" /></button>
+          <button className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" onClick={() => setConfirmDelete(true)} type="button" aria-label={`Eliminar ${task.task_index || 'tarea'}`}><Trash2 size={18} aria-hidden="true" /></button>
         )}
       </td>
     </tr>
@@ -222,9 +222,9 @@ export const PlanView: React.FC<PlanViewProps> = ({
   const minDate = twoWeeksAgo.toISOString().split('T')[0];
 
   return (
-    <div id="plan-panel" className="animate-in fade-in duration-500">
+    <main id="plan-panel" className="animate-in fade-in duration-500">
       <header className="relative flex items-center justify-center bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px]">
-        <h2 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Plan de Pruebas de Usabilidad</h2>
+        <h1 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Plan de Pruebas de Usabilidad</h1>
         <div className="absolute right-4 md:right-6 flex items-center gap-2 text-sm font-bold opacity-90 text-right">
           {isSaving ? (
             <span className="flex items-center gap-1.5 text-white animate-pulse"><RefreshCcw size={14} className="animate-spin" /> Guardando...</span>
@@ -348,7 +348,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
                   <TaskCard key={task.id} task={task} handleTaskChange={handleTaskChange} onSaveTask={onSaveTask} onDeleteTask={onDeleteTask} />
                 ))
               )}
-              <button type="button" className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl shadow-emerald-200 mt-2 active:scale-[0.97] w-full ring-2 ring-emerald-300 ring-offset-1" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty}>
+              <button type="button" className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl shadow-emerald-200 mt-2 active:scale-[0.97] w-full ring-2 ring-emerald-300 ring-offset-1" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty} aria-label="Añadir nueva tarea al plan">
                 <Plus size={20} aria-hidden="true" /> Añadir Tarea
               </button>
               {isProductEmpty && <span className="text-[0.8rem] text-slate-500 italic text-center mt-1">* Debes definir un nombre de producto para añadir tareas.</span>}
@@ -367,7 +367,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
                       <th scope="col" className="p-4 text-left border-r border-white/10">Resultado esperado</th>
                       <th scope="col" className="p-4 text-left border-r border-white/10">Métrica principal</th>
                       <th scope="col" className="p-4 text-left border-r border-white/10">Criterio de éxito</th>
-                      <th scope="col" className="p-4 text-center w-[80px]">Acción</th>
+                      <th scope="col" className="p-4 text-center w-[80px]" aria-label="Acciones de eliminación"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -382,7 +382,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 </table>
               </div>
               <div className="p-4 px-6 bg-slate-50 border-t border-slate-200 flex items-center gap-4">
-                <button type="button" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider cursor-pointer transition-all disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-emerald-200 active:scale-[0.97] ring-2 ring-emerald-300 ring-offset-1" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty}>
+                <button type="button" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider cursor-pointer transition-all disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-emerald-200 active:scale-[0.97] ring-2 ring-emerald-300 ring-offset-1" onClick={onAddTask} disabled={!localPlan.id || isProductEmpty} aria-label="Añadir nueva tarea al plan">
                   <Plus size={20} aria-hidden="true" /> Añadir Tarea
                 </button>
                 {isProductEmpty && <span className="text-[0.85rem] text-slate-500 font-bold italic">* Debes definir un nombre de producto para añadir tareas.</span>}
@@ -452,6 +452,6 @@ export const PlanView: React.FC<PlanViewProps> = ({
           </div>
         </section>
       </div>
-    </div>
+    </main>
   );
 };
