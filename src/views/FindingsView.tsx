@@ -346,9 +346,10 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
 
   return (
     <main className="animate-in fade-in duration-500">
-      <header className="relative flex items-center justify-center bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px]">
-        <h1 className="text-xl md:text-2xl font-bold m-0 text-center px-12">Síntesis de hallazgos y plan de mejora</h1>
-        <div role="status" aria-live="polite" className="absolute right-4 md:right-6 flex items-center gap-2 text-sm font-bold opacity-90">
+      <header className="flex items-center justify-between bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px] gap-4">
+        <div className="flex-1" />
+        <h1 className="text-xl md:text-2xl font-bold m-0 text-center flex-1">Síntesis de hallazgos y plan de mejora</h1>
+        <div role="status" aria-live="polite" className="flex-1 flex justify-end flex items-center gap-2 text-sm font-bold opacity-90">
           {isSaving
             ? <span className="flex items-center gap-1.5 text-white animate-pulse"><RefreshCcw size={14} className="animate-spin" aria-hidden="true" /> Guardando…</span>
             : <span className="flex items-center gap-1.5 text-emerald-400"><CheckCircle size={14} aria-hidden="true" /> Cambios guardados</span>
