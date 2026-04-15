@@ -18,7 +18,7 @@ const LoginView: React.FC = () => {
     const { error } = await signIn(email, password);
     
     if (error) {
-      setError('Las credenciales proporcionadas son incorrectas o la cuenta no ha sido activada.');
+      setError('Las credenciales proporcionadas son incorrectas. Por favor, verifique su correo y contraseña.');
       setLoading(false);
     } else {
       navigate('/');
@@ -26,8 +26,8 @@ const LoginView: React.FC = () => {
   };
 
   return (
-    <main className="flex justify-center items-center min-h-screen p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-sky-100 -mx-4 md:-mx-8 -mt-0">
-      <div className="bg-white p-6 sm:p-10 rounded-2xl shadow-xl shadow-navy/5 w-full max-w-[440px] border border-navy/5 animate-in zoom-in-95 duration-300 mx-4">
+    <main className="flex justify-center items-center min-h-screen p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-sky-100">
+      <div className="bg-white p-6 sm:p-10 rounded-2xl shadow-xl shadow-navy/5 w-full max-w-[440px] border border-navy/5 animate-in zoom-in-95 duration-300">
         <h1 className="mt-0 mb-2 text-center text-navy font-black text-2xl uppercase tracking-tight">Inicio de Sesión</h1>
         <p className="text-center text-slate-500 text-sm mb-8 font-medium italic">Bienvenido ingrese sus datos.</p>
         <form onSubmit={handleLogin} className="space-y-6">

@@ -274,7 +274,11 @@ const PlanDetailContainer: React.FC<{
 const App: React.FC = () => {
   const controller = useUsabilityApp();
   const navigate = useNavigate();
+  const location = useLocation();
   const { loading, allPlans, allObservations, allFindings, handleDeletePlan, handleCreateNewPlan, hasUnsavedChanges } = controller;
+
+  const hideFooterPaths = ['/login', '/register'];
+  const shouldHideFooter = hideFooterPaths.includes(location.pathname);
 
   // Advertencia nativa para cerrar pestaña
   useEffect(() => {
@@ -298,7 +302,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="main-container">
+    <div className={shouldHideFooter ? "min-h-screen bg-white" : "main-container"}>
       <div>
         <Routes>
           {/* Rutas Públicas */}
@@ -341,9 +345,11 @@ const App: React.FC = () => {
         </Routes>
       </div>
 
-      <footer className="mt-12 py-8 border-t border-slate-200 text-center text-[0.85rem] text-slate-500 font-medium">
-        Grupo 3: Mateo Auz, Kerly Chicaiza, Bryan Quitto, Pedro Supe
-      </footer>
+      {!shouldHideFooter && (
+        <footer className="mt-12 py-8 border-t border-slate-200 text-center text-[0.85rem] text-slate-500 font-medium">
+          Grupo 3: Mateo Auz, Kerly Chicaiza, Bryan Quitto, Pedro Supe
+        </footer>
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../controllers/useAuth';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FieldWarning } from '../components/FieldWarning';
 
 const isEmailValid = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -15,6 +15,8 @@ const RegisterView: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const { signUp } = useAuth();
+  const navigate = useNavigate();
+
   const touch = (f: string) => setTouched(prev => ({ ...prev, [f]: true }));
 
   const warnFullName        = touched.fullName       && (!fullName || fullName.trim() === '');
@@ -35,17 +37,23 @@ const RegisterView: React.FC = () => {
     if (password !== confirmPassword) return;
 
     setLoading(true);
-    const { error } = await signUp(email, password, fullName);
+    const { data, error } = await signUp(email, password, fullName);
+    
     if (error) {
       setError(error.message);
     } else {
-      setMessage('El proceso de registro se ha iniciado con éxito. Se requiere la revisión del correo electrónico para proceder con la activación de la cuenta.');
+      if (data?.session) {
+        setMessage('Cuenta creada con éxito. Redirigiendo al sistema...');
+        setTimeout(() => navigate('/'), 1500);
+      } else {
+        setMessage('El proceso de registro se ha iniciado con éxito. Por favor, verifique su correo electrónico para activar la cuenta.');
+      }
     }
     setLoading(false);
   };
 
   return (
-    <main className="flex justify-center items-center min-h-screen p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-sky-100 -mx-4 md:-mx-8">
+    <main className="flex justify-center items-center min-h-screen p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-sky-100">
       <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl shadow-navy/5 w-full max-w-[450px] border border-navy/5 animate-in zoom-in-95 duration-300">
         <h1 className="mt-0 mb-2 text-center text-navy font-black text-2xl uppercase tracking-tight">Crear Cuenta</h1>
         <p className="text-center text-slate-500 text-sm mb-8 font-medium italic">Se solicita el ingreso de los datos requeridos para completar el registro.</p>
