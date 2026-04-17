@@ -524,11 +524,11 @@ const ObservationRow: React.FC<{
     setDismissedSugg(false);
   };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const save = (field: keyof Observation) => (value: string) => {
+  /*const save = (field: keyof Observation) => (value: string) => {
     touch(field as string);
     handleActionWithStatus(() => onSave(obs.id!, { [field]: value } as Partial<Observation>));
   };
-
+  */
   return (
     <tr
       className="hover:bg-slate-50/60 transition-colors border-b border-slate-100 last:border-0"
@@ -944,7 +944,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           </Tooltip>
                         </th>
                         <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[220px]">
-                          <Tooltip text="Problema de usabilidad detectado. Obligatorio si Éxito = No. Clic para editar.">
+                          <Tooltip text="Problema de usabilidad detectado. Obligatorio si el éxito es No. Clic para editar.">
                             <span className="flex items-center gap-1">
                               Problema
                               <Info size={11} className="text-slate-400" aria-hidden="true" />
