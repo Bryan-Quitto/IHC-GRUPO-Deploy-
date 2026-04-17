@@ -1,10 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
+// src/views/ObservationsView.tsx
+// Grupo 3 – Módulo de Observación | IHC Usability Test Dashboard
+// Accesibilidad: WCAG 2.1 AA · WAVE · Lighthouse >= 90
+
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Observation, SuccessStatus, Severity } from '../models/types';
-import { Trash2, Plus, CheckCircle, RefreshCcw, ClipboardList, Check, X, ChevronDown, Info } from 'lucide-react';
+import {
+  Trash2, Plus, CheckCircle, RefreshCcw, ClipboardList,
+  Check, X, ChevronDown, Info, Pencil,
+} from 'lucide-react';
 import AutoGrowTextarea from '../components/AutoGrowTextarea';
 import { FieldWarning, CharCounter, fieldClass } from '../components/FieldWarning';
 import { MAX_CHARS, clamp } from '../components/validation';
+import {
+  suggestSeverity,
+  PROBLEM_SUGGESTIONS,
+  PROPOSAL_SUGGESTIONS,
+} from '../utils/observationsAnalysis';
+import { SeveritySuggestion } from '../components/SeveritySuggestion';
+import { SuggestionsInput }   from '../components/SuggestionsInput';
 
 interface ObservationsViewProps {
   data: Observation[];
@@ -18,19 +32,30 @@ interface ObservationsViewProps {
   tasks?: { task_index: string; scenario: string }[];
 }
 
+// ── Opciones de perfil educativo ──────────────────────────────────────────────
+const PROFILE_OPTIONS = [
+  'Primaria/Básica',
+  'Bachiller',
+  'Profesional',
+  'Especialista',
+  'Adulto Mayor',
+] as const;
+
 const severityStyles: Record<string, { bg: string; text: string; border: string }> = {
-  Baja:    { bg: 'bg-green-50',  text: 'text-green-900', border: 'border-green-200' },
-  Media:   { bg: 'bg-amber-50',  text: 'text-amber-900', border: 'border-amber-200' },
-  Alta:    { bg: 'bg-orange-50', text: 'text-orange-900', border: 'border-orange-200' },
-  Crítica: { bg: 'bg-red-50',    text: 'text-red-900',    border: 'border-red-200' },
+  Baja:    { bg: 'bg-green-50',  text: 'text-green-800',  border: 'border-green-300' },
+  Media:   { bg: 'bg-amber-50',  text: 'text-amber-800',  border: 'border-amber-300' },
+  Alta:    { bg: 'bg-orange-50', text: 'text-orange-800', border: 'border-orange-300' },
+  'Crítica':{ bg: 'bg-red-50',   text: 'text-red-800',    border: 'border-red-300' },
 };
 
-const SEVERITY_WEIGHTS: Record<Severity, number> = { 'Crítica': 4, 'Alta': 3, 'Media': 2, 'Baja': 1 };
+const SEVERITY_WEIGHTS: Record<Severity, number> = {
+  'Crítica': 4, Alta: 3, Media: 2, Baja: 1,
+};
 
 const successStyles: Record<string, { bg: string; text: string; border: string }> = {
-  'Sí':        { bg: 'bg-green-50',  text: 'text-green-900', border: 'border-green-200' },
-  'No':        { bg: 'bg-red-50',    text: 'text-red-900',    border: 'border-red-200' },
-  'Con ayuda': { bg: 'bg-amber-50',  text: 'text-amber-900', border: 'border-amber-200' },
+  'Sí':        { bg: 'bg-green-50',  text: 'text-green-800',  border: 'border-green-300' },
+  'No':        { bg: 'bg-red-50',    text: 'text-red-800',    border: 'border-red-300' },
+  'Con ayuda': { bg: 'bg-amber-50',  text: 'text-amber-800',  border: 'border-amber-300' },
 };
 
 function useWindowWidth() {
@@ -38,7 +63,6 @@ function useWindowWidth() {
   useEffect(() => {
     const handler = () => setWidth(window.innerWidth);
     window.addEventListener('resize', handler);
-    handler();
     return () => window.removeEventListener('resize', handler);
   }, []);
   return width;
@@ -46,179 +70,408 @@ function useWindowWidth() {
 
 const Tooltip: React.FC<{ text: string; children: React.ReactNode }> = ({ text, children }) => {
   const [visible, setVisible] = useState(false);
-  const [coords, setCoords] = useState({ left: 0, top: 0 });
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords]   = useState({ left: 0, top: 0 });
+  const triggerRef            = useRef<HTMLDivElement>(null);
+  const tipId                 = useRef(`tip-${Math.random().toString(36).slice(2)}`);
+
   useEffect(() => {
     if (visible && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      setCoords({ left: rect.left + rect.width / 2, top: rect.top + window.scrollY - 8 });
+      const r = triggerRef.current.getBoundingClientRect();
+      setCoords({ left: r.left + r.width / 2, top: r.top + window.scrollY - 8 });
     }
   }, [visible]);
+
   return (
-    <div ref={triggerRef} onMouseEnter={() => setVisible(true)} onMouseLeave={() => setVisible(false)} className="relative inline-flex items-center group cursor-help">
+    <div
+      ref={triggerRef}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+      onFocus={() => setVisible(true)}
+      onBlur={() => setVisible(false)}
+      className="relative inline-flex items-center cursor-help"
+      aria-describedby={visible ? tipId.current : undefined}
+    >
       {children}
       {visible && createPortal(
-        <div className="absolute bg-slate-800 text-white px-3 py-2 rounded-lg text-[0.7rem] leading-snug w-[180px] z-[99999] shadow-2xl text-center pointer-events-none font-medium normal-case animate-in fade-in zoom-in-95 duration-200" style={{ left: coords.left, top: coords.top, transform: 'translate(-50%, -100%)' }}>
+        <div
+          id={tipId.current}
+          role="tooltip"
+          className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-[0.72rem] leading-snug w-[210px] z-[99999] shadow-xl text-center pointer-events-none font-medium"
+          style={{ left: coords.left, top: coords.top, transform: 'translate(-50%,-100%)' }}
+        >
           {text}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-transparent border-t-4 border-t-slate-800" />
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-l-4 border-r-4 border-transparent border-t-4 border-t-slate-900" aria-hidden="true" />
         </div>,
-        document.body
+        document.body,
       )}
     </div>
   );
 };
 
-/* ── Tarjeta individual para móvil ── */
+interface ReadEditCellProps {
+  value: string;
+  placeholder?: string;
+  rows?: number;
+  colorClass?: string;
+  focusBorderClass?: string;
+  onCommit: (val: string) => void;
+  onBlurSave: (val: string) => void;
+  maxLength?: number;
+  className?: string;
+  isTextarea?: boolean;
+  ariaLabel?: string;
+}
+
+const ReadEditCell: React.FC<ReadEditCellProps> = ({
+  value, placeholder = '', rows = 2,
+  colorClass = 'text-slate-800',
+  focusBorderClass = 'focus-visible:border-navy focus-visible:ring-navy/20',
+  onCommit, onBlurSave,
+  maxLength = MAX_CHARS, className = '',
+  isTextarea = true, ariaLabel,
+}) => {
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement & HTMLInputElement>(null);
+
+  const startEdit = () => { setEditing(true); setTimeout(() => inputRef.current?.focus(), 0); };
+  const handleBlur = () => { setEditing(false); onBlurSave(inputRef.current?.value ?? value); };
+
+  const inputCls = [
+    'w-full px-2.5 py-2 border border-navy/30 bg-white rounded-lg text-[0.82rem] font-medium',
+    'resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:border-2',
+    focusBorderClass,
+  ].join(' ');
+
+  return (
+    <div className={`group relative ${className}`}>
+      {!editing ? (
+        <button
+          type="button"
+          onClick={startEdit}
+          aria-label={ariaLabel ? `Editar ${ariaLabel}` : `Editar: ${placeholder}`}
+          className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-100/70
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40
+                     focus-visible:bg-slate-50 flex items-start gap-1.5 transition-colors"
+        >
+          <span className={`flex-1 text-[0.82rem] leading-relaxed font-medium break-words whitespace-pre-wrap min-h-[1.4rem] ${value ? colorClass : 'text-slate-400 italic'}`}>
+            {value || placeholder}
+          </span>
+          <Pencil size={12} className="mt-0.5 flex-shrink-0 text-slate-300 group-hover:text-slate-500 transition-colors" aria-hidden="true" />
+        </button>
+      ) : isTextarea ? (
+        <AutoGrowTextarea
+          ref={inputRef as React.Ref<HTMLTextAreaElement>}
+          className={inputCls}
+          value={value}
+          onChange={e => onCommit(e.target.value)}
+          onBlur={handleBlur}
+          rows={rows}
+          maxLength={maxLength}
+          placeholder={placeholder}
+          aria-label={ariaLabel ?? placeholder}
+        />
+      ) : (
+        <input
+          ref={inputRef as React.Ref<HTMLInputElement>}
+          type="text"
+          className={inputCls}
+          value={value}
+          onChange={e => onCommit(e.target.value)}
+          onBlur={handleBlur}
+          maxLength={maxLength}
+          placeholder={placeholder}
+          aria-label={ariaLabel ?? placeholder}
+        />
+      )}
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TARJETA MÓVIL
+// ══════════════════════════════════════════════════════════════════════════════
 const ObservationCard: React.FC<{
-  obs: Observation;
-  idx: number;
-  onLocalChange: (id: string, updates: Partial<Observation>) => void;
-  onSave: (id: string, updates: Partial<Observation>) => void;
+  obs: Observation; idx: number;
+  onLocalChange: (id: string, u: Partial<Observation>) => void;
+  onSave: (id: string, u: Partial<Observation>) => void;
   onDelete: (id: string) => void;
   onAction: (fn: () => void) => void;
   tasks?: { task_index: string; scenario: string }[];
 }> = ({ obs, idx, onLocalChange, onSave, onDelete, onAction, tasks = [] }) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const touch = (f: string) => setTouched(prev => ({ ...prev, [f]: true }));
-  const sStyle  = severityStyles[obs.severity]     || severityStyles['Baja'];
-  const okStyle = successStyles[obs.success_level] || successStyles['Sí'];
+  const [touched, setTouched]             = useState<Record<string, boolean>>({});
+  const [dismissedSugg, setDismissedSugg] = useState(false);
+  const touch = (f: string) => setTouched(p => ({ ...p, [f]: true }));
 
-  const warnParticipant = touched.participant && (!obs.participant || obs.participant.trim() === '');
-  const warnTaskRef     = touched.task_ref && (!obs.task_ref || obs.task_ref.trim() === '');
-  const warnComments    = touched.comments && (!obs.comments || obs.comments.trim() === '');
-  const warnProblem     = touched.problem && (!obs.problem || obs.problem.trim() === '');
+  const sStyle  = severityStyles[obs.severity]     ?? severityStyles['Baja'];
+  const okStyle = successStyles[obs.success_level] ?? successStyles['Sí'];
+
+  const isProblemRequired = obs.success_level === 'No';
+  const warnParticipant   = touched.participant && !obs.participant?.trim();
+  const warnTaskRef       = touched.task_ref    && !obs.task_ref?.trim();
+  const warnComments      = touched.comments    && !obs.comments?.trim();
+  const warnProblem       = touched.problem     && isProblemRequired && !obs.problem?.trim();
+
+  const suggestedSev   = suggestSeverity(obs);
+  const showSuggestion = !dismissedSugg && suggestedSev !== obs.severity && (
+    obs.success_level === 'No' || (obs.errors || 0) >= 2 || (obs.comments || '').length > 10
+  );
+
+  const handleAcceptSeverity = () => {
+    onLocalChange(obs.id!, { severity: suggestedSev });
+    onAction(() => onSave(obs.id!, { severity: suggestedSev }));
+    setDismissedSugg(true);
+  };
 
   const handleChange = (field: keyof Observation, value: string) => {
-    onLocalChange(obs.id!, { [field]: typeof value === 'string' ? clamp(value) : value } as Partial<Observation>);
+    onLocalChange(obs.id!, { [field]: clamp(value) } as Partial<Observation>);
+    setDismissedSugg(false);
   };
 
   return (
-    <article className={`bg-white border-2 ${sStyle.border} rounded-2xl mb-4 overflow-hidden shadow-sm animate-in slide-in-from-left-2 duration-300`} aria-label={`Observación ${idx + 1}`}>
+    <article
+      className={`bg-white border-2 ${sStyle.border} rounded-2xl mb-4 overflow-hidden shadow-sm`}
+      aria-label={`Observación ${idx + 1}${obs.participant ? `, participante ${obs.participant}` : ''}`}
+    >
       <div className={`${sStyle.bg} p-4 flex justify-between items-center flex-wrap gap-2`}>
-        <span className={`font-black ${sStyle.text} text-[0.85rem] uppercase tracking-tighter`}>Observación #{idx + 1}</span>
-        <div className="flex gap-2 items-center flex-wrap">
-          <span className={`px-2.5 py-0.5 rounded-full ${okStyle.bg} ${okStyle.text} font-bold text-[0.7rem] border ${okStyle.border}`}>{obs.success_level || 'Sí'}</span>
-          <span className={`px-2.5 py-0.5 rounded-md ${sStyle.bg} ${sStyle.text} font-bold text-[0.7rem] border ${sStyle.border}`}>{obs.severity || 'Baja'}</span>
+        <span className={`font-black ${sStyle.text} text-[0.85rem] uppercase tracking-tight`}>
+          Observación #{idx + 1}
+        </span>
+        <div className="flex gap-2 items-center flex-wrap" aria-label="Estado actual de la observación">
+          {/* ── Éxito badge con color dinámico ─────────────────────────────── */}
+          <span className={`px-2.5 py-0.5 rounded-full ${okStyle.bg} ${okStyle.text} font-bold text-[0.72rem] border ${okStyle.border}`}>
+            {obs.success_level || 'Sí'}
+          </span>
+          {/* ── Severidad badge con color dinámico ─────────────────────────── */}
+          <span className={`px-2.5 py-0.5 rounded-md ${sStyle.bg} ${sStyle.text} font-bold text-[0.72rem] border ${sStyle.border}`}>
+            {obs.severity || 'Baja'}
+          </span>
         </div>
       </div>
 
       <div className="p-4 flex flex-col gap-4">
-        <div className="grid grid-cols-[1fr_1fr_80px] gap-3">
+        {/* ── Fila superior: Participante / Perfil / Tarea ─────────────────── */}
+        <div className="grid grid-cols-[1fr_1fr_90px] gap-3">
+          {/* Participante */}
           <div className="flex flex-col gap-1">
-            <label htmlFor={`obs-participant-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Participante *</label>
-            <input id={`obs-participant-${obs.id}`} type="text" maxLength={MAX_CHARS}
-              className={fieldClass(warnParticipant, "w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all", 'error')}
-              value={obs.participant || ''} onChange={e => handleChange('participant', e.target.value)}
-              onBlur={e => { touch('participant'); onAction(() => onSave(obs.id!, { participant: e.target.value })); }} placeholder="P1" />
+            <label htmlFor={`m-participant-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">
+              Participante&nbsp;<span aria-hidden="true">*</span><span className="sr-only">(requerido)</span>
+            </label>
+            <input id={`m-participant-${obs.id}`} type="text" maxLength={MAX_CHARS}
+              aria-required="true" aria-invalid={warnParticipant || undefined}
+              className={fieldClass(warnParticipant, 'w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all', 'error')}
+              value={obs.participant || ''}
+              onChange={e => handleChange('participant', e.target.value)}
+              onBlur={e => { touch('participant'); onAction(() => onSave(obs.id!, { participant: e.target.value })); }}
+              placeholder="P1"
+            />
             <CharCounter value={obs.participant} />
             <FieldWarning show={warnParticipant} message="Ingrese el nombre o código del participante." variant="error" />
           </div>
+
+          {/* ── PERFIL: combobox con opciones predefinidas ────────────────── */}
           <div className="flex flex-col gap-1">
-            <label htmlFor={`obs-profile-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Perfil</label>
-            <input id={`obs-profile-${obs.id}`} type="text" maxLength={MAX_CHARS}
-              className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all"
-              value={obs.profile || ''} onChange={e => handleChange('profile', e.target.value)}
-              onBlur={e => onAction(() => onSave(obs.id!, { profile: e.target.value }))} placeholder="Estudiante" />
-            <CharCounter value={obs.profile} />
+            <label htmlFor={`m-profile-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">
+              Perfil
+            </label>
+            <select
+              id={`m-profile-${obs.id}`}
+              className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all font-medium"
+              value={obs.profile || ''}
+              onChange={e => {
+                onLocalChange(obs.id!, { profile: e.target.value });
+                onAction(() => onSave(obs.id!, { profile: e.target.value }));
+              }}
+            >
+              <option value="">— Perfil —</option>
+              {PROFILE_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
           </div>
+
+          {/* Tarea */}
           <div className="flex flex-col gap-1">
-            <label htmlFor={`obs-task-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Tarea *</label>
+            <label htmlFor={`m-task-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">
+              Tarea&nbsp;<span aria-hidden="true">*</span><span className="sr-only">(requerido)</span>
+            </label>
             {tasks.length > 0 ? (
-              <select id={`obs-task-${obs.id}`}
-                className={fieldClass(warnTaskRef, "w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy outline-none transition-all font-medium", 'error')}
+              <select id={`m-task-${obs.id}`} aria-required="true" aria-invalid={warnTaskRef || undefined}
+                className={fieldClass(warnTaskRef, 'w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all font-medium', 'error')}
                 value={obs.task_ref || ''}
                 onChange={e => { touch('task_ref'); onLocalChange(obs.id!, { task_ref: e.target.value }); onAction(() => onSave(obs.id!, { task_ref: e.target.value })); }}
               >
                 <option value="">— Tarea —</option>
                 {tasks.map(t => (
                   <option key={t.task_index} value={t.task_index}>
-                    {t.task_index} – {t.scenario ? t.scenario.slice(0, 30) + (t.scenario.length > 30 ? '…' : '') : '(sin nombre)'}
+                    {t.task_index} – {t.scenario || '(sin nombre)'}
                   </option>
                 ))}
               </select>
             ) : (
-              <input id={`obs-task-${obs.id}`} type="text" maxLength={20}
-                className={fieldClass(warnTaskRef, "w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all", 'error')}
-                value={obs.task_ref || ''} onChange={e => onLocalChange(obs.id!, { task_ref: e.target.value })}
-                onBlur={e => { touch('task_ref'); onAction(() => onSave(obs.id!, { task_ref: e.target.value })); }} placeholder="T1" />
+              <input id={`m-task-${obs.id}`} type="text" maxLength={20} aria-required="true"
+                className={fieldClass(warnTaskRef, 'w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all', 'error')}
+                value={obs.task_ref || ''}
+                onChange={e => onLocalChange(obs.id!, { task_ref: e.target.value })}
+                onBlur={e => { touch('task_ref'); onAction(() => onSave(obs.id!, { task_ref: e.target.value })); }}
+                placeholder="T1"
+              />
             )}
             <FieldWarning show={warnTaskRef} message="Seleccione la tarea asociada." variant="error" />
           </div>
         </div>
 
+        {/* ── Éxito / Tiempo / Errores ─────────────────────────────────────── */}
         <div className="grid grid-cols-3 gap-3">
+          {/* Éxito — select con color dinámico (igual que desktop) */}
           <div className="flex flex-col gap-1">
-            <label htmlFor={`obs-success-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Éxito</label>
-            <select id={`obs-success-${obs.id}`} className={`w-full p-2 border ${okStyle.border} rounded-lg text-sm ${okStyle.bg} ${okStyle.text} font-bold outline-none cursor-pointer`}
+            <label htmlFor={`m-success-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">Éxito</label>
+            <select id={`m-success-${obs.id}`}
+              className={`w-full p-2 border ${okStyle.border} rounded-lg text-sm ${okStyle.bg} ${okStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer`}
               value={obs.success_level}
-              onChange={e => { const val = e.target.value as SuccessStatus; onLocalChange(obs.id!, { success_level: val }); onAction(() => onSave(obs.id!, { success_level: val })); }}>
-              <option value="Sí">Sí</option>
-              <option value="No">No</option>
-              <option value="Con ayuda">Con ayuda</option>
+              onChange={e => {
+                const val = e.target.value as SuccessStatus;
+                onLocalChange(obs.id!, { success_level: val });
+                onAction(() => onSave(obs.id!, { success_level: val }));
+                setDismissedSugg(false);
+              }}
+            >
+              <option value="Sí">✅ Sí</option>
+              <option value="No">❌ No</option>
+              <option value="Con ayuda">🤝 Con ayuda</option>
             </select>
           </div>
+
+          {/* Tiempo */}
           <div className="flex flex-col gap-1">
-            <label htmlFor={`obs-time-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Tiempo (s)</label>
-            <input id={`obs-time-${obs.id}`} type="number" min="0" className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-mono font-bold" value={obs.time_seconds} onChange={e => onLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={e => onAction(() => onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 }))} placeholder="0" />
+            <label htmlFor={`m-time-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">Tiempo (s)</label>
+            <input id={`m-time-${obs.id}`} type="number" min="0"
+              className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all font-mono font-bold"
+              value={obs.time_seconds}
+              onChange={e => onLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })}
+              onBlur={e => onAction(() => onSave(obs.id!, { time_seconds: parseInt(e.target.value) || 0 }))}
+              placeholder="0"
+            />
           </div>
+
+          {/* Errores — alerta visual igual que desktop */}
           <div className="flex flex-col gap-1">
-            <label htmlFor={`obs-errors-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Errores</label>
-            <input id={`obs-errors-${obs.id}`} type="number" min="0" className={`w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-mono font-bold ${obs.errors > 2 ? 'text-red-600' : 'text-slate-800'}`} value={obs.errors} onChange={e => onLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={e => onAction(() => onSave(obs.id!, { errors: parseInt(e.target.value) || 0 }))} placeholder="0" />
+            <label htmlFor={`m-errors-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">Errores</label>
+            <input id={`m-errors-${obs.id}`} type="number" min="0"
+              aria-describedby={obs.errors > 2 ? `m-err-warn-${obs.id}` : undefined}
+              className={`w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all font-mono font-bold ${obs.errors > 2 ? 'text-red-700' : 'text-slate-800'}`}
+              value={obs.errors}
+              onChange={e => { onLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 }); setDismissedSugg(false); }}
+              onBlur={e => onAction(() => onSave(obs.id!, { errors: parseInt(e.target.value) || 0 }))}
+              placeholder="0"
+            />
+            {obs.errors > 2 && (
+              <span id={`m-err-warn-${obs.id}`} role="alert" className="text-[0.68rem] text-red-700 font-bold">
+                Alto
+              </span>
+            )}
           </div>
         </div>
 
+        {/* Comentarios */}
         <div className="flex flex-col gap-1">
-          <label htmlFor={`obs-comments-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest">Comentarios clave *</label>
-          <AutoGrowTextarea id={`obs-comments-${obs.id}`}
-            className={fieldClass(warnComments, "w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all font-medium", 'error')}
-            value={obs.comments || ''} onChange={e => handleChange('comments', e.target.value)}
-            onBlur={e => { touch('comments'); onAction(() => onSave(obs.id!, { comments: e.target.value })); }} placeholder="Ej. Dudó..." rows={2} />
+          <label htmlFor={`m-comments-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">
+            Comentarios clave&nbsp;<span aria-hidden="true">*</span><span className="sr-only">(requerido)</span>
+          </label>
+          <AutoGrowTextarea id={`m-comments-${obs.id}`}
+            aria-required="true" aria-invalid={warnComments || undefined}
+            className={fieldClass(warnComments, 'w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all font-medium', 'error')}
+            value={obs.comments || ''}
+            onChange={e => { handleChange('comments', e.target.value); }}
+            onBlur={e => { touch('comments'); onAction(() => onSave(obs.id!, { comments: e.target.value })); }}
+            placeholder="Ej. Dudó al pulsar el botón..." rows={2}
+          />
           <CharCounter value={obs.comments} />
-          <FieldWarning show={warnComments} message="Ingrese al menos un comentario clave de la observación." variant="error" />
+          <FieldWarning show={warnComments} message="Ingrese al menos un comentario clave." variant="error" />
         </div>
 
+        {/* Problema */}
         <div className="flex flex-col gap-1">
-          <label htmlFor={`obs-problem-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest text-red-800">Problema detectado *</label>
-          <AutoGrowTextarea id={`obs-problem-${obs.id}`}
-            className={fieldClass(warnProblem, "w-full p-2.5 border border-red-100 rounded-lg text-sm bg-red-50/30 focus:bg-white focus:border-red-400 focus:ring-4 focus:ring-red-50 outline-none transition-all font-medium italic", 'error')}
-            value={obs.problem || ''} onChange={e => handleChange('problem', e.target.value)}
-            onBlur={e => { touch('problem'); onAction(() => onSave(obs.id!, { problem: e.target.value })); }} placeholder="Ej. Nombre..." rows={2} />
+          <label htmlFor={`m-problem-${obs.id}`} className="font-black text-[0.7rem] text-red-700 uppercase tracking-widest">
+            Problema detectado
+            {isProblemRequired && (
+              <><span aria-hidden="true">&nbsp;*</span><span className="sr-only">(requerido cuando el éxito es No)</span></>
+            )}
+          </label>
+          <SuggestionsInput id={`m-problem-${obs.id}`}
+            value={obs.problem || ''} suggestions={PROBLEM_SUGGESTIONS} maxLength={MAX_CHARS}
+            className={fieldClass(warnProblem, 'w-full p-2.5 border border-red-200 rounded-lg text-sm bg-red-50/40 focus-visible:bg-white focus-visible:border-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-100 transition-all font-medium', 'error')}
+            placeholder="Ej. El usuario no encontró el botón principal..." rows={2}
+            aria-label="Problema detectado"
+            onChange={val => { onLocalChange(obs.id!, { problem: val }); setDismissedSugg(false); }}
+            onBlur={val => { touch('problem'); onAction(() => onSave(obs.id!, { problem: val })); }}
+          />
           <CharCounter value={obs.problem} />
-          <FieldWarning show={warnProblem} message="Describe el problema detectado durante la observación." variant="error" />
+          <FieldWarning show={warnProblem} message="Describe el problema (obligatorio cuando la tarea falló)." variant="error" />
         </div>
 
-        <div className="grid grid-cols-1 gap-4">
-          <div className="flex flex-col gap-1">
-            <label htmlFor={`obs-severity-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest flex items-center gap-1.5">Severidad <Tooltip text="Nivel de impacto del problema en la experiencia del usuario."><Info size={12} className="text-slate-400" /></Tooltip></label>
-            <select id={`obs-severity-${obs.id}`} className={`w-full p-2 border ${sStyle.border} rounded-lg text-sm ${sStyle.bg} ${sStyle.text} font-bold outline-none cursor-pointer`}
-              value={obs.severity}
-              onChange={e => { const val = e.target.value as Severity; onLocalChange(obs.id!, { severity: val }); onAction(() => onSave(obs.id!, { severity: val })); }}>
-              <option value="Baja">Baja</option>
-              <option value="Media">Media</option>
-              <option value="Alta">Alta</option>
-              <option value="Crítica">Crítica</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor={`obs-proposal-${obs.id}`} className="font-black text-[0.7rem] text-slate-500 uppercase tracking-widest text-green-800">Mejora propuesta</label>
-            <AutoGrowTextarea id={`obs-proposal-${obs.id}`}
-              className="w-full p-2.5 border border-green-100 rounded-lg text-sm bg-green-50/30 focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50 outline-none transition-all font-medium"
-              value={obs.proposal || ''} onChange={e => handleChange('proposal', e.target.value)}
-              onBlur={e => onAction(() => onSave(obs.id!, { proposal: e.target.value }))} placeholder="Ej. Cambiar..." rows={2} />
-            <CharCounter value={obs.proposal} />
-          </div>
+        {/* ── Severidad — select con color dinámico (igual que desktop) ────── */}
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`m-severity-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">Severidad</label>
+          <select id={`m-severity-${obs.id}`}
+            className={`w-full p-2 border ${sStyle.border} rounded-lg text-sm ${sStyle.bg} ${sStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer`}
+            value={obs.severity}
+            onChange={e => {
+              const val = e.target.value as Severity;
+              onLocalChange(obs.id!, { severity: val });
+              onAction(() => onSave(obs.id!, { severity: val }));
+              setDismissedSugg(true);
+            }}
+          >
+            <option value="Baja">🟢 Baja</option>
+            <option value="Media">🟡 Media</option>
+            <option value="Alta">🟠 Alta</option>
+            <option value="Crítica">🔴 Crítica</option>
+          </select>
+          {showSuggestion && (
+            <SeveritySuggestion suggested={suggestedSev} current={obs.severity}
+              onAccept={handleAcceptSeverity} onDismiss={() => setDismissedSugg(true)} />
+          )}
         </div>
 
-        <div className="flex justify-end pt-2 border-t border-slate-100 mt-2">
+        {/* Mejora propuesta */}
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`m-proposal-${obs.id}`} className="font-black text-[0.7rem] text-green-700 uppercase tracking-widest">
+            Mejora propuesta
+          </label>
+          <SuggestionsInput id={`m-proposal-${obs.id}`}
+            value={obs.proposal || ''} suggestions={PROPOSAL_SUGGESTIONS} maxLength={MAX_CHARS}
+            className="w-full p-2.5 border border-green-200 rounded-lg text-sm bg-green-50/40 focus-visible:bg-white focus-visible:border-green-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-100 transition-all font-medium"
+            placeholder="Ej. Cambiar la etiqueta por una más descriptiva..." rows={2}
+            aria-label="Mejora propuesta"
+            onChange={val => onLocalChange(obs.id!, { proposal: val })}
+            onBlur={val => onAction(() => onSave(obs.id!, { proposal: val }))}
+          />
+          <CharCounter value={obs.proposal} />
+        </div>
+
+        <div className="flex justify-end pt-2 border-t border-slate-100">
           {confirmDelete ? (
-            <div className="flex gap-2 items-center animate-in zoom-in-95 duration-200">
-              <span className="text-[0.7rem] text-red-600 font-black uppercase tracking-widest">Confirmar:</span>
-              <button type="button" onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }} className="inline-flex items-center justify-center w-8 h-8 bg-red-600 text-white border-none rounded-lg cursor-pointer transition-all hover:bg-red-700 shadow-md shadow-red-100" aria-label="Confirmar eliminación"><Check size={16} strokeWidth={3} aria-hidden="true" /></button>
-              <button type="button" onClick={() => setConfirmDelete(false)} className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-500 border-none rounded-lg cursor-pointer transition-all hover:bg-slate-200" aria-label="Cancelar eliminación"><X size={16} strokeWidth={3} aria-hidden="true" /></button>
+            <div className="flex gap-2 items-center" role="group" aria-label="Confirmar eliminación de la observación">
+              <span className="text-[0.72rem] text-red-700 font-black uppercase tracking-widest">¿Eliminar?</span>
+              <button type="button" aria-label="Confirmar eliminación"
+                onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }}
+                className="inline-flex items-center justify-center w-8 h-8 bg-red-600 text-white border-none rounded-lg cursor-pointer hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 shadow-md"
+              >
+                <Check size={16} strokeWidth={3} aria-hidden="true" />
+              </button>
+              <button type="button" aria-label="Cancelar eliminación"
+                onClick={() => setConfirmDelete(false)}
+                className="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-700 border-none rounded-lg cursor-pointer hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+              >
+                <X size={16} strokeWidth={3} aria-hidden="true" />
+              </button>
             </div>
           ) : (
-            <button type="button" className="inline-flex items-center gap-1.5 bg-transparent border-none text-slate-400 cursor-pointer p-2 rounded-lg transition-all hover:bg-red-50 hover:text-red-600" onClick={() => setConfirmDelete(true)} aria-label="Eliminar observación">
+            <button type="button" aria-label={`Eliminar observación ${idx + 1}`}
+              className="inline-flex items-center gap-1.5 bg-transparent border-none text-slate-500 cursor-pointer p-2 rounded-lg hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 transition-all"
+              onClick={() => setConfirmDelete(true)}
+            >
               <Trash2 size={18} aria-hidden="true" />
               <span className="text-[0.82rem] font-bold">Eliminar</span>
             </button>
@@ -229,281 +482,558 @@ const ObservationCard: React.FC<{
   );
 };
 
-/* ── Fila de tabla para desktop ── */
+// ══════════════════════════════════════════════════════════════════════════════
+// FILA DE TABLA DESKTOP
+// ══════════════════════════════════════════════════════════════════════════════
 const ObservationRow: React.FC<{
   obs: Observation;
-  handleLocalChange: (id: string, updates: Partial<Observation>) => void;
+  rowIndex: number;
+  handleLocalChange: (id: string, u: Partial<Observation>) => void;
   handleActionWithStatus: (fn: () => void) => void;
-  onSave: (id: string, updates: Partial<Observation>) => void;
+  onSave: (id: string, u: Partial<Observation>) => void;
   onDelete: (id: string) => void;
   tasks?: { task_index: string; scenario: string }[];
-}> = ({ obs, handleLocalChange, handleActionWithStatus, onSave, onDelete, tasks = [] }) => {
+}> = ({ obs, rowIndex, handleLocalChange, handleActionWithStatus, onSave, onDelete, tasks = [] }) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const touch = (f: string) => setTouched(prev => ({ ...prev, [f]: true }));
-  const sStyle  = severityStyles[obs.severity]     || severityStyles['Baja'];
-  const okStyle = successStyles[obs.success_level] || successStyles['Sí'];
+  const [touched, setTouched]             = useState<Record<string, boolean>>({});
+  const [dismissedSugg, setDismissedSugg] = useState(false);
+  const touch = (f: string) => setTouched(p => ({ ...p, [f]: true }));
 
-  const warnParticipant = touched.participant && (!obs.participant || obs.participant.trim() === '');
-  const warnTaskRef     = touched.task_ref && (!obs.task_ref || obs.task_ref.trim() === '');
-  const warnComments    = touched.comments && (!obs.comments || obs.comments.trim() === '');
-  const warnProblem     = touched.problem && (!obs.problem || obs.problem.trim() === '');
+  const sStyle  = severityStyles[obs.severity]     ?? severityStyles['Baja'];
+  const okStyle = successStyles[obs.success_level] ?? successStyles['Sí'];
 
-  const handleChange = (field: keyof Observation, value: string) => {
+  const isProblemRequired = obs.success_level === 'No';
+  const warnParticipant   = touched.participant && !obs.participant?.trim();
+  const warnTaskRef       = touched.task_ref    && !obs.task_ref?.trim();
+  const warnComments      = touched.comments    && !obs.comments?.trim();
+  const warnProblem       = touched.problem     && isProblemRequired && !obs.problem?.trim();
+
+  const suggestedSev   = suggestSeverity(obs);
+  const showSuggestion = !dismissedSugg && suggestedSev !== obs.severity && (
+    obs.success_level === 'No' || (obs.errors || 0) >= 2 || (obs.comments || '').length > 10
+  );
+
+  const handleAcceptSeverity = () => {
+    handleLocalChange(obs.id!, { severity: suggestedSev });
+    handleActionWithStatus(() => onSave(obs.id!, { severity: suggestedSev }));
+    setDismissedSugg(true);
+  };
+
+  const commit = (field: keyof Observation) => (value: string) => {
     handleLocalChange(obs.id!, { [field]: clamp(value) } as Partial<Observation>);
+    setDismissedSugg(false);
+  };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const save = (field: keyof Observation) => (value: string) => {
+    touch(field as string);
+    handleActionWithStatus(() => onSave(obs.id!, { [field]: value } as Partial<Observation>));
   };
 
   return (
-    <tr className="hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
-      <td className="p-2 border-r border-slate-100">
-        <input aria-label="Participante" type="text" maxLength={MAX_CHARS}
-          className={fieldClass(warnParticipant, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy outline-none font-bold", 'error')}
-          value={obs.participant || ''} onChange={e => handleChange('participant', e.target.value)}
-          onBlur={() => { touch('participant'); handleActionWithStatus(() => onSave(obs.id!, { participant: obs.participant })); }} placeholder="P1" />
-        <CharCounter value={obs.participant} />
+    <tr
+      className="hover:bg-slate-50/60 transition-colors border-b border-slate-100 last:border-0"
+      aria-label={`Fila ${rowIndex + 1}: ${obs.participant || 'sin participante'}, tarea ${obs.task_ref || 'sin tarea'}`}
+    >
+      {/* Participante */}
+      <td className="p-2 border-r border-slate-100 align-top min-w-[100px]">
+        <ReadEditCell value={obs.participant || ''} placeholder="P1" colorClass="text-slate-900 font-bold"
+          isTextarea={false} ariaLabel="Participante"
+          onCommit={commit('participant')}
+          onBlurSave={v => { touch('participant'); handleActionWithStatus(() => onSave(obs.id!, { participant: v })); }}
+        />
         <FieldWarning show={warnParticipant} message="Ingrese el participante." variant="error" />
       </td>
-      <td className="p-2 border-r border-slate-100">
-        <input aria-label="Perfil" type="text" maxLength={MAX_CHARS}
-          className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy outline-none font-medium"
-          value={obs.profile || ''} onChange={e => handleChange('profile', e.target.value)}
-          onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { profile: obs.profile }))} placeholder="Perfil" />
-        <CharCounter value={obs.profile} />
+
+      {/* ── PERFIL: combobox (desktop) ───────────────────────────────────── */}
+      <td className="p-2 border-r border-slate-100 align-top min-w-[140px]">
+        <select
+          aria-label={`Perfil, fila ${rowIndex + 1}`}
+          className="w-full p-2 border border-slate-200 bg-slate-50 rounded-lg text-[0.82rem] font-medium focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 cursor-pointer transition-all"
+          value={obs.profile || ''}
+          onChange={e => {
+            handleLocalChange(obs.id!, { profile: e.target.value });
+            handleActionWithStatus(() => onSave(obs.id!, { profile: e.target.value }));
+          }}
+        >
+          <option value="">— Perfil —</option>
+          {PROFILE_OPTIONS.map(opt => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
       </td>
-      <td className="p-2 text-center border-r border-slate-100">
+
+      {/* Tarea */}
+      <td className="p-2 border-r border-slate-100 align-top w-[140px]">
         {tasks.length > 0 ? (
-          <select aria-label="Tarea"
-            className={fieldClass(warnTaskRef, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy outline-none font-mono font-bold", 'error')}
+          <select
+            aria-label={`Tarea, fila ${rowIndex + 1}`} aria-required="true"
+            className={fieldClass(warnTaskRef, 'w-full p-2 border border-slate-200 bg-slate-50 rounded-lg text-sm focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 font-mono font-bold', 'error')}
             value={obs.task_ref || ''}
             onChange={e => { touch('task_ref'); handleLocalChange(obs.id!, { task_ref: e.target.value }); handleActionWithStatus(() => onSave(obs.id!, { task_ref: e.target.value })); }}
           >
             <option value="">—</option>
             {tasks.map(t => (
               <option key={t.task_index} value={t.task_index}>
-                {t.task_index} – {t.scenario ? t.scenario.slice(0, 25) + (t.scenario.length > 25 ? '…' : '') : ''}
+                {t.task_index} – {t.scenario || '(sin nombre)'}
               </option>
             ))}
           </select>
         ) : (
-          <input aria-label="Tarea" type="text" maxLength={20}
-            className={fieldClass(warnTaskRef, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy outline-none font-mono font-bold", 'error')}
-            value={obs.task_ref || ''} onChange={e => handleLocalChange(obs.id!, { task_ref: e.target.value })}
-            onBlur={() => { touch('task_ref'); handleActionWithStatus(() => onSave(obs.id!, { task_ref: obs.task_ref })); }} placeholder="T1" />
+          <ReadEditCell value={obs.task_ref || ''} placeholder="T1" colorClass="text-slate-800 font-mono"
+            isTextarea={false} maxLength={20} ariaLabel="Referencia de tarea"
+            onCommit={v => handleLocalChange(obs.id!, { task_ref: v })}
+            onBlurSave={v => { touch('task_ref'); handleActionWithStatus(() => onSave(obs.id!, { task_ref: v })); }}
+          />
         )}
         <FieldWarning show={warnTaskRef} message="Seleccione la tarea." variant="error" />
       </td>
-      <td className="p-2 text-center border-r border-slate-100">
-        <select aria-label="Éxito" className={`w-full p-2 border ${okStyle.border} rounded-lg text-[0.75rem] ${okStyle.bg} ${okStyle.text} font-black outline-none cursor-pointer shadow-sm`}
+
+      {/* Éxito */}
+      <td className="p-2 border-r border-slate-100 align-top min-w-[155px]">
+        <select
+          aria-label={`Éxito de la tarea, fila ${rowIndex + 1}`}
+          className={`w-full p-2 border ${okStyle.border} rounded-lg text-[0.82rem] ${okStyle.bg} ${okStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer shadow-sm`}
           value={obs.success_level}
-          onChange={e => { const val = e.target.value as SuccessStatus; handleLocalChange(obs.id!, { success_level: val }); handleActionWithStatus(() => onSave(obs.id!, { success_level: val })); }}>
-          <option value="Sí">Sí</option>
-          <option value="No">No</option>
-          <option value="Con ayuda">Con ayuda</option>
+          onChange={e => {
+            const val = e.target.value as SuccessStatus;
+            handleLocalChange(obs.id!, { success_level: val });
+            handleActionWithStatus(() => onSave(obs.id!, { success_level: val }));
+            setDismissedSugg(false);
+          }}
+        >
+          <option value="Sí">✅ Sí</option>
+          <option value="No">❌ No</option>
+          <option value="Con ayuda">🤝 Con ayuda</option>
         </select>
       </td>
-      <td className="p-2 text-center border-r border-slate-100 font-mono font-bold">
-        <input aria-label="Tiempo en segundos" type="number" min="0" className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy outline-none" value={obs.time_seconds} onChange={e => handleLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })} onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { time_seconds: obs.time_seconds }))} placeholder="0" />
+
+      {/* Tiempo */}
+      <td className="p-2 text-center border-r border-slate-100 align-top w-[90px]">
+        <input aria-label={`Tiempo en segundos, fila ${rowIndex + 1}`} type="number" min="0"
+          className="w-full px-2 py-2 border border-transparent bg-transparent rounded-lg text-[0.82rem] text-slate-800 font-mono font-bold text-center hover:bg-slate-50 hover:border-slate-200 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all"
+          value={obs.time_seconds}
+          onChange={e => handleLocalChange(obs.id!, { time_seconds: parseInt(e.target.value) || 0 })}
+          onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { time_seconds: obs.time_seconds }))}
+          placeholder="0"
+        />
       </td>
-      <td className="p-2 text-center border-r border-slate-100 font-mono font-bold">
-        <input aria-label="Errores" type="number" min="0" className={`w-full p-2 border border-transparent bg-transparent rounded-lg text-sm text-center transition-all focus:bg-white focus:border-navy outline-none ${obs.errors > 2 ? 'text-red-600 font-black' : 'text-slate-800'}`} value={obs.errors} onChange={e => handleLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 })} onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { errors: obs.errors }))} placeholder="0" />
+
+      {/* Errores */}
+      <td className="p-2 text-center border-r border-slate-100 align-top w-[90px]">
+        <input aria-label={`Errores, fila ${rowIndex + 1}`} type="number" min="0"
+          aria-describedby={obs.errors > 2 ? `err-high-${obs.id}` : undefined}
+          className={`w-full px-2 py-2 border border-transparent bg-transparent rounded-lg text-[0.82rem] font-mono font-bold text-center hover:bg-slate-50 hover:border-slate-200 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all ${obs.errors > 2 ? 'text-red-700' : 'text-slate-800'}`}
+          value={obs.errors}
+          onChange={e => { handleLocalChange(obs.id!, { errors: parseInt(e.target.value) || 0 }); setDismissedSugg(false); }}
+          onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { errors: obs.errors }))}
+          placeholder="0"
+        />
+        {obs.errors > 2 && (
+          <span id={`err-high-${obs.id}`} role="alert" className="text-[0.65rem] text-red-700 font-bold mt-0.5 block">Alto</span>
+        )}
       </td>
-      <td className="p-2 border-r border-slate-100">
-        <AutoGrowTextarea aria-label="Comentarios"
-          className={fieldClass(warnComments, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy outline-none font-medium resize-none", 'error')}
-          value={obs.comments || ''} onChange={e => handleChange('comments', e.target.value)}
-          onBlur={() => { touch('comments'); handleActionWithStatus(() => onSave(obs.id!, { comments: obs.comments })); }} placeholder="Comentarios..." rows={1} />
-        <CharCounter value={obs.comments} />
+
+      {/* Comentarios */}
+      <td className="p-2 border-r border-slate-100 align-top min-w-[220px]">
+        <ReadEditCell value={obs.comments || ''} placeholder="Comentarios..." colorClass="text-slate-800"
+          ariaLabel="Comentarios clave" rows={3}
+          onCommit={commit('comments')}
+          onBlurSave={v => { touch('comments'); handleActionWithStatus(() => onSave(obs.id!, { comments: v })); }}
+        />
         <FieldWarning show={warnComments} message="Campo requerido." variant="error" />
       </td>
-      <td className="p-2 border-r border-slate-100">
-        <AutoGrowTextarea aria-label="Problema"
-          className={fieldClass(warnProblem, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-red-400 outline-none font-medium italic text-red-900 resize-none", 'error')}
-          value={obs.problem || ''} onChange={e => handleChange('problem', e.target.value)}
-          onBlur={() => { touch('problem'); handleActionWithStatus(() => onSave(obs.id!, { problem: obs.problem })); }} placeholder="Problema..." rows={1} />
-        <CharCounter value={obs.problem} />
-        <FieldWarning show={warnProblem} message="Describe el problema." variant="error" />
+
+      {/* Problema */}
+      <td className="p-2 border-r border-slate-100 align-top min-w-[220px]">
+        <ReadEditCell
+          value={obs.problem || ''}
+          placeholder={isProblemRequired ? 'Obligatorio…' : 'Problema detectado...'}
+          colorClass="text-red-800"
+          focusBorderClass="focus-visible:border-red-400 focus-visible:ring-red-100"
+          ariaLabel="Problema detectado"
+          rows={3}
+          className={obs.problem ? 'bg-red-50/20 rounded-lg' : ''}
+          onCommit={v => commit('problem')(v)}
+          onBlurSave={v => { touch('problem'); handleActionWithStatus(() => onSave(obs.id!, { problem: v })); }}
+        />
+        {isProblemRequired && !obs.problem && (
+          <span className="text-[0.65rem] text-red-700 font-bold mt-0.5 block" role="note">
+            Requerido (si el éxito es No)
+          </span>
+        )}
+        <FieldWarning show={warnProblem} message="Obligatorio cuando Éxito es No." variant="error" />
       </td>
-      <td className="p-2 text-center border-r border-slate-100">
-        <select aria-label="Severidad" className={`w-full p-2 border ${sStyle.border} rounded-lg text-[0.75rem] ${sStyle.bg} ${sStyle.text} font-black outline-none cursor-pointer shadow-sm`}
+
+      {/* Severidad */}
+      <td className="p-2 text-center border-r border-slate-100 align-top min-w-[150px]">
+        <select aria-label={`Severidad, fila ${rowIndex + 1}`}
+          className={`w-full p-2 border ${sStyle.border} rounded-lg text-[0.78rem] ${sStyle.bg} ${sStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer shadow-sm`}
           value={obs.severity}
-          onChange={e => { const val = e.target.value as Severity; handleLocalChange(obs.id!, { severity: val }); handleActionWithStatus(() => onSave(obs.id!, { severity: val })); }}>
-          <option value="Baja">Baja</option>
-          <option value="Media">Media</option>
-          <option value="Alta">Alta</option>
-          <option value="Crítica">Crítica</option>
+          onChange={e => {
+            const val = e.target.value as Severity;
+            handleLocalChange(obs.id!, { severity: val });
+            handleActionWithStatus(() => onSave(obs.id!, { severity: val }));
+            setDismissedSugg(true);
+          }}
+        >
+          <option value="Baja">🟢 Baja</option>
+          <option value="Media">🟡 Media</option>
+          <option value="Alta">🟠 Alta</option>
+          <option value="Crítica">🔴 Crítica</option>
         </select>
+        {showSuggestion && (
+          <SeveritySuggestion suggested={suggestedSev} current={obs.severity}
+            onAccept={handleAcceptSeverity} onDismiss={() => setDismissedSugg(true)} />
+        )}
       </td>
-      <td className="p-2 border-r border-slate-100">
-        <AutoGrowTextarea aria-label="Mejora propuesta"
-          className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-green-400 outline-none font-medium text-green-900 resize-none"
-          value={obs.proposal || ''} onChange={e => handleChange('proposal', e.target.value)}
-          onBlur={() => handleActionWithStatus(() => onSave(obs.id!, { proposal: obs.proposal }))} placeholder="Mejora..." rows={1} />
-        <CharCounter value={obs.proposal} />
+
+      {/* Mejora propuesta */}
+      <td className="p-2 border-r border-slate-100 align-top min-w-[220px]">
+        <ReadEditCell
+          value={obs.proposal || ''}
+          placeholder="Mejora propuesta..."
+          colorClass="text-green-800"
+          focusBorderClass="focus-visible:border-green-400 focus-visible:ring-green-100"
+          ariaLabel="Mejora propuesta"
+          rows={3}
+          className={obs.proposal ? 'bg-green-50/20 rounded-lg' : ''}
+          onCommit={v => handleLocalChange(obs.id!, { proposal: v })}
+          onBlurSave={v => handleActionWithStatus(() => onSave(obs.id!, { proposal: v }))}
+        />
       </td>
-      <td className="p-2 text-center">
+
+      {/* Eliminar */}
+      <td className="p-2 text-center align-top">
         {confirmDelete ? (
-          <div className="flex flex-col gap-1 items-center animate-in zoom-in-95 duration-200">
-            <button type="button" onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm" aria-label="Confirmar eliminación"><Check size={14} strokeWidth={3} aria-hidden="true" /></button>
-            <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm" aria-label="Cancelar eliminación"><X size={14} strokeWidth={3} aria-hidden="true" /></button>
+          <div className="flex flex-col gap-1 items-center" role="group" aria-label="Confirmar eliminación">
+            <button type="button" aria-label="Confirmar eliminación"
+              onClick={() => { onDelete(obs.id!); setConfirmDelete(false); }}
+              className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 shadow-sm"
+            >
+              <Check size={14} strokeWidth={3} aria-hidden="true" />
+            </button>
+            <button type="button" aria-label="Cancelar eliminación"
+              onClick={() => setConfirmDelete(false)}
+              className="bg-slate-200 text-slate-700 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 shadow-sm"
+            >
+              <X size={14} strokeWidth={3} aria-hidden="true" />
+            </button>
           </div>
         ) : (
-          <button type="button" className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" onClick={() => setConfirmDelete(true)} aria-label="Eliminar observación"><Trash2 size={18} aria-hidden="true" /></button>
+          <button type="button" aria-label={`Eliminar fila ${rowIndex + 1}`}
+            className="bg-transparent border-none text-slate-400 p-2 cursor-pointer hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 rounded-lg transition-all"
+            onClick={() => setConfirmDelete(true)}
+          >
+            <Trash2 size={18} aria-hidden="true" />
+          </button>
         )}
       </td>
     </tr>
   );
 };
 
+// ══════════════════════════════════════════════════════════════════════════════
+// VISTA PRINCIPAL
+// ══════════════════════════════════════════════════════════════════════════════
 export const ObservationsView: React.FC<ObservationsViewProps> = ({
-  data, onSync, onAdd, onSave, onDelete, planId, productName, onGoToPlan, tasks = []
+  data, onSync, onAdd, onSave, onDelete,
+  planId, productName, onGoToPlan, tasks = [],
 }) => {
-  const width = useWindowWidth();
+  const width    = useWindowWidth();
   const isMobile = width < 1024;
-  const [isSaving, setIsSaving] = useState(false);
-  const [sortMode, setSortMode] = useState<'desc' | 'asc' | 'default'>('default');
+  const [isSaving, setIsSaving]         = useState(false);
+  const [sortMode, setSortMode]         = useState<'desc' | 'asc' | 'default'>('default');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const isProductEmpty = !productName || productName.trim() === '';
 
   const handleActionWithStatus = (fn: () => void) => {
-    setIsSaving(true);
-    fn();
-    setTimeout(() => setIsSaving(false), 800);
+    setIsSaving(true); fn(); setTimeout(() => setIsSaving(false), 800);
   };
 
   const handleLocalChange = (id: string, updates: Partial<Observation>) => {
-    const updated = data.map(obs => obs.id === id ? { ...obs, ...updates } : obs);
-    onSync(updated);
+    onSync(data.map(o => o.id === id ? { ...o, ...updates } : o));
   };
 
-  const displayData = React.useMemo(() => {
+  const displayData = useMemo(() => {
     if (sortMode === 'default') return data;
     return [...data].sort((a, b) => {
-      const weightA = SEVERITY_WEIGHTS[a.severity] || 0;
-      const weightB = SEVERITY_WEIGHTS[b.severity] || 0;
-      return sortMode === 'desc' ? weightB - weightA : weightA - weightB;
+      const wA = SEVERITY_WEIGHTS[a.severity] || 0;
+      const wB = SEVERITY_WEIGHTS[b.severity] || 0;
+      return sortMode === 'desc' ? wB - wA : wA - wB;
     });
   }, [data, sortMode]);
 
   return (
     <div className="animate-in fade-in duration-500">
-      <header className="flex items-center justify-between bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px] gap-4">
-        <div className="flex-1" />
-        <h1 className="text-xl md:text-2xl font-bold m-0 text-center flex-1">Bitácora de observaciones</h1>
-        <div role="status" aria-live="polite" className="flex-1 flex justify-end flex items-center gap-2 text-sm font-bold opacity-90">
+
+      {/* Header */}
+      <header className="flex items-center justify-between bg-navy text-white p-4 md:px-6 rounded-xl mb-4 shadow-md min-h-[70px] gap-4">
+        <div className="flex-1" aria-hidden="true" />
+        <h1 className="text-xl md:text-2xl font-bold m-0 text-center flex-1">
+          Bitácora de observaciones
+        </h1>
+        <div role="status" aria-live="polite" aria-atomic="true"
+          className="flex-1 flex justify-end items-center gap-2 text-sm font-bold"
+        >
           {isSaving
-            ? <span className="flex items-center gap-1.5 text-white animate-pulse"><RefreshCcw size={14} className="animate-spin" aria-hidden="true" /> Guardando…</span>
-            : <span className="flex items-center gap-1.5 text-emerald-400"><CheckCircle size={14} aria-hidden="true" /> Cambios guardados</span>
+            ? <span className="flex items-center gap-1.5 text-white animate-pulse">
+                <RefreshCcw size={14} className="animate-spin" aria-hidden="true" /> Guardando…
+              </span>
+            : <span className="flex items-center gap-1.5 text-emerald-300 font-bold">
+                <CheckCircle size={14} aria-hidden="true" /> Cambios guardados
+              </span>
           }
         </div>
       </header>
 
-      <div className="space-y-8">
+      <div className="space-y-4">
         {isProductEmpty ? (
-          <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" aria-labelledby="empty-heading">
             <div className="text-center p-12 md:p-16 flex flex-col items-center">
-              <div aria-hidden="true" className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6 shadow-inner"><ClipboardList size={40} className="text-amber-600" /></div>
-              <h3 className="text-xl font-black text-slate-900 mb-2">¡Falta el nombre del producto!</h3>
-              <p className="text-slate-500 font-medium max-w-[400px] mb-8 leading-relaxed">Para registrar observaciones, primero define un nombre al producto en la pestaña Plan.</p>
-              <button onClick={onGoToPlan} className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-xl px-8 py-3.5 text-base font-black cursor-pointer transition-all hover:bg-navy-dark shadow-lg shadow-navy/20 active:scale-[0.98]" aria-label="Volver al plan para definir el producto">Ir a definir Producto</button>
+              <div aria-hidden="true" className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                <ClipboardList size={40} className="text-amber-600" />
+              </div>
+              <h2 id="empty-heading" className="text-xl font-black text-slate-900 mb-2">
+                ¡Falta el nombre del producto!
+              </h2>
+              <p className="text-slate-600 font-medium max-w-[400px] mb-8 leading-relaxed">
+                Para registrar observaciones, primero define un nombre al producto en la pestaña Plan.
+              </p>
+              <button onClick={onGoToPlan}
+                className="inline-flex items-center gap-2 bg-navy text-white border-none rounded-xl px-8 py-3.5 text-base font-black cursor-pointer hover:bg-navy-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/50 focus-visible:ring-offset-2 shadow-lg transition-all active:scale-[0.98]"
+              >
+                Ir a definir Producto
+              </button>
             </div>
           </section>
         ) : (
           <>
+            {/* Vista MÓVIL */}
             {isMobile && (
               <section aria-labelledby="obs-cards-heading">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[0.9rem] font-black text-navy uppercase tracking-widest flex items-center gap-2 m-0" id="obs-cards-heading">
-                    <span className="w-2 h-6 bg-navy rounded-full"></span> Observaciones
-                  </h3>
+                  <h2 id="obs-cards-heading" className="text-[0.9rem] font-black text-navy uppercase tracking-widest flex items-center gap-2 m-0">
+                    <span className="w-2 h-6 bg-navy rounded-full" aria-hidden="true" />
+                    Observaciones
+                  </h2>
                   <div className="relative">
-                    <button onClick={() => setShowSortMenu(!showSortMenu)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.7rem] font-black uppercase tracking-wider transition-all border ${sortMode !== 'default' ? 'bg-navy text-white border-navy shadow-md shadow-navy/20' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`} aria-label="Ordenar observaciones por severidad" aria-expanded={showSortMenu}>
-                      Severidad <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
+                    <button type="button"
+                      onClick={() => setShowSortMenu(!showSortMenu)}
+                      aria-label="Ordenar observaciones por severidad"
+                      aria-expanded={showSortMenu}
+                      aria-haspopup="listbox"
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.72rem] font-black uppercase tracking-wider border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 transition-all ${sortMode !== 'default' ? 'bg-navy text-white border-navy' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                    >
+                      Severidad
+                      <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
                     </button>
                     {showSortMenu && (
                       <>
-                        <div className="fixed inset-0 z-[90]" onClick={() => setShowSortMenu(false)} />
-                        <div className="absolute top-full right-0 mt-2 w-32 bg-white border border-slate-200 rounded-lg shadow-xl z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                          <button onClick={() => { setSortMode('desc'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'desc' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>Descendente</button>
-                          <button onClick={() => { setSortMode('asc'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'asc' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>Ascendente</button>
-                          <button onClick={() => { setSortMode('default'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'default' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>Defecto</button>
-                        </div>
+                        <div className="fixed inset-0 z-[90]" onClick={() => setShowSortMenu(false)} aria-hidden="true" />
+                        <ul role="listbox" aria-label="Opciones de orden por severidad"
+                          className="absolute top-full right-0 mt-2 w-36 bg-white border border-slate-200 rounded-lg shadow-xl z-[100] overflow-hidden list-none p-0 m-0"
+                        >
+                          {(['desc', 'asc', 'default'] as const).map(m => (
+                            <li key={m} role="option" aria-selected={sortMode === m}>
+                              <button type="button"
+                                onClick={() => { setSortMode(m); setShowSortMenu(false); }}
+                                className={`w-full text-left px-3 py-2 text-[0.72rem] font-bold hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-100 transition-colors ${sortMode === m ? 'text-navy bg-slate-50' : 'text-slate-700'}`}
+                              >
+                                {m === 'desc' ? 'Descendente' : m === 'asc' ? 'Ascendente' : 'Sin orden'}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
                       </>
                     )}
                   </div>
                 </div>
 
                 {displayData.length === 0 ? (
-                  <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-400 font-medium italic mb-6">No hay observaciones todavía.</div>
+                  <div role="status" className="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-500 font-medium italic mb-6">
+                    No hay observaciones todavía.
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {displayData.map((obs, idx) => (
-                      <ObservationCard key={obs.id} obs={obs} idx={idx} onLocalChange={handleLocalChange} onSave={onSave} onDelete={onDelete} onAction={handleActionWithStatus} tasks={tasks} />
+                      <ObservationCard key={obs.id} obs={obs} idx={idx}
+                        onLocalChange={handleLocalChange} onSave={onSave}
+                        onDelete={onDelete} onAction={handleActionWithStatus} tasks={tasks}
+                      />
                     ))}
                   </div>
                 )}
 
-                <button type="button" className="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl shadow-emerald-200 mt-4 active:scale-[0.97] ring-2 ring-emerald-300 ring-offset-1" onClick={onAdd} disabled={!planId}>
+                <button type="button" onClick={onAdd} disabled={!planId}
+                  aria-label="Añadir nueva observación"
+                  className="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl mt-4 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 transition-all"
+                >
                   <Plus size={20} aria-hidden="true" /> Añadir Observación
                 </button>
               </section>
             )}
 
+            {/* Vista DESKTOP */}
             {!isMobile && (
               <section className="bg-white border border-slate-200 rounded-xl shadow-sm" aria-labelledby="obs-tabla-heading">
-                <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 rounded-t-xl" id="obs-tabla-heading">Observaciones registradas</h3>
+                <h2 id="obs-tabla-heading" className="bg-navy text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 rounded-t-xl">
+                  Observaciones registradas
+                </h2>
+
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
-                    <caption className="sr-only">Registro de observaciones</caption>
+                    <caption className="sr-only">
+                      Tabla de observaciones del test de usabilidad. Haz clic en cualquier celda de texto para editarla. Usa Tab para navegar entre campos.
+                    </caption>
                     <thead>
-                      <tr className="bg-slate-50 text-slate-500 text-[0.7rem] font-black uppercase tracking-[0.1em] border-b border-slate-200">
-                        <th scope="col" className="p-4 text-left border-r border-slate-100">Participante *</th>
-                        <th scope="col" className="p-4 text-left border-r border-slate-100">Perfil</th>
-                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[140px]">Tarea *</th>
-                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[130px]">Éxito</th>
-                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[100px]">Tiempo (s)</th>
-                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[80px]">Errores</th>
-                        <th scope="col" className="p-4 text-left border-r border-slate-100">Comentarios *</th>
-                        <th scope="col" className="p-4 text-left border-r border-slate-100">Problema *</th>
-                        <th scope="col" className="p-4 text-center border-r border-slate-100 w-[130px] select-none">
-                          <div className="flex items-center gap-1.5 justify-center relative">
-                            Severidad
-                            <div className="flex items-center gap-0.5">
-                              <Tooltip text="Nivel de impacto del problema en la experiencia del usuario."><Info size={12} className="text-slate-400" /></Tooltip>
-                              <div className="relative">
-                                <button type="button" onClick={() => setShowSortMenu(!showSortMenu)} className={`p-1 rounded-md transition-all hover:bg-slate-200 flex items-center justify-center ${sortMode !== 'default' ? 'text-navy bg-slate-100' : 'text-slate-400'}`} aria-label="Ordenar observaciones por severidad" aria-expanded={showSortMenu}>
-                                  <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
-                                </button>
-                                {showSortMenu && (
-                                  <>
-                                    <div className="fixed inset-0 z-[90]" onClick={() => setShowSortMenu(false)} />
-                                    <div className="absolute top-full right-0 mt-2 w-32 bg-white border border-slate-200 rounded-lg shadow-xl z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                      <button onClick={() => { setSortMode('desc'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'desc' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>Descendente</button>
-                                      <button onClick={() => { setSortMode('asc'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'asc' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>Ascendente</button>
-                                      <button onClick={() => { setSortMode('default'); setShowSortMenu(false); }} className={`w-full text-left px-3 py-2 text-[0.7rem] font-bold hover:bg-slate-50 transition-colors ${sortMode === 'default' ? 'text-navy bg-slate-50' : 'text-slate-600'}`}>Defecto</button>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
+                      <tr className="bg-slate-50 text-slate-600 text-[0.7rem] font-black uppercase tracking-[0.08em] border-b border-slate-200">
+                        <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[100px]">
+                          <Tooltip text="Código o nombre del participante en la sesión.">
+                            <span className="flex items-center gap-1">
+                              Participante <span aria-hidden="true">*</span>
+                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                            </span>
+                          </Tooltip>
+                        </th>
+                        <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[140px]">
+                          <Tooltip text="Nivel educativo o perfil del participante.">
+                            <span className="flex items-center gap-1">
+                              Perfil
+                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                            </span>
+                          </Tooltip>
+                        </th>
+                        <th scope="col" className="p-3 text-center border-r border-slate-100 w-[140px]">
+                          <Tooltip text="Tarea del plan que se evaluó en esta sesión.">
+                            <span className="flex items-center justify-center gap-1">
+                              Tarea <span aria-hidden="true">*</span>
+                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                            </span>
+                          </Tooltip>
+                        </th>
+                        <th scope="col" className="p-3 text-center border-r border-slate-100 min-w-[155px]">
+                          <Tooltip text="Si el participante completó la tarea: Sí, No, o Con ayuda del moderador.">
+                            <span className="flex items-center justify-center gap-1">
+                              Éxito
+                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                            </span>
+                          </Tooltip>
+                        </th>
+                        <th scope="col" className="p-3 text-center border-r border-slate-100 w-[90px]">
+                          <Tooltip text="Tiempo en segundos que tardó en completar o fallar la tarea.">
+                            <span className="flex items-center justify-center gap-1">
+                              Tiempo
+                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                            </span>
+                          </Tooltip>
+                        </th>
+                        <th scope="col" className="p-3 text-center border-r border-slate-100 w-[90px]">
+                          <Tooltip text="Número de errores o acciones incorrectas cometidas durante la tarea.">
+                            <span className="flex items-center justify-center gap-1">
+                              Errores
+                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                            </span>
+                          </Tooltip>
+                        </th>
+                        <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[220px]">
+                          <Tooltip text="Lo más relevante observado durante la sesión. Clic para editar.">
+                            <span className="flex items-center gap-1">
+                              Comentarios <span aria-hidden="true">*</span>
+                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                            </span>
+                          </Tooltip>
+                        </th>
+                        <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[220px]">
+                          <Tooltip text="Problema de usabilidad detectado. Obligatorio si Éxito = No. Clic para editar.">
+                            <span className="flex items-center gap-1">
+                              Problema
+                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                            </span>
+                          </Tooltip>
+                        </th>
+                        <th scope="col" className="p-3 text-center border-r border-slate-100 min-w-[150px]">
+                          <div className="flex items-center gap-1 justify-center">
+                            <Tooltip text="Impacto del problema en la experiencia del usuario.">
+                              <span className="flex items-center gap-1">
+                                Severidad
+                                <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              </span>
+                            </Tooltip>
+                            <div className="relative ml-1">
+                              <button type="button"
+                                onClick={() => setShowSortMenu(!showSortMenu)}
+                                aria-label="Ordenar tabla por severidad"
+                                aria-expanded={showSortMenu}
+                                aria-haspopup="listbox"
+                                className={`p-1 rounded-md hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 flex items-center transition-all ${sortMode !== 'default' ? 'text-navy bg-slate-100' : 'text-slate-400'}`}
+                              >
+                                <ChevronDown size={13} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
+                              </button>
+                              {showSortMenu && (
+                                <>
+                                  <div className="fixed inset-0 z-[90]" onClick={() => setShowSortMenu(false)} aria-hidden="true" />
+                                  <ul role="listbox" aria-label="Ordenar por severidad"
+                                    className="absolute top-full right-0 mt-2 w-36 bg-white border border-slate-200 rounded-lg shadow-xl z-[100] overflow-hidden list-none p-0 m-0"
+                                  >
+                                    {(['desc', 'asc', 'default'] as const).map(m => (
+                                      <li key={m} role="option" aria-selected={sortMode === m}>
+                                        <button type="button"
+                                          onClick={() => { setSortMode(m); setShowSortMenu(false); }}
+                                          className={`w-full text-left px-3 py-2 text-[0.72rem] font-bold hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-100 transition-colors ${sortMode === m ? 'text-navy bg-slate-50' : 'text-slate-700'}`}
+                                        >
+                                          {m === 'desc' ? 'Descendente' : m === 'asc' ? 'Ascendente' : 'Sin orden'}
+                                        </button>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </>
+                              )}
                             </div>
                           </div>
                         </th>
-                        <th scope="col" className="p-4 text-left border-r border-slate-100">Mejora propuesta</th>
-                        <th scope="col" className="p-4 text-center w-[60px]" aria-label="Acciones de eliminación"></th>
+                        <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[220px]">
+                          <Tooltip text="Propuesta de mejora de diseño para el problema. Clic para editar.">
+                            <span className="flex items-center gap-1">
+                              Mejora propuesta
+                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                            </span>
+                          </Tooltip>
+                        </th>
+                        <th scope="col" className="p-3 w-[50px]">
+                          <span className="sr-only">Acciones</span>
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {displayData.length > 0 ? (
-                        displayData.map((obs) => (
-                          <ObservationRow key={obs.id} obs={obs} handleLocalChange={handleLocalChange} handleActionWithStatus={handleActionWithStatus} onSave={onSave} onDelete={onDelete} tasks={tasks} />
+                        displayData.map((obs, idx) => (
+                          <ObservationRow
+                            key={obs.id}
+                            obs={obs}
+                            rowIndex={idx}
+                            handleLocalChange={handleLocalChange}
+                            handleActionWithStatus={handleActionWithStatus}
+                            onSave={onSave}
+                            onDelete={onDelete}
+                            tasks={tasks}
+                          />
                         ))
                       ) : (
-                        <tr><td colSpan={11} className="p-12 text-center text-slate-500 italic font-medium">No hay observaciones registradas.</td></tr>
+                        <tr>
+                          <td colSpan={11} className="p-12 text-center text-slate-500 italic font-medium">
+                            No hay observaciones registradas. Usa el botón de abajo para comenzar.
+                          </td>
+                        </tr>
                       )}
                     </tbody>
                   </table>
                 </div>
+
                 <div className="p-4 px-6 bg-slate-50 border-t border-slate-200 rounded-b-xl">
-                  <button type="button" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider cursor-pointer transition-all disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-emerald-200 active:scale-[0.97] ring-2 ring-emerald-300 ring-offset-1" onClick={onAdd} disabled={!planId}>
+                  <button type="button" onClick={onAdd} disabled={!planId}
+                    aria-label="Añadir nueva observación a la tabla"
+                    className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 transition-all"
+                  >
                     <Plus size={20} aria-hidden="true" /> Añadir Observación
                   </button>
                 </div>
