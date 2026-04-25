@@ -229,7 +229,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
     <main id="plan-panel" className="animate-in fade-in duration-500">
       <header className="flex items-center justify-between bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px] gap-4">
         <div className="flex-1" />
-        <h1 className="text-xl md:text-2xl font-bold m-0 text-center flex-1">Plan de Pruebas de Usabilidad</h1>
+        <h2 className="text-lg md:text-xl font-black m-0 text-center flex-1">Plan de Pruebas de Usabilidad</h2>
         <div className="flex-1 flex justify-end flex items-center gap-2 text-sm font-bold opacity-90 text-right">
           {isSaving ? (
             <span className="flex items-center gap-1.5 text-white animate-pulse"><RefreshCcw size={14} className="animate-spin" /> Guardando...</span>
@@ -242,7 +242,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
       <div className="space-y-8">
         {/* ── 1. Contexto general ── */}
         <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">1. Contexto general</h3>
+          <h2 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">1. Contexto general</h2>
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex flex-col gap-2">
@@ -349,12 +349,12 @@ export const PlanView: React.FC<PlanViewProps> = ({
 
         {/* ── 2. Tareas del test ── */}
         <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 flex items-center justify-between">
+          <h2 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 flex items-center justify-between">
             <span>2. Tareas del test</span>
             <span className={`text-sm font-bold normal-case tracking-normal ${tasks.length >= 10 ? 'text-red-300' : 'text-white/70'}`}>
               {tasks.length}/10 tareas{tasks.length >= 10 && ' — límite alcanzado'}
             </span>
-          </h3>
+          </h2>
 
           {isMobile && (
             <div className="p-4 flex flex-col gap-4">
@@ -410,7 +410,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
 
         {/* ── 3. Roles y logística ── */}
         <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">3. Roles y logística</h3>
+          <h2 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">3. Roles y logística</h2>
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="flex flex-col gap-2">
@@ -457,7 +457,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
 
         {/* ── 4. Notas del moderador ── */}
         <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">4. Notas del moderador</h3>
+          <h2 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">4. Notas del moderador</h2>
           <div className="p-6">
             <label htmlFor="moderator-notes" className="sr-only">Notas adicionales del moderador</label>
             <AutoGrowTextarea id="moderator-notes"

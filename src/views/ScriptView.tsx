@@ -220,7 +220,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
     <main className="animate-in fade-in duration-500">
       <header className="flex items-center justify-between bg-navy text-white p-4 md:px-6 rounded-xl mb-8 shadow-md min-h-[70px] gap-4">
         <div className="flex-1" />
-        <h1 className="text-xl md:text-2xl font-bold m-0 text-center flex-1">Guion de moderación y tareas</h1>
+        <h2 className="text-lg md:text-xl font-black m-0 text-center flex-1">Guion de moderación y tareas</h2>
         <div aria-live="polite" aria-atomic="true" className="flex-1 flex justify-end flex items-center gap-2 text-sm font-bold opacity-90 text-right">
           {isSaving ? (
             <span className="flex items-center gap-1.5 text-white animate-pulse"><RefreshCcw size={14} className="animate-spin" aria-hidden="true" /><span>Guardando...</span></span>
@@ -250,7 +250,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
           <>
             {(testPlan.method || testPlan.duration || testPlan.location_channel) && (
               <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">Contexto de la sesión</h3>
+                <h2 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">Contexto de la sesión</h2>
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {testPlan.method && (<div className="flex flex-col gap-2"><label className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest">Método</label><div className="p-3 bg-slate-50 rounded-lg border border-slate-200 font-semibold text-slate-800">{testPlan.method}</div></div>)}
@@ -262,7 +262,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
             )}
 
             <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-              <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">Inicio de la sesión</h3>
+              <h2 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">Inicio de la sesión</h2>
               <div className="p-6">
                 <ol className="p-0 m-0 list-none space-y-3">
                   {openingSteps.map((step, index) => (
@@ -277,14 +277,14 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
 
             {/* ── Tareas ── */}
             <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-              <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">
+              <h2 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">
                 Tareas a leer durante el test
                 {planTasks.length > 0 && (
                   <span className="ml-2 text-emerald-300 text-[0.7rem] font-bold normal-case">
                     · {planTasks.length} tarea{planTasks.length !== 1 ? 's' : ''} del plan disponible{planTasks.length !== 1 ? 's' : ''}
                   </span>
                 )}
-              </h3>
+              </h2>
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <caption className="sr-only">Tareas a leer durante el test de usabilidad</caption>
@@ -335,7 +335,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
 
             {/* ── Cierre ── */}
             <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-              <h3 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">Cierre</h3>
+              <h2 className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">Cierre</h2>
               <div className="p-6">
                 <div className="flex flex-col gap-8">
                   {(testPlan.closing_questions || []).map((q: ClosingQuestion, index: number) => (

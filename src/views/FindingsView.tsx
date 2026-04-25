@@ -371,7 +371,7 @@ export const FindingsView: React.FC<FindingsViewProps> = ({
           <>
             {!isMobile && (
               <section className="bg-white border border-slate-200 rounded-xl shadow-sm" aria-labelledby="findings-table-heading">
-                <h3 id="findings-table-heading" className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 rounded-t-xl">Registro de hallazgos</h3>
+                <h2 id="findings-table-heading" className="bg-navy-light text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 rounded-t-xl">Registro de hallazgos</h2>
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <caption className="sr-only">Tabla editable de hallazgos</caption>

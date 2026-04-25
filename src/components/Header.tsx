@@ -16,7 +16,7 @@ const Header: React.FC = () => {
     <header className="fixed top-0 w-full h-[60px] bg-white border-b border-slate-200 z-[1000] flex items-center">
       <div className={`w-full px-6 md:px-12 flex items-center ${!profile ? 'justify-center' : 'justify-between'}`}>
         <div className="cursor-pointer" onClick={() => navigate('/')}>
-          <h1 className="text-lg md:text-xl font-black text-navy tracking-tight m-0 uppercase">Gestión de Pruebas de Usabilidad</h1>
+          <h1 className="text-xl md:text-2xl font-black text-navy tracking-tight m-0 uppercase">Gestión de Pruebas de Usabilidad</h1>
         </div>
         
         {profile && (
