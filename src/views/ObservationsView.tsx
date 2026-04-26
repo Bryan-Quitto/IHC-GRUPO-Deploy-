@@ -9,7 +9,23 @@ import {
   Check, X, ChevronDown, Info, Pencil,
 } from 'lucide-react';
 import AutoGrowTextarea from '../components/AutoGrowTextarea';
+import CustomSelect from '../components/CustomSelect';
 import { FieldWarning, CharCounter, fieldClass } from '../components/FieldWarning';
+
+// ... (existing constants)
+
+const SEVERITY_OPTIONS = [
+  { value: 'Baja', label: '🟢 Baja' },
+  { value: 'Media', label: '🟡 Media' },
+  { value: 'Alta', label: '🟠 Alta' },
+  { value: 'Crítica', label: '🔴 Crítica' }
+];
+
+const SUCCESS_OPTIONS = [
+  { value: 'Sí', label: '✅ Sí' },
+  { value: 'No', label: '❌ No' },
+  { value: 'Con ayuda', label: '🤝 Con ayuda' }
+];
 import { MAX_CHARS, clamp } from '../components/validation';
 import {
   suggestSeverity,
@@ -234,20 +250,16 @@ const ObservationCard: React.FC<{
             <label htmlFor={`m-profile-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">
               Perfil
             </label>
-            <select
+            <CustomSelect
               id={`m-profile-${obs.id}`}
               className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all font-medium"
               value={obs.profile || ''}
+              options={[{ value: '', label: '— Perfil —' }, ...PROFILE_OPTIONS.map(opt => ({ value: opt, label: opt }))]}
               onChange={e => {
                 onLocalChange(obs.id!, { profile: e.target.value });
                 onAction(() => onSave(obs.id!, { profile: e.target.value }));
               }}
-            >
-              <option value="">— Perfil —</option>
-              {PROFILE_OPTIONS.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Tarea */}
@@ -256,18 +268,12 @@ const ObservationCard: React.FC<{
               Tarea&nbsp;<span aria-hidden="true">*</span><span className="sr-only">(requerido)</span>
             </label>
             {tasks.length > 0 ? (
-              <select id={`m-task-${obs.id}`} aria-required="true" aria-invalid={warnTaskRef || undefined}
+              <CustomSelect id={`m-task-${obs.id}`} aria-required="true" aria-invalid={warnTaskRef || undefined}
                 className={fieldClass(warnTaskRef, 'w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all font-medium', 'error')}
                 value={obs.task_ref || ''}
+                options={[{ value: '', label: '— Tarea —' }, ...tasks.map(t => ({ value: t.task_index, label: `${t.task_index} – ${t.scenario || '(sin nombre)'}` }))]}
                 onChange={e => { touch('task_ref'); onLocalChange(obs.id!, { task_ref: e.target.value }); onAction(() => onSave(obs.id!, { task_ref: e.target.value })); }}
-              >
-                <option value="">— Tarea —</option>
-                {tasks.map(t => (
-                  <option key={t.task_index} value={t.task_index}>
-                    {t.task_index} – {t.scenario || '(sin nombre)'}
-                  </option>
-                ))}
-              </select>
+              />
             ) : (
               <input id={`m-task-${obs.id}`} type="text" maxLength={20} aria-required="true"
                 className={fieldClass(warnTaskRef, 'w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all', 'error')}
@@ -286,20 +292,17 @@ const ObservationCard: React.FC<{
           {/* Éxito — select con color dinámico (igual que desktop) */}
           <div className="flex flex-col gap-1">
             <label htmlFor={`m-success-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">Éxito</label>
-            <select id={`m-success-${obs.id}`}
+            <CustomSelect id={`m-success-${obs.id}`}
               className={`w-full p-2 border ${okStyle.border} rounded-lg text-sm ${okStyle.bg} ${okStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer`}
               value={obs.success_level}
+              options={SUCCESS_OPTIONS}
               onChange={e => {
                 const val = e.target.value as SuccessStatus;
                 onLocalChange(obs.id!, { success_level: val });
                 onAction(() => onSave(obs.id!, { success_level: val }));
                 setDismissedSugg(false);
               }}
-            >
-              <option value="Sí">✅ Sí</option>
-              <option value="No">❌ No</option>
-              <option value="Con ayuda">🤝 Con ayuda</option>
-            </select>
+            />
           </div>
 
           {/* Tiempo */}
@@ -373,21 +376,17 @@ const ObservationCard: React.FC<{
         {/* ── Severidad — select con color dinámico (igual que desktop) ────── */}
         <div className="flex flex-col gap-1">
           <label htmlFor={`m-severity-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">Severidad</label>
-          <select id={`m-severity-${obs.id}`}
+          <CustomSelect id={`m-severity-${obs.id}`}
             className={`w-full p-2 border ${sStyle.border} rounded-lg text-sm ${sStyle.bg} ${sStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer`}
             value={obs.severity}
+            options={SEVERITY_OPTIONS}
             onChange={e => {
               const val = e.target.value as Severity;
               onLocalChange(obs.id!, { severity: val });
               onAction(() => onSave(obs.id!, { severity: val }));
               setDismissedSugg(true);
             }}
-          >
-            <option value="Baja">🟢 Baja</option>
-            <option value="Media">🟡 Media</option>
-            <option value="Alta">🟠 Alta</option>
-            <option value="Crítica">🔴 Crítica</option>
-          </select>
+          />
           {showSuggestion && (
             <SeveritySuggestion suggested={suggestedSev} current={obs.severity}
               onAccept={handleAcceptSeverity} onDismiss={() => setDismissedSugg(true)} />
@@ -506,38 +505,28 @@ const ObservationRow: React.FC<{
 
       {/* ── PERFIL: combobox (desktop) ───────────────────────────────────── */}
       <td className="p-2 border-r border-slate-100 align-top min-w-[140px]">
-        <select
+        <CustomSelect
           aria-label={`Perfil, fila ${rowIndex + 1}`}
           className="w-full p-2 border border-slate-200 bg-slate-50 rounded-lg text-[0.82rem] font-medium focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 cursor-pointer transition-all"
           value={obs.profile || ''}
+          options={[{ value: '', label: '— Perfil —' }, ...PROFILE_OPTIONS.map(opt => ({ value: opt, label: opt }))]}
           onChange={e => {
             handleLocalChange(obs.id!, { profile: e.target.value });
             handleActionWithStatus(() => onSave(obs.id!, { profile: e.target.value }));
           }}
-        >
-          <option value="">— Perfil —</option>
-          {PROFILE_OPTIONS.map(opt => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
+        />
       </td>
 
       {/* Tarea */}
       <td className="p-2 border-r border-slate-100 align-top w-[140px]">
         {tasks.length > 0 ? (
-          <select
+          <CustomSelect
             aria-label={`Tarea, fila ${rowIndex + 1}`} aria-required="true"
             className={fieldClass(warnTaskRef, 'w-full p-2 border border-slate-200 bg-slate-50 rounded-lg text-sm focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 font-mono font-bold', 'error')}
             value={obs.task_ref || ''}
+            options={[{ value: '', label: '—' }, ...tasks.map(t => ({ value: t.task_index, label: `${t.task_index} – ${t.scenario || '(sin nombre)'}` }))]}
             onChange={e => { touch('task_ref'); handleLocalChange(obs.id!, { task_ref: e.target.value }); handleActionWithStatus(() => onSave(obs.id!, { task_ref: e.target.value })); }}
-          >
-            <option value="">—</option>
-            {tasks.map(t => (
-              <option key={t.task_index} value={t.task_index}>
-                {t.task_index} – {t.scenario || '(sin nombre)'}
-              </option>
-            ))}
-          </select>
+          />
         ) : (
           <ReadEditCell value={obs.task_ref || ''} placeholder="T1" colorClass="text-slate-800 font-mono"
             isTextarea={false} maxLength={20} ariaLabel="Referencia de tarea"
@@ -550,21 +539,18 @@ const ObservationRow: React.FC<{
 
       {/* Éxito */}
       <td className="p-2 border-r border-slate-100 align-top min-w-[155px]">
-        <select
+        <CustomSelect
           aria-label={`Éxito de la tarea, fila ${rowIndex + 1}`}
           className={`w-full p-2 border ${okStyle.border} rounded-lg text-[0.82rem] ${okStyle.bg} ${okStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer shadow-sm`}
           value={obs.success_level}
+          options={SUCCESS_OPTIONS}
           onChange={e => {
             const val = e.target.value as SuccessStatus;
             handleLocalChange(obs.id!, { success_level: val });
             handleActionWithStatus(() => onSave(obs.id!, { success_level: val }));
             setDismissedSugg(false);
           }}
-        >
-          <option value="Sí">✅ Sí</option>
-          <option value="No">❌ No</option>
-          <option value="Con ayuda">🤝 Con ayuda</option>
-        </select>
+        />
       </td>
 
       {/* Tiempo */}
@@ -626,21 +612,17 @@ const ObservationRow: React.FC<{
 
       {/* Severidad */}
       <td className="p-2 text-center border-r border-slate-100 align-top min-w-[150px]">
-        <select aria-label={`Severidad, fila ${rowIndex + 1}`}
+        <CustomSelect aria-label={`Severidad, fila ${rowIndex + 1}`}
           className={`w-full p-2 border ${sStyle.border} rounded-lg text-[0.78rem] ${sStyle.bg} ${sStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer shadow-sm`}
           value={obs.severity}
+          options={SEVERITY_OPTIONS}
           onChange={e => {
             const val = e.target.value as Severity;
             handleLocalChange(obs.id!, { severity: val });
             handleActionWithStatus(() => onSave(obs.id!, { severity: val }));
             setDismissedSugg(true);
           }}
-        >
-          <option value="Baja">🟢 Baja</option>
-          <option value="Media">🟡 Media</option>
-          <option value="Alta">🟠 Alta</option>
-          <option value="Crítica">🔴 Crítica</option>
-        </select>
+        />
         {showSuggestion && (
           <SeveritySuggestion suggested={suggestedSev} current={obs.severity}
             onAccept={handleAcceptSeverity} onDismiss={() => setDismissedSugg(true)} />

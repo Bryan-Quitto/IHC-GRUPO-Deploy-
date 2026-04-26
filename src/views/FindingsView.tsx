@@ -2,7 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Finding, Severity, Priority, TaskStatus } from '../models/types';
 import { Trash2, Plus, CheckCircle, RefreshCcw, AlertTriangle, Info, Check, X, ChevronDown, Star } from 'lucide-react';
 import AutoGrowTextarea from '../components/AutoGrowTextarea';
+import CustomSelect from '../components/CustomSelect';
 import { FieldWarning, CharCounter, fieldClass } from '../components/FieldWarning';
+
+// ... (existing constants)
+
+const SEVERITY_OPTIONS = [
+  { value: 'Baja', label: 'Baja' },
+  { value: 'Media', label: 'Media' },
+  { value: 'Alta', label: 'Alta' },
+  { value: 'Crítica', label: 'Crítica' }
+];
+
+const PRIORITY_OPTIONS = [
+  { value: 'Baja', label: 'Baja' },
+  { value: 'Media', label: 'Media' },
+  { value: 'Alta', label: 'Alta' }
+];
+
+const STATUS_OPTIONS = [
+  { value: 'Pendiente', label: '⏳ Pendiente' },
+  { value: 'En progreso', label: '🔄 En progreso' },
+  { value: 'Resuelto', label: '✅ Resuelto' }
+];
 import { clamp } from '../components/validation';
 import { Tooltip } from '../components/Tooltip';
 
@@ -124,13 +146,9 @@ const FindingCard: React.FC<{
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor={`find-severity-${f.id}`} className="font-black text-[0.7rem] text-slate-700 uppercase tracking-widest flex items-center gap-1.5">Severidad <Tooltip text="Nivel de impacto del problema en la experiencia del usuario."><Info size={12} className="text-slate-400" /></Tooltip></label>
-            <select id={`find-severity-${f.id}`} className={`w-full p-2.5 border ${sev.border} rounded-lg text-sm ${sev.bg} ${sev.text} font-bold outline-none cursor-pointer`}
-              value={f.severity} onChange={e => { const val = e.target.value as Severity; onSync({ severity: val }); onAction(() => onSave(f.id!, { severity: val })); }}>
-              <option value="Baja">Baja</option>
-              <option value="Media">Media</option>
-              <option value="Alta">Alta</option>
-              <option value="Crítica">Crítica</option>
-            </select>
+            <CustomSelect id={`find-severity-${f.id}`} className={`w-full p-2.5 border ${sev.border} rounded-lg text-sm ${sev.bg} ${sev.text} font-bold outline-none cursor-pointer`}
+              options={SEVERITY_OPTIONS}
+              value={f.severity} onChange={e => { const val = e.target.value as Severity; onSync({ severity: val }); onAction(() => onSave(f.id!, { severity: val })); }} />
           </div>
         </div>
 
@@ -147,21 +165,15 @@ const FindingCard: React.FC<{
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
             <label htmlFor={`find-priority-${f.id}`} className="font-black text-[0.7rem] text-slate-700 uppercase tracking-widest flex items-center gap-1.5">Prioridad <Tooltip text="Urgencia recomendada para resolver el hallazgo."><Info size={12} className="text-slate-400" /></Tooltip></label>
-            <select id={`find-priority-${f.id}`} className={`w-full p-2.5 border ${pri.border} rounded-lg text-sm ${pri.bg} ${pri.text} font-bold outline-none cursor-pointer`}
-              value={f.priority} onChange={e => { const val = e.target.value as Priority; onSync({ priority: val }); onAction(() => onSave(f.id!, { priority: val })); }}>
-              <option value="Baja">Baja</option>
-              <option value="Media">Media</option>
-              <option value="Alta">Alta</option>
-            </select>
+            <CustomSelect id={`find-priority-${f.id}`} className={`w-full p-2.5 border ${pri.border} rounded-lg text-sm ${pri.bg} ${pri.text} font-bold outline-none cursor-pointer`}
+              options={PRIORITY_OPTIONS}
+              value={f.priority} onChange={e => { const val = e.target.value as Priority; onSync({ priority: val }); onAction(() => onSave(f.id!, { priority: val })); }} />
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor={`find-status-${f.id}`} className="font-black text-[0.7rem] text-slate-700 uppercase tracking-widest">Estado</label>
-            <select id={`find-status-${f.id}`} className={`w-full p-2.5 border ${sta.border} rounded-lg text-sm ${sta.bg} ${sta.text} font-bold outline-none cursor-pointer`}
-              value={f.status} onChange={e => { const val = e.target.value as TaskStatus; onSync({ status: val }); onAction(() => onSave(f.id!, { status: val })); }}>
-              <option value="Pendiente">⏳ Pendiente</option>
-              <option value="En progreso">🔄 En progreso</option>
-              <option value="Resuelto">✅ Resuelto</option>
-            </select>
+            <CustomSelect id={`find-status-${f.id}`} className={`w-full p-2.5 border ${sta.border} rounded-lg text-sm ${sta.bg} ${sta.text} font-bold outline-none cursor-pointer`}
+              options={STATUS_OPTIONS}
+              value={f.status} onChange={e => { const val = e.target.value as TaskStatus; onSync({ status: val }); onAction(() => onSave(f.id!, { status: val })); }} />
           </div>
         </div>
 
@@ -244,13 +256,9 @@ const FindingRow: React.FC<{
           onBlur={e => handleActionWithStatus(() => onSave(f.id!, { frequency: e.target.value }))} placeholder="4/5" />
       </td>
       <td className="p-3">
-        <select aria-label="Severidad" className={`w-full p-2 border ${sev.border} rounded-lg text-[0.75rem] ${sev.bg} ${sev.text} font-black outline-none cursor-pointer`}
-          value={f.severity} onChange={e => { const val = e.target.value as Severity; handleLocalChange(f.id!, { severity: val }); handleActionWithStatus(() => onSave(f.id!, { severity: val })); }}>
-          <option value="Baja">Baja</option>
-          <option value="Media">Media</option>
-          <option value="Alta">Alta</option>
-          <option value="Crítica">Crítica</option>
-        </select>
+        <CustomSelect aria-label="Severidad" className={`w-full p-2 border ${sev.border} rounded-lg text-[0.75rem] ${sev.bg} ${sev.text} font-black outline-none cursor-pointer`}
+          options={SEVERITY_OPTIONS}
+          value={f.severity} onChange={e => { const val = e.target.value as Severity; handleLocalChange(f.id!, { severity: val }); handleActionWithStatus(() => onSave(f.id!, { severity: val })); }} />
       </td>
       <td className="p-2">
         <AutoGrowTextarea aria-label="Recomendación de mejora"
@@ -261,20 +269,14 @@ const FindingRow: React.FC<{
         <FieldWarning show={warnRecommendation} message="Añade una recomendación." variant="warning" />
       </td>
       <td className="p-3">
-        <select aria-label="Prioridad" className={`w-full p-2 border ${pri.border} rounded-lg text-[0.75rem] ${pri.bg} ${pri.text} font-black outline-none cursor-pointer`}
-          value={f.priority} onChange={e => { const val = e.target.value as Priority; handleLocalChange(f.id!, { priority: val }); handleActionWithStatus(() => onSave(f.id!, { priority: val })); }}>
-          <option value="Baja">Baja</option>
-          <option value="Media">Media</option>
-          <option value="Alta">Alta</option>
-        </select>
+        <CustomSelect aria-label="Prioridad" className={`w-full p-2 border ${pri.border} rounded-lg text-[0.75rem] ${pri.bg} ${pri.text} font-black outline-none cursor-pointer`}
+          options={PRIORITY_OPTIONS}
+          value={f.priority} onChange={e => { const val = e.target.value as Priority; handleLocalChange(f.id!, { priority: val }); handleActionWithStatus(() => onSave(f.id!, { priority: val })); }} />
       </td>
       <td className="p-3">
-        <select aria-label="Estado" className={`w-full p-2 border ${sta.border} rounded-lg text-[0.75rem] ${sta.bg} ${sta.text} font-black outline-none cursor-pointer`}
-          value={f.status} onChange={e => { const val = e.target.value as TaskStatus; handleLocalChange(f.id!, { status: val }); handleActionWithStatus(() => onSave(f.id!, { status: val })); }}>
-          <option value="Pendiente">⏳ Pendiente</option>
-          <option value="En progreso">🔄 En progreso</option>
-          <option value="Resuelto">✅ Resuelto</option>
-        </select>
+        <CustomSelect aria-label="Estado" className={`w-full p-2 border ${sta.border} rounded-lg text-[0.75rem] ${sta.bg} ${sta.text} font-black outline-none cursor-pointer`}
+          options={STATUS_OPTIONS}
+          value={f.status} onChange={e => { const val = e.target.value as TaskStatus; handleLocalChange(f.id!, { status: val }); handleActionWithStatus(() => onSave(f.id!, { status: val })); }} />
       </td>
       <td className="p-3 text-center">
         {confirmDelete ? (

@@ -26,6 +26,22 @@ const SEV_COLORS: Record<string, { bg: string; text: string }> = {
   'Baja':    { bg: 'bg-green-900', text: 'text-white' },
 };
 
+import StatusDropdown from '../components/StatusDropdown';
+
+const STATUS_FILTER_OPTIONS = [
+  { value: 'Todos', label: 'Todos los estados', dot: 'bg-slate-300' },
+  { value: 'Borrador', label: 'Borrador', dot: 'bg-slate-400', color: 'text-slate-600' },
+  { value: 'Activo', label: 'Activos', dot: 'bg-emerald-500', color: 'text-emerald-700' },
+  { value: 'Completado', label: 'Completados', dot: 'bg-blue-600', color: 'text-blue-700' }
+];
+
+const DATE_FILTER_OPTIONS = [
+  { value: 'Todas', label: 'Todas las fechas' },
+  { value: 'Recientes', label: 'Últimos 7 días' },
+  { value: 'Este mes', label: 'Este mes' },
+  { value: 'Mes pasado', label: 'Mes pasado' }
+];
+
 export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
   loading = false,
   allPlans, allObservations, allFindings,
@@ -242,34 +258,22 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
             </div>
 
             {/* Filtro de Estado */}
-            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 min-w-[140px]">
-              <Filter size={14} className="text-slate-400" />
-              <select 
-                value={statusFilter} 
-                onChange={(e) => { setStatusFilter(e.target.value as any); setPage(1); }}
-                className="bg-transparent border-none text-[0.8rem] font-bold text-slate-700 outline-none cursor-pointer w-full"
-              >
-                <option value="Todos">Todos los estados</option>
-                <option value="Borrador">Borrador</option>
-                <option value="Activo">Activos</option>
-                <option value="Completado">Completados</option>
-              </select>
-            </div>
+            <StatusDropdown 
+              value={statusFilter} 
+              options={STATUS_FILTER_OPTIONS}
+              onChange={(val) => { setStatusFilter(val as any); setPage(1); }}
+              icon={Filter}
+              headerLabel="Estado del Plan"
+            />
 
             {/* Filtro de Fecha */}
-            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 min-w-[140px]">
-              <Calendar size={14} className="text-slate-400" />
-              <select 
-                value={dateFilter} 
-                onChange={(e) => { setDateFilter(e.target.value as any); setPage(1); }}
-                className="bg-transparent border-none text-[0.8rem] font-bold text-slate-700 outline-none cursor-pointer w-full"
-              >
-                <option value="Todas">Todas las fechas</option>
-                <option value="Recientes">Últimos 7 días</option>
-                <option value="Este mes">Este mes</option>
-                <option value="Mes pasado">Mes pasado</option>
-              </select>
-            </div>
+            <StatusDropdown 
+              value={dateFilter} 
+              options={DATE_FILTER_OPTIONS}
+              onChange={(val) => { setDateFilter(val as any); setPage(1); }}
+              icon={Calendar}
+              headerLabel="Rango de Fecha"
+            />
 
             {/* Reset Filtros */}
             {(search || statusFilter !== 'Todos' || dateFilter !== 'Todas') && (

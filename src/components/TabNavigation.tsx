@@ -115,7 +115,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
               </button>
 
               {showStatusMenu && (
-                <div className="absolute right-0 bottom-full mb-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-[1000] overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-[1000] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="p-2 bg-slate-50 border-b border-slate-100">
                     <span className="text-[0.65rem] font-black text-slate-400 uppercase tracking-widest px-2">Estado del Plan</span>
                   </div>
