@@ -245,81 +245,101 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
         ) : (
           <>
             {/* Cabecera tabla (Desktop) */}
-            <div className="hidden lg:grid grid-cols-[1fr_130px_140px_100px_90px_140px_48px_48px] px-6 py-3 bg-slate-50 border-b border-slate-200 text-[0.75rem] font-black uppercase tracking-widest text-slate-500" aria-hidden="true">
+            <div className="hidden lg:grid grid-cols-[1fr_100px_120px_90px_80px_110px_120px_48px] px-6 py-3 bg-slate-50 border-b border-slate-200 text-[0.75rem] font-black uppercase tracking-widest text-slate-500" aria-hidden="true">
               <span>Plan / Módulo</span>
               <span className="text-center">Obs.</span>
               <span className="text-center">Éxito</span>
               <span className="text-center">Hallazgos</span>
               <span className="text-center">Críticos</span>
-              <span className="text-center">Estado</span>
-              <span></span>
+              <span className="text-center">Usabilidad</span>
+              <span className="text-center">Estado Plan</span>
               <span></span>
             </div>
 
             <ul className="list-none p-0 m-0 divide-y divide-slate-100">
-              {paginated.map(({ plan, obs, fin, ok, rate, criticalF, score, scoreColor, scoreBg, barColor }) => (
-                <li key={plan.id} className="group flex items-center hover:bg-slate-50 transition-colors">
-                  <button
-                    className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_130px_140px_100px_90px_140px_48px] items-center text-left bg-transparent border-none p-4 lg:py-4 lg:pl-6 lg:pr-0 cursor-pointer font-inherit"
-                    onClick={() => onSelectPlan(plan)}
-                    aria-label={`Abrir plan: ${plan.product || 'Sin nombre'} - ${plan.module || 'Sin módulo'}`}
-                  >
-                    {/* Nombre */}
-                    <div className="flex flex-col gap-0.5 pr-4 min-w-0">
-                      <strong className="text-[0.95rem] font-bold text-slate-900 break-words">{plan.product || 'Sin nombre'}</strong>
-                      <span className="text-[0.8rem] text-slate-500 font-medium break-words">{plan.module || 'Módulo no especificado'}</span>
-                      {plan.moderator && (
-                        <span className="flex items-center gap-1.5 text-[0.8rem] text-slate-500 font-semibold mt-1 truncate">
-                          <Users size={11} aria-hidden="true" /> {plan.moderator}
-                        </span>
-                      )}
-                    </div>
+              {paginated.map(({ plan, obs, fin, ok, rate, criticalF, score, scoreColor, scoreBg, barColor }) => {
+                const planStatusData = {
+                  'Borrador':   { bg: 'bg-slate-100 border-slate-200', text: 'text-slate-600', dot: 'bg-slate-400' },
+                  'Activo':     { bg: 'bg-emerald-50 border-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+                  'Completado': { bg: 'bg-blue-50 border-blue-100', text: 'text-blue-700', dot: 'bg-blue-600' },
+                }[plan.status || 'Borrador'];
 
-                    {/* Observaciones (Desktop) */}
-                    <div className="hidden lg:flex flex-col items-center gap-0.5">
-                      <span className="text-base font-black text-slate-800 font-mono">{obs}</span>
-                      <span className="text-[0.75rem] text-slate-500 font-bold uppercase">{ok} exitosas</span>
-                    </div>
-
-                    {/* Tasa éxito */}
-                    <div className="hidden lg:flex flex-col items-center gap-1.5">
-                      <span className={`text-base font-black font-mono ${scoreColor}`}>
-                        {obs === 0 ? '—' : `${rate}%`}
-                      </span>
-                      <div className="w-20 h-1.5 bg-slate-200 rounded-full overflow-hidden" role="presentation">
-                        <div
-                          className={`h-full rounded-full transition-all duration-700 min-w-[2px] ${barColor}`}
-                          style={{ width: obs === 0 ? '0%' : `${rate}%` }}
-                        />
+                return (
+                  <li key={plan.id} className="group flex items-center hover:bg-slate-50 transition-colors">
+                    <button
+                      className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_100px_120px_90px_80px_110px_120px_48px] items-center text-left bg-transparent border-none p-4 lg:py-4 lg:pl-6 lg:pr-0 cursor-pointer font-inherit"
+                      onClick={() => onSelectPlan(plan)}
+                      aria-label={`Abrir plan: ${plan.product || 'Sin nombre'} - ${plan.module || 'Sin módulo'}`}
+                    >
+                      {/* Nombre */}
+                      <div className="flex flex-col gap-0.5 pr-4 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <strong className="text-[0.95rem] font-bold text-slate-900 truncate">{plan.product || 'Sin nombre'}</strong>
+                          <span className={`lg:hidden flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[0.65rem] font-black uppercase tracking-widest ${planStatusData.bg} ${planStatusData.text}`}>
+                            {plan.status || 'Borrador'}
+                          </span>
+                        </div>
+                        <span className="text-[0.8rem] text-slate-500 font-medium break-words">{plan.module || 'Módulo no especificado'}</span>
+                        {plan.moderator && (
+                          <span className="flex items-center gap-1.5 text-[0.8rem] text-slate-500 font-semibold mt-1 truncate">
+                            <Users size={11} aria-hidden="true" /> {plan.moderator}
+                          </span>
+                        )}
                       </div>
-                    </div>
 
-                    {/* Hallazgos (Desktop) */}
-                    <div className="hidden lg:flex flex-col items-center gap-0.5">
-                      <span className="text-base font-black text-slate-800 font-mono">{fin}</span>
-                      <span className="text-[0.75rem] text-slate-500 font-bold uppercase tracking-tighter">Hallazgos</span>
-                    </div>
+                      {/* Observaciones (Desktop) */}
+                      <div className="hidden lg:flex flex-col items-center gap-0.5">
+                        <span className="text-base font-black text-slate-800 font-mono">{obs}</span>
+                        <span className="text-[0.65rem] text-slate-400 font-bold uppercase tracking-tighter">{ok} exitosas</span>
+                      </div>
 
-                    {/* Críticos (Desktop) */}
-                    <div className="hidden lg:flex flex-col items-center gap-0.5">
-                      <span className={`text-base font-black font-mono ${criticalF > 0 ? 'text-red-700' : 'text-green-700'}`}>
-                        {criticalF}
-                      </span>
-                      <span className="text-[0.75rem] text-slate-500 font-bold uppercase tracking-tighter">Críticos</span>
-                    </div>
+                      {/* Tasa éxito */}
+                      <div className="hidden lg:flex flex-col items-center gap-1.5">
+                        <span className={`text-base font-black font-mono ${scoreColor}`}>
+                          {obs === 0 ? '—' : `${rate}%`}
+                        </span>
+                        <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden" role="presentation">
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 min-w-[2px] ${barColor}`}
+                            style={{ width: obs === 0 ? '0%' : `${rate}%` }}
+                          />
+                        </div>
+                      </div>
 
-                    {/* Estado */}
-                    <div className="hidden lg:flex justify-center">
-                      <span className={`gd-status-badge ${scoreBg} ${scoreColor} border`}>
-                        {score}
-                      </span>
-                    </div>
+                      {/* Hallazgos (Desktop) */}
+                      <div className="hidden lg:flex flex-col items-center gap-0.5">
+                        <span className="text-base font-black text-slate-800 font-mono">{fin}</span>
+                        <span className="text-[0.65rem] text-slate-400 font-bold uppercase tracking-tighter">Items</span>
+                      </div>
 
-                    {/* Flecha */}
-                    <div className="flex items-center justify-center text-slate-300 transition-all group-hover:text-navy group-hover:translate-x-1">
-                      <ArrowRight size={20} aria-hidden="true" />
-                    </div>
-                  </button>
+                      {/* Críticos (Desktop) */}
+                      <div className="hidden lg:flex flex-col items-center gap-0.5">
+                        <span className={`text-base font-black font-mono ${criticalF > 0 ? 'text-red-700' : 'text-green-700'}`}>
+                          {criticalF}
+                        </span>
+                        <span className="text-[0.65rem] text-slate-400 font-bold uppercase tracking-tighter">Alertas</span>
+                      </div>
+
+                      {/* Usabilidad (Score) */}
+                      <div className="hidden lg:flex justify-center">
+                        <span className={`gd-status-badge ${scoreBg} ${scoreColor} border text-[0.7rem]`}>
+                          {score}
+                        </span>
+                      </div>
+
+                      {/* Estado del Plan */}
+                      <div className="hidden lg:flex justify-center">
+                        <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[0.7rem] font-black uppercase tracking-widest ${planStatusData.bg} ${planStatusData.text}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${planStatusData.dot}`} />
+                          {plan.status || 'Borrador'}
+                        </span>
+                      </div>
+
+                      {/* Flecha */}
+                      <div className="flex items-center justify-center text-slate-300 transition-all group-hover:text-navy group-hover:translate-x-1">
+                        <ArrowRight size={20} aria-hidden="true" />
+                      </div>
+                    </button>
 
                   <button
                     className="shrink-0 w-12 h-full min-h-[64px] flex items-center justify-center bg-transparent border-none text-slate-300 cursor-pointer p-0 transition-all hover:bg-red-50 hover:text-red-600 border-l border-transparent group-hover:border-slate-100"
@@ -333,9 +353,9 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
                     <Trash2 size={16} aria-hidden="true" />
                   </button>
                 </li>
-              ))}
-            </ul>
-
+                );
+                })}
+                </ul>
             {/* ── Paginación ── */}
             {totalPages > 1 && (
               <nav className="flex flex-wrap items-center justify-between gap-4 p-4 md:px-6 border-t border-slate-100 bg-slate-50/50" aria-label="Paginación de planes">

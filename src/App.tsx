@@ -67,7 +67,7 @@ const PlanDetailContainer: React.FC<{
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
   // Cargar el plan cuando cambia el ID
   useEffect(() => {
@@ -79,10 +79,16 @@ const PlanDetailContainer: React.FC<{
   const onManualSave = async () => {
     setSaveStatus('saving');
     const saved = await handleSavePlan(testPlan);
-    setSaveStatus('success');
-    if (saved && id === 'new') {
-      navigate(`/plan/${saved.id}/${activeTab}`, { replace: true });
+    
+    if (saved) {
+      setSaveStatus('success');
+      if (id === 'new') {
+        navigate(`/plan/${saved.id}/${activeTab}`, { replace: true });
+      }
+    } else {
+      setSaveStatus('error');
     }
+    
     setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
@@ -96,6 +102,10 @@ const PlanDetailContainer: React.FC<{
 
   const onTabChange = (newTab: DashboardTab) => {
     navigate(`/plan/${id}/${newTab}`);
+  };
+
+  const onStatusChange = (newStatus: any) => {
+    controller.setTestPlan({ ...testPlan, status: newStatus });
   };
 
   if (loading && id !== 'new') return <div className="min-h-[50vh]"><LazyLoader /></div>;
@@ -160,6 +170,8 @@ const PlanDetailContainer: React.FC<{
           saveStatus={saveStatus}
           hasUnsavedChanges={hasUnsavedChanges}
           breadcrumbItems={breadcrumbItems}
+          currentStatus={testPlan.status}
+          onStatusChange={onStatusChange}
         />
 
         <Suspense fallback={<LazyLoader />}>

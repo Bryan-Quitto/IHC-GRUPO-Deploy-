@@ -26,7 +26,7 @@ export const useUsabilityApp = () => {
     product: '', module: '', objective: '', 
     user_profile: '', method: '', duration: '', test_date: '', location_channel: '',
     moderator: '', observer: '',
-    tools: '', link: '', moderator_notes: '',
+    tools: '', link: '', status: 'Borrador', moderator_notes: '',
     closing_questions: [
       { question: "¿Qué fue lo más fácil?", answer: "" },
       { question: "¿Qué fue lo más confuso?", answer: "" },
@@ -232,7 +232,9 @@ export const useUsabilityApp = () => {
       }
     } catch (err) {
       console.error("Error crítico al guardar el plan:", err);
-      // Opcional: podrías añadir un estado de error global aquí
+      if (err instanceof Error) {
+        console.error("Mensaje de error:", err.message);
+      }
       return null;
     }
     return null;
