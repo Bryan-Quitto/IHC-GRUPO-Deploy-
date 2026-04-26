@@ -86,18 +86,18 @@ const SettingsView: React.FC = () => {
         <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden h-fit">
           <div className="bg-navy p-4 text-white flex items-center gap-2">
             <User size={20} />
-            <h3 className="text-sm font-black uppercase tracking-wider m-0">Información del Perfil</h3>
+            <h2 className="text-sm font-black uppercase tracking-wider m-0">Información del Perfil</h2>
           </div>
           <form onSubmit={handleUpdateProfile} className="p-6 space-y-6">
             <div className="space-y-2">
-              <label className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest block">Correo Electrónico</label>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-widest block">Correo Electrónico</span>
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-slate-500 font-medium text-sm">
                 {session?.user?.email}
               </div>
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="full-name" className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest block">Nombre Completo</label>
+              <label htmlFor="full-name" className="text-xs font-black text-slate-500 uppercase tracking-widest block">Nombre Completo</label>
               <input 
                 id="full-name"
                 type="text" 
@@ -130,11 +130,11 @@ const SettingsView: React.FC = () => {
         <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden h-fit">
           <div className="bg-slate-800 p-4 text-white flex items-center gap-2">
             <Lock size={20} />
-            <h3 className="text-sm font-black uppercase tracking-wider m-0">Seguridad</h3>
+            <h2 className="text-sm font-black uppercase tracking-wider m-0">Seguridad</h2>
           </div>
           <form onSubmit={handleUpdatePassword} className="p-6 space-y-6">
             <div className="space-y-2">
-              <label htmlFor="current-password" className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest block">Contraseña Actual</label>
+              <label htmlFor="current-password" className="text-xs font-black text-slate-500 uppercase tracking-widest block">Contraseña Actual</label>
               <input 
                 id="current-password"
                 type="password" 
@@ -147,7 +147,7 @@ const SettingsView: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="new-password" className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest block">Nueva Contraseña</label>
+              <label htmlFor="new-password" className="text-xs font-black text-slate-500 uppercase tracking-widest block">Nueva Contraseña</label>
               <input 
                 id="new-password"
                 type="password" 
@@ -160,7 +160,7 @@ const SettingsView: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="confirm-password" className="text-[0.7rem] font-black text-slate-500 uppercase tracking-widest block">Confirmar Nueva Contraseña</label>
+              <label htmlFor="confirm-password" className="text-xs font-black text-slate-500 uppercase tracking-widest block">Confirmar Nueva Contraseña</label>
               <input 
                 id="confirm-password"
                 type="password" 

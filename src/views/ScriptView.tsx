@@ -70,21 +70,21 @@ const TaskComboBox: React.FC<{
           onFocus={() => setOpen(true)}
           onBlur={() => { setOpen(false); onBlur?.(); }}
         />
-        <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" aria-hidden="true" />
+        <Search size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" aria-hidden="true" />
       </div>
       {open && planTasks.length > 0 && (
         <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-52 overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
           {filtered.length === 0 ? (
-            <div className="px-3 py-2 text-[0.8rem] text-slate-400 italic">Sin resultados</div>
+            <div className="px-3 py-2 text-sm text-slate-400 italic">Sin resultados</div>
           ) : (
             filtered.map(t => (
               <button
                 key={t.id || t.task_index}
                 type="button"
-                className="w-full text-left px-3 py-2.5 text-[0.82rem] font-medium text-slate-700 hover:bg-navy/5 transition-colors border-b border-slate-100 last:border-0 flex items-start gap-2"
+                className="w-full text-left px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-navy/5 transition-colors border-b border-slate-100 last:border-0 flex items-start gap-2"
                 onClick={() => handleSelect(t)}
               >
-                <span className="id-badge shrink-0 mt-0.5 text-[0.65rem]">{t.task_index}</span>
+                <span className="id-badge shrink-0 mt-0.5 text-xs">{t.task_index}</span>
                 <span className="leading-snug">{t.scenario || '(sin nombre)'}</span>
               </button>
             ))
@@ -231,12 +231,12 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
         <div aria-live="polite" aria-atomic="true" className="flex-1 flex justify-end items-center gap-2 text-sm font-bold opacity-90 text-right">
           {isSaving ? (
             <span className="flex items-center gap-1.5 text-white animate-pulse">
-              <RefreshCcw size={14} className="animate-spin" aria-hidden="true" />
+              <RefreshCcw size={16} className="animate-spin" aria-hidden="true" />
               <span>Guardando...</span>
             </span>
           ) : (
             <span className="flex items-center gap-1.5 text-emerald-400">
-              <CheckCircle size={14} aria-hidden="true" />
+              <CheckCircle size={16} aria-hidden="true" />
               <span>Cambios guardados</span>
             </span>
           )}
@@ -280,20 +280,19 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {testPlan.method && (
                       <div className="field-group">
-                        {/* [Fase 3 — Contraste] Label text-slate-700 (ratio 8:1 ✓) */}
-                        <label className="text-[0.7rem] font-black text-slate-700 uppercase tracking-widest">Método</label>
+                        <span className="text-xs font-black text-slate-700 uppercase tracking-widest block mb-1">Método</span>
                         <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 font-semibold text-slate-800">{testPlan.method}</div>
                       </div>
                     )}
                     {testPlan.duration && (
                       <div className="field-group">
-                        <label className="text-[0.7rem] font-black text-slate-700 uppercase tracking-widest">Duración estimada</label>
+                        <span className="text-xs font-black text-slate-700 uppercase tracking-widest block mb-1">Duración estimada</span>
                         <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 font-semibold text-slate-800">{testPlan.duration}</div>
                       </div>
                     )}
                     {testPlan.location_channel && (
                       <div className="field-group">
-                        <label className="text-[0.7rem] font-black text-slate-700 uppercase tracking-widest">Lugar / Canal</label>
+                        <span className="text-xs font-black text-slate-700 uppercase tracking-widest block mb-1">Lugar / Canal</span>
                         <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 font-semibold text-slate-800">{testPlan.location_channel}</div>
                       </div>
                     )}
@@ -333,7 +332,7 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
               <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">
                 Tareas a leer durante el test
                 {planTasks.length > 0 && (
-                  <span className="ml-2 text-emerald-300 text-[0.7rem] font-bold normal-case">
+                  <span className="ml-2 text-emerald-300 text-xs font-bold normal-case">
                     · {planTasks.length} tarea{planTasks.length !== 1 ? 's' : ''} del plan disponible{planTasks.length !== 1 ? 's' : ''}
                   </span>
                 )}
@@ -342,12 +341,12 @@ export const ScriptView: React.FC<ScriptViewProps> = ({
                 <table className="w-full border-collapse">
                   <caption className="sr-only">Tareas a leer durante el test de usabilidad</caption>
                   <thead>
-                    <tr className="bg-navy text-white text-[0.75rem] font-black uppercase tracking-[0.1em]">
+                    <tr className="bg-navy text-white text-xs font-black uppercase tracking-[0.1em]">
                       <th scope="col" className="p-4 text-center border-r border-white/10 w-[60px]">ID</th>
                       <th scope="col" className="p-4 text-left border-r border-white/10 w-[35%]">
                         Texto de la tarea
                         {planTasks.length > 0 && (
-                          <span className="block text-emerald-300 text-[0.65rem] font-medium normal-case mt-0.5">
+                          <span className="block text-emerald-300 text-xs font-medium normal-case mt-0.5">
                             Selecciona del plan o escribe
                           </span>
                         )}

@@ -200,8 +200,8 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
                 <span className="text-4xl md:text-5xl font-black leading-none tracking-tighter font-mono">
                   {global.total === 0 ? '—' : `${global.successRate}%`}
                 </span>
-                <span className="text-[0.8rem] font-bold text-white/75 uppercase tracking-widest mt-1">Tasa de éxito</span>
-                <span className="inline-block mt-2 px-4 py-1 rounded-full bg-white/20 border border-white/30 text-[0.8rem] font-bold">
+                <span className="text-sm font-bold text-white/75 uppercase tracking-widest mt-1">Tasa de éxito</span>
+                <span className="inline-block mt-2 px-4 py-1 rounded-full bg-white/20 border border-white/30 text-sm font-bold">
                   {global.usabilityScore}
                 </span>
               </>
@@ -224,8 +224,8 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
               </div>
               <div className="flex flex-col gap-0.5 min-w-0">
                 <h3 className={`text-xl font-extrabold leading-none tracking-tight font-mono ${k.color}`}>{k.value}</h3>
-                <span className="text-[0.75rem] font-bold text-slate-800 uppercase tracking-wider">{k.label}</span>
-                <span className="text-[0.75rem] text-slate-500 font-semibold truncate">{k.sub}</span>
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">{k.label}</span>
+                <span className="text-xs text-slate-500 font-semibold truncate">{k.sub}</span>
               </div>
             </article>
           ))
@@ -239,7 +239,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
             <h3 id="gd-plans-title" className="flex items-center gap-2 text-[0.9rem] font-extrabold text-navy uppercase tracking-wider text-nowrap">
               <BarChart2 size={18} aria-hidden="true" /> Todos los planes
             </h3>
-            <span className="bg-blue-50 text-navy text-[0.8rem] font-bold px-2.5 py-0.5 rounded-full border border-blue-100 whitespace-nowrap">
+            <span className="bg-blue-50 text-navy text-sm font-bold px-2.5 py-0.5 rounded-full border border-blue-100 whitespace-nowrap">
               {filtered.length} plan{filtered.length !== 1 ? 'es' : ''}
             </span>
           </div>
@@ -251,6 +251,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
               <input
                 type="search"
                 placeholder="Buscar plan..."
+                aria-label="Buscar plan por producto o módulo"
                 value={search}
                 onChange={e => handleSearch(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5"
@@ -319,7 +320,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
         ) : (
           <>
             {/* Cabecera tabla (Desktop) */}
-            <div className="hidden lg:grid grid-cols-[1fr_100px_120px_90px_80px_110px_120px_48px] px-6 py-3 bg-slate-50 border-b border-slate-200 text-[0.75rem] font-black uppercase tracking-widest text-slate-500" aria-hidden="true">
+            <div className="hidden lg:grid grid-cols-[1fr_100px_120px_90px_80px_110px_120px_48px] px-6 py-3 bg-slate-50 border-b border-slate-200 text-xs font-black uppercase tracking-widest text-slate-500" aria-hidden="true">
               <span>Plan / Módulo</span>
               <span className="text-center">Obs.</span>
               <span className="text-center">Éxito</span>
@@ -349,13 +350,13 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
                       <div className="flex flex-col gap-0.5 pr-4 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
                           <strong className="text-[0.95rem] font-bold text-slate-900 truncate">{plan.product || 'Sin nombre'}</strong>
-                          <span className={`lg:hidden flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[0.65rem] font-black uppercase tracking-widest ${planStatusData.bg} ${planStatusData.text}`}>
+                          <span className={`lg:hidden flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-xs font-black uppercase tracking-widest ${planStatusData.bg} ${planStatusData.text}`}>
                             {plan.status || 'Borrador'}
                           </span>
                         </div>
-                        <span className="text-[0.8rem] text-slate-500 font-medium break-words">{plan.module || 'Módulo no especificado'}</span>
+                        <span className="text-sm text-slate-500 font-medium break-words">{plan.module || 'Módulo no especificado'}</span>
                         {plan.moderator && (
-                          <span className="flex items-center gap-1.5 text-[0.8rem] text-slate-500 font-semibold mt-1 truncate">
+                          <span className="flex items-center gap-1.5 text-sm text-slate-500 font-semibold mt-1 truncate">
                             <Users size={11} aria-hidden="true" /> {plan.moderator}
                           </span>
                         )}
@@ -364,7 +365,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
                       {/* Observaciones (Desktop) */}
                       <div className="hidden lg:flex flex-col items-center gap-0.5">
                         <span className="text-base font-black text-slate-800 font-mono">{obs}</span>
-                        <span className="text-[0.65rem] text-slate-400 font-bold uppercase tracking-tighter">{ok} exitosas</span>
+                        <span className="text-xs text-slate-400 font-bold uppercase tracking-tighter">{ok} exitosas</span>
                       </div>
 
                       {/* Tasa éxito */}
@@ -383,7 +384,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
                       {/* Hallazgos (Desktop) */}
                       <div className="hidden lg:flex flex-col items-center gap-0.5">
                         <span className="text-base font-black text-slate-800 font-mono">{fin}</span>
-                        <span className="text-[0.65rem] text-slate-400 font-bold uppercase tracking-tighter">Items</span>
+                        <span className="text-xs text-slate-400 font-bold uppercase tracking-tighter">Items</span>
                       </div>
 
                       {/* Críticos (Desktop) */}
@@ -391,19 +392,19 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
                         <span className={`text-base font-black font-mono ${criticalF > 0 ? 'text-red-700' : 'text-green-700'}`}>
                           {criticalF}
                         </span>
-                        <span className="text-[0.65rem] text-slate-400 font-bold uppercase tracking-tighter">Alertas</span>
+                        <span className="text-xs text-slate-400 font-bold uppercase tracking-tighter">Alertas</span>
                       </div>
 
                       {/* Usabilidad (Score) */}
                       <div className="hidden lg:flex justify-center">
-                        <span className={`gd-status-badge ${scoreBg} ${scoreColor} border text-[0.7rem]`}>
+                        <span className={`gd-status-badge ${scoreBg} ${scoreColor} border text-xs`}>
                           {score}
                         </span>
                       </div>
 
                       {/* Estado del Plan */}
                       <div className="hidden lg:flex justify-center">
-                        <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[0.7rem] font-black uppercase tracking-widest ${planStatusData.bg} ${planStatusData.text}`}>
+                        <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-black uppercase tracking-widest ${planStatusData.bg} ${planStatusData.text}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${planStatusData.dot}`} />
                           {plan.status || 'Borrador'}
                         </span>
@@ -433,7 +434,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
             {/* ── Paginación ── */}
             {totalPages > 1 && (
               <nav className="flex flex-wrap items-center justify-between gap-4 p-4 md:px-6 border-t border-slate-100 bg-slate-50/50" aria-label="Paginación de planes">
-                <span className="text-[0.8rem] font-bold text-slate-500 whitespace-nowrap uppercase tracking-wider" aria-live="polite">
+                <span className="text-sm font-bold text-slate-500 whitespace-nowrap uppercase tracking-wider" aria-live="polite">
                   {((currentPage - 1) * PAGE_SIZE) + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} de {filtered.length} planes
                 </span>
                 <div className="flex items-center gap-1.5">
@@ -513,7 +514,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
               return (
                 <div key={s} className={`rounded-2xl p-6 text-center flex flex-col gap-1 transition-transform hover:scale-[1.03] ${c.bg} ${c.text} shadow-lg shadow-black/5`}>
                   <span className="text-4xl font-black leading-none font-mono tracking-tighter">{global.sev[s] || 0}</span>
-                  <span className="text-[0.8rem] font-black uppercase tracking-widest mt-1 opacity-90">{s}</span>
+                  <span className="text-sm font-black uppercase tracking-widest mt-1 opacity-90">{s}</span>
                 </div>
               );
             })}

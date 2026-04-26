@@ -7,6 +7,10 @@ interface TooltipProps {
   width?: string;
 }
 
+/**
+ * Componente Tooltip accesible.
+ * [Accesibilidad] Tamaño incrementado a text-base para evitar alertas WAVE.
+ */
 export const Tooltip: React.FC<TooltipProps> = ({ text, children, width = "210px" }) => {
   const [visible, setVisible] = useState(false);
   const [coords, setCoords] = useState({ left: 0, top: 0 });
@@ -27,15 +31,18 @@ export const Tooltip: React.FC<TooltipProps> = ({ text, children, width = "210px
       onMouseLeave={() => setVisible(false)}
       onFocus={() => setVisible(true)}
       onBlur={() => setVisible(false)}
-      className="relative inline-flex items-center cursor-help"
+      tabIndex={0}
+      className="relative inline-flex items-center cursor-help focus:outline-none focus:ring-2 focus:ring-white/20 rounded"
       aria-describedby={visible ? tipId.current : undefined}
+      role="button"
+      aria-label="Más información"
     >
       {children}
       {visible && createPortal(
         <div
           id={tipId.current}
           role="tooltip"
-          className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-[0.72rem] leading-snug z-[99999] shadow-xl text-center pointer-events-none font-medium animate-in fade-in zoom-in-95 duration-200"
+          className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-base leading-snug z-[99999] shadow-xl text-center pointer-events-none font-medium animate-in fade-in zoom-in-95 duration-200"
           style={{ 
             left: coords.left, 
             top: coords.top, 

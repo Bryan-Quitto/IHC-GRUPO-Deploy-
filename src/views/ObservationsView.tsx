@@ -131,10 +131,10 @@ const ReadEditCell: React.FC<ReadEditCellProps> = ({
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40
                      focus-visible:bg-slate-50 flex items-start gap-1.5 transition-colors"
         >
-          <span className={`flex-1 text-[0.82rem] leading-relaxed font-medium break-words whitespace-pre-wrap min-h-[1.4rem] ${value ? colorClass : 'text-slate-400 italic'}`}>
+          <span className={`flex-1 text-sm leading-relaxed font-medium break-words whitespace-pre-wrap min-h-[1.4rem] ${value ? colorClass : 'text-slate-400 italic'}`}>
             {value || placeholder}
           </span>
-          <Pencil size={12} className="mt-0.5 flex-shrink-0 text-slate-300 group-hover:text-slate-500 transition-colors" aria-hidden="true" />
+          <Pencil size={16} className="mt-0.5 flex-shrink-0 text-slate-300 group-hover:text-slate-500 transition-colors" aria-hidden="true" />
         </button>
       ) : isTextarea ? (
         <AutoGrowTextarea
@@ -212,16 +212,16 @@ const ObservationCard: React.FC<{
       aria-label={`Observación ${idx + 1}${obs.participant ? `, participante ${obs.participant}` : ''}`}
     >
       <div className={`${sStyle.bg} p-4 flex justify-between items-center flex-wrap gap-2`}>
-        <span className={`font-black ${sStyle.text} text-[0.85rem] uppercase tracking-tight`}>
+        <span className={`font-black ${sStyle.text} text-sm uppercase tracking-tight`}>
           Observación #{idx + 1}
         </span>
         <div className="flex gap-2 items-center flex-wrap" aria-label="Estado actual de la observación">
           {/* ── Éxito badge con color dinámico ─────────────────────────────── */}
-          <span className={`px-2.5 py-0.5 rounded-full ${okStyle.bg} ${okStyle.text} font-bold text-[0.72rem] border ${okStyle.border}`}>
+          <span className={`px-2.5 py-0.5 rounded-full ${okStyle.bg} ${okStyle.text} font-bold text-xs border ${okStyle.border}`}>
             {obs.success_level || 'Sí'}
           </span>
           {/* ── Severidad badge con color dinámico ─────────────────────────── */}
-          <span className={`px-2.5 py-0.5 rounded-md ${sStyle.bg} ${sStyle.text} font-bold text-[0.72rem] border ${sStyle.border}`}>
+          <span className={`px-2.5 py-0.5 rounded-md ${sStyle.bg} ${sStyle.text} font-bold text-xs border ${sStyle.border}`}>
             {obs.severity || 'Baja'}
           </span>
         </div>
@@ -232,7 +232,7 @@ const ObservationCard: React.FC<{
         <div className="grid grid-cols-[1fr_1fr_90px] gap-3">
           {/* Participante */}
           <div className="flex flex-col gap-1">
-            <label htmlFor={`m-participant-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">
+            <label htmlFor={`m-participant-${obs.id}`} className="font-black text-xs text-slate-600 uppercase tracking-widest">
               Participante&nbsp;<span aria-hidden="true">*</span><span className="sr-only">(requerido)</span>
             </label>
             <input id={`m-participant-${obs.id}`} type="text" maxLength={MAX_CHARS}
@@ -331,7 +331,7 @@ const ObservationCard: React.FC<{
               placeholder="0"
             />
             {obs.errors > 2 && (
-              <span id={`m-err-warn-${obs.id}`} role="alert" className="text-[0.68rem] text-red-700 font-bold">
+              <span id={`m-err-warn-${obs.id}`} role="alert" className="text-sm text-red-700 font-bold">
                 Alto
               </span>
             )}
@@ -576,7 +576,7 @@ const ObservationRow: React.FC<{
           placeholder="0"
         />
         {obs.errors > 2 && (
-          <span id={`err-high-${obs.id}`} role="alert" className="text-[0.65rem] text-red-700 font-bold mt-0.5 block">Alto</span>
+          <span id={`err-high-${obs.id}`} role="alert" className="text-sm text-red-700 font-bold mt-0.5 block">Alto</span>
         )}
       </td>
 
@@ -604,7 +604,7 @@ const ObservationRow: React.FC<{
           onBlurSave={v => { touch('problem'); handleActionWithStatus(() => onSave(obs.id!, { problem: v })); }}
         />
         {isProblemRequired && !obs.problem && (
-          <span className="text-[0.65rem] text-red-700 font-bold mt-0.5 block" role="note">
+          <span className="text-sm text-red-700 font-bold mt-0.5 block" role="note">
             Requerido (si el éxito es No)
           </span>
         )}
@@ -720,10 +720,10 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
         >
           {isSaving
             ? <span className="flex items-center gap-1.5 text-white animate-pulse">
-              <RefreshCcw size={14} className="animate-spin" aria-hidden="true" /> Guardando…
+              <RefreshCcw size={16} className="animate-spin" aria-hidden="true" /> Guardando…
             </span>
             : <span className="flex items-center gap-1.5 text-emerald-300 font-bold">
-              <CheckCircle size={14} aria-hidden="true" /> Cambios guardados
+              <CheckCircle size={16} aria-hidden="true" /> Cambios guardados
             </span>
           }
         </div>
@@ -755,7 +755,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
             {isMobile && (
               <section aria-labelledby="obs-cards-heading">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 id="obs-cards-heading" className="text-[0.9rem] font-black text-navy uppercase tracking-widest flex items-center gap-2 m-0">
+                  <h2 id="obs-cards-heading" className="text-sm font-black text-navy uppercase tracking-widest flex items-center gap-2 m-0">
                     <span className="w-2 h-6 bg-navy rounded-full" aria-hidden="true" />
                     Observaciones
                   </h2>
@@ -765,10 +765,10 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                       aria-label="Ordenar observaciones por severidad"
                       aria-expanded={showSortMenu}
                       aria-haspopup="listbox"
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.72rem] font-black uppercase tracking-wider border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 transition-all ${sortMode !== 'default' ? 'bg-navy text-white border-navy' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 transition-all ${sortMode !== 'default' ? 'bg-navy text-white border-navy' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
                     >
                       Severidad
-                      <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
+                      <ChevronDown size={16} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
                     </button>
                     {showSortMenu && (
                       <>
@@ -780,7 +780,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                             <li key={m} role="option" aria-selected={sortMode === m}>
                               <button type="button"
                                 onClick={() => { setSortMode(m); setShowSortMenu(false); }}
-                                className={`w-full text-left px-3 py-2 text-[0.72rem] font-bold hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-100 transition-colors ${sortMode === m ? 'text-navy bg-slate-50' : 'text-slate-700'}`}
+                                className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-100 transition-colors ${sortMode === m ? 'text-navy bg-slate-50' : 'text-slate-700'}`}
                               >
                                 {m === 'desc' ? 'Descendente' : m === 'asc' ? 'Ascendente' : 'Sin orden'}
                               </button>
@@ -829,12 +829,12 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                       Tabla de observaciones del test de usabilidad. Haz clic en cualquier celda de texto para editarla. Usa Tab para navegar entre campos.
                     </caption>
                     <thead>
-                      <tr className="bg-slate-50 text-slate-600 text-[0.7rem] font-black uppercase tracking-[0.08em] border-b border-slate-200">
+                      <tr className="bg-slate-50 text-slate-600 text-xs font-black uppercase tracking-[0.08em] border-b border-slate-200">
                         <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[100px]">
                           <Tooltip text="Código o nombre del participante en la sesión.">
                             <span className="flex items-center gap-1">
                               Participante <span aria-hidden="true">*</span>
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -842,7 +842,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Nivel educativo o perfil del participante.">
                             <span className="flex items-center gap-1">
                               Perfil
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -850,7 +850,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Tarea del plan que se evaluó en esta sesión.">
                             <span className="flex items-center justify-center gap-1">
                               Tarea <span aria-hidden="true">*</span>
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -858,7 +858,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Si el participante completó la tarea: Sí, No, o Con ayuda del moderador.">
                             <span className="flex items-center justify-center gap-1">
                               Éxito
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -866,7 +866,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Tiempo en segundos que tardó en completar o fallar la tarea.">
                             <span className="flex items-center justify-center gap-1">
                               Tiempo
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -874,7 +874,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Número de errores o acciones incorrectas cometidas durante la tarea.">
                             <span className="flex items-center justify-center gap-1">
                               Errores
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -882,7 +882,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Lo más relevante observado durante la sesión. Clic para editar.">
                             <span className="flex items-center gap-1">
                               Comentarios <span aria-hidden="true">*</span>
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -890,7 +890,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Problema de usabilidad detectado. Obligatorio si el éxito es No. Clic para editar.">
                             <span className="flex items-center gap-1">
                               Problema
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -899,7 +899,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                             <Tooltip text="Impacto del problema en la experiencia del usuario.">
                               <span className="flex items-center gap-1">
                                 Severidad
-                                <Info size={11} className="text-slate-400" aria-hidden="true" />
+                                <Info size={16} className="text-slate-400" aria-hidden="true" />
                               </span>
                             </Tooltip>
                             <div className="relative ml-1">
@@ -910,7 +910,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                                 aria-haspopup="listbox"
                                 className={`p-1 rounded-md hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 flex items-center transition-all ${sortMode !== 'default' ? 'text-navy bg-slate-100' : 'text-slate-400'}`}
                               >
-                                <ChevronDown size={13} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
+                                <ChevronDown size={16} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
                               </button>
                               {showSortMenu && (
                                 <>
@@ -922,7 +922,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                                       <li key={m} role="option" aria-selected={sortMode === m}>
                                         <button type="button"
                                           onClick={() => { setSortMode(m); setShowSortMenu(false); }}
-                                          className={`w-full text-left px-3 py-2 text-[0.72rem] font-bold hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-100 transition-colors ${sortMode === m ? 'text-navy bg-slate-50' : 'text-slate-700'}`}
+                                          className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-100 transition-colors ${sortMode === m ? 'text-navy bg-slate-50' : 'text-slate-700'}`}
                                         >
                                           {m === 'desc' ? 'Descendente' : m === 'asc' ? 'Ascendente' : 'Sin orden'}
                                         </button>
@@ -938,7 +938,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Propuesta de mejora de diseño para el problema. Clic para editar.">
                             <span className="flex items-center gap-1">
                               Mejora propuesta
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>

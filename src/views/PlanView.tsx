@@ -53,9 +53,9 @@ const TaskCard: React.FC<{
         <span className="font-bold text-sm">Tarea {task.task_index}</span>
         {confirmDelete ? (
           <div className="flex gap-2 items-center animate-in zoom-in-95 duration-200">
-            <span className="text-[0.65rem] text-red-300 font-black uppercase tracking-widest">¿Eliminar?</span>
-            <button type="button" onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }} className="inline-flex items-center justify-center w-7 h-7 bg-red-600 text-white border-none rounded-md cursor-pointer transition-all hover:bg-red-700" aria-label={`Confirmar eliminación de ${task.task_index}`}><Check size={14} strokeWidth={3} aria-hidden="true" /></button>
-            <button type="button" onClick={() => setConfirmDelete(false)} className="inline-flex items-center justify-center w-7 h-7 bg-white/10 text-white border-none rounded-md cursor-pointer transition-all hover:bg-white/20" aria-label="Cancelar eliminación"><X size={14} strokeWidth={3} aria-hidden="true" /></button>
+            <span className="text-sm text-red-300 font-black uppercase tracking-widest">¿Eliminar?</span>
+            <button type="button" onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }} className="inline-flex items-center justify-center w-7 h-7 bg-red-600 text-white border-none rounded-md cursor-pointer transition-all hover:bg-red-700" aria-label={`Confirmar eliminación de ${task.task_index}`}><Check size={16} strokeWidth={3} aria-hidden="true" /></button>
+            <button type="button" onClick={() => setConfirmDelete(false)} className="inline-flex items-center justify-center w-7 h-7 bg-white/10 text-white border-none rounded-md cursor-pointer transition-all hover:bg-white/20" aria-label="Cancelar eliminación"><X size={16} strokeWidth={3} aria-hidden="true" /></button>
           </div>
         ) : (
           <button type="button" className="bg-transparent border-none text-red-300 p-1 cursor-pointer transition-colors hover:text-red-500" onClick={() => setConfirmDelete(true)} aria-label={`Eliminar ${task.task_index || 'tarea'}`}><Trash2 size={16} aria-hidden="true" /></button>
@@ -64,7 +64,7 @@ const TaskCard: React.FC<{
 
       <div className="p-4 flex flex-col gap-4">
         <div className="field-group">
-          <label htmlFor={`m-scenario-${task.id}`} className="font-black text-[0.7rem] text-slate-700 uppercase tracking-widest">
+          <label htmlFor={`m-scenario-${task.id}`} className="font-black text-sm text-slate-700 uppercase tracking-widest mb-1 block">
             Escenario / tarea <span className="text-red-600" aria-hidden="true">*</span>
           </label>
           <input id={`m-scenario-${task.id}`} type="text" maxLength={MAX_CHARS}
@@ -77,7 +77,7 @@ const TaskCard: React.FC<{
         </div>
 
         <div className="field-group">
-          <label htmlFor={`m-expected-${task.id}`} className="font-black text-[0.7rem] text-slate-700 uppercase tracking-widest">Resultado esperado</label>
+          <label htmlFor={`m-expected-${task.id}`} className="font-black text-sm text-slate-700 uppercase tracking-widest mb-1 block">Resultado esperado</label>
           <input id={`m-expected-${task.id}`} type="text" maxLength={MAX_CHARS}
             className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all"
             value={task.expected_result || ''} onChange={e => handleChange('expected_result', e.target.value)}
@@ -88,7 +88,7 @@ const TaskCard: React.FC<{
 
         <div className="grid grid-cols-2 gap-4">
           <div className="field-group">
-            <label htmlFor={`m-metric-${task.id}`} className="font-black text-[0.7rem] text-slate-700 uppercase tracking-widest">Métrica</label>
+            <label htmlFor={`m-metric-${task.id}`} className="font-black text-sm text-slate-700 uppercase tracking-widest mb-1 block">Métrica</label>
             <input id={`m-metric-${task.id}`} type="text" maxLength={MAX_CHARS}
               className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all"
               value={task.main_metric || ''} onChange={e => handleChange('main_metric', e.target.value)}
@@ -96,7 +96,7 @@ const TaskCard: React.FC<{
             <CharCounter value={task.main_metric} />
           </div>
           <div className="field-group">
-            <label htmlFor={`m-criteria-${task.id}`} className="font-black text-[0.7rem] text-slate-700 uppercase tracking-widest">Criterio</label>
+            <label htmlFor={`m-criteria-${task.id}`} className="font-black text-sm text-slate-700 uppercase tracking-widest mb-1 block">Criterio</label>
             <input id={`m-criteria-${task.id}`} type="text" maxLength={MAX_CHARS}
               className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none transition-all"
               value={task.success_criteria || ''} onChange={e => handleChange('success_criteria', e.target.value)}
@@ -127,11 +127,12 @@ const TaskRow: React.FC<{
 
   return (
     <tr className="hover:bg-slate-50 transition-colors">
-      <td className="p-3 text-center"><span className="id-badge">{task.task_index}</span></td>
+      <td className="p-3 text-center"><span className="id-badge text-sm">{task.task_index}</span></td>
       <td className="p-2">
-        <input type="text" maxLength={MAX_CHARS}
+        <label htmlFor={`scenario-d-${task.id}`} className="sr-only">Escenario para tarea {task.task_index}</label>
+        <input id={`scenario-d-${task.id}`} type="text" maxLength={MAX_CHARS}
           className={fieldClass(warnScenario, "w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium", 'error')}
-          aria-label={`Escenario para ${task.task_index}`} aria-required="true" value={task.scenario || ''}
+          aria-required="true" value={task.scenario || ''}
           onChange={e => handleChange('scenario', e.target.value)}
           onBlur={e => { touch('scenario'); onSaveTask(task.id!, { scenario: e.target.value }); }}
           placeholder="Ej. Imagina que quieres comprar..." />
@@ -139,27 +140,30 @@ const TaskRow: React.FC<{
         <FieldWarning show={warnScenario} message="El escenario no puede estar vacío." variant="error" />
       </td>
       <td className="p-2">
-        <input type="text" maxLength={MAX_CHARS}
+        <label htmlFor={`expected-d-${task.id}`} className="sr-only">Resultado esperado para tarea {task.task_index}</label>
+        <input id={`expected-d-${task.id}`} type="text" maxLength={MAX_CHARS}
           className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium"
-          aria-label={`Resultado esperado para ${task.task_index}`} value={task.expected_result || ''}
+          value={task.expected_result || ''}
           onChange={e => handleChange('expected_result', e.target.value)}
           onBlur={e => onSaveTask(task.id!, { expected_result: e.target.value })}
           placeholder="Ej. El usuario llega a la confirmación." />
         <CharCounter value={task.expected_result} />
       </td>
       <td className="p-2">
-        <input type="text" maxLength={MAX_CHARS}
+        <label htmlFor={`metric-d-${task.id}`} className="sr-only">Métrica para tarea {task.task_index}</label>
+        <input id={`metric-d-${task.id}`} type="text" maxLength={MAX_CHARS}
           className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium"
-          aria-label={`Métrica para ${task.task_index}`} value={task.main_metric || ''}
+          value={task.main_metric || ''}
           onChange={e => handleChange('main_metric', e.target.value)}
           onBlur={e => onSaveTask(task.id!, { main_metric: e.target.value })}
           placeholder="Ej. Tiempo, Tasa de éxito..." />
         <CharCounter value={task.main_metric} />
       </td>
       <td className="p-2">
-        <input type="text" maxLength={MAX_CHARS}
+        <label htmlFor={`criteria-d-${task.id}`} className="sr-only">Criterio de éxito para tarea {task.task_index}</label>
+        <input id={`criteria-d-${task.id}`} type="text" maxLength={MAX_CHARS}
           className="w-full p-2 border border-transparent bg-transparent rounded-lg text-sm transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium"
-          aria-label={`Criterio de éxito para ${task.task_index}`} value={task.success_criteria || ''}
+          value={task.success_criteria || ''}
           onChange={e => handleChange('success_criteria', e.target.value)}
           onBlur={e => onSaveTask(task.id!, { success_criteria: e.target.value })}
           placeholder="Ej. Sin errores críticos..." />
@@ -168,8 +172,8 @@ const TaskRow: React.FC<{
       <td className="p-3 text-center">
         {confirmDelete ? (
           <div className="flex flex-col gap-1 items-center animate-in zoom-in-95 duration-200">
-            <button type="button" onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm" aria-label={`Confirmar eliminación de ${task.task_index || 'tarea'}`}><Check size={14} strokeWidth={3} aria-hidden="true" /></button>
-            <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm" aria-label="Cancelar eliminación"><X size={14} strokeWidth={3} aria-hidden="true" /></button>
+            <button type="button" onClick={() => { onDeleteTask(task.id!); setConfirmDelete(false); }} className="bg-red-600 text-white border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-red-700 shadow-sm" aria-label={`Confirmar eliminación de ${task.task_index || 'tarea'}`}><Check size={16} strokeWidth={3} aria-hidden="true" /></button>
+            <button type="button" onClick={() => setConfirmDelete(false)} className="bg-slate-200 text-slate-600 border-none rounded-md w-7 h-7 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-300 shadow-sm" aria-label="Cancelar eliminación"><X size={16} strokeWidth={3} aria-hidden="true" /></button>
           </div>
         ) : (
           <button className="bg-transparent border-none text-slate-300 p-2 cursor-pointer transition-all hover:bg-red-50 hover:text-red-500 rounded-lg" onClick={() => setConfirmDelete(true)} type="button" aria-label={`Eliminar ${task.task_index || 'tarea'}`}><Trash2 size={18} aria-hidden="true" /></button>
@@ -247,11 +251,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
         <div className="flex-1 flex justify-end items-center gap-2 text-sm font-bold opacity-90 text-right" aria-live="polite" aria-atomic="true">
           {isSaving ? (
             <span className="flex items-center gap-1.5 text-white animate-pulse">
-              <RefreshCcw size={14} className="animate-spin" aria-hidden="true" /> Guardando...
+              <RefreshCcw size={16} className="animate-spin" aria-hidden="true" /> Guardando...
             </span>
           ) : (
             <span className="flex items-center gap-1.5 text-emerald-400">
-              <CheckCircle size={14} aria-hidden="true" /> Cambios guardados
+              <CheckCircle size={16} aria-hidden="true" /> Cambios guardados
             </span>
           )}
         </div>
@@ -261,11 +265,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
 
         {/* ── 1. CONTEXTO DEL PRODUCTO ── */}
         <section className="section-block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 flex items-center justify-between">
+          <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-sm font-bold uppercase tracking-wider m-0 flex items-center justify-between">
             <span className="flex items-center gap-2">
               1. Contexto del Producto
               <Tooltip text="Información básica sobre qué se va a evaluar.">
-                <Info size={14} className="text-white/70" />
+                <Info size={16} className="text-white/70" />
               </Tooltip>
             </span>
             <span
@@ -285,7 +289,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
                   <span className="text-red-600" aria-hidden="true">*</span>
                 </label>
                 <input id="product-name" type="text" maxLength={MAX_CHARS}
-                  className={`w-full p-3 border rounded-lg text-base transition-all focus:outline-none focus:ring-4 focus:ring-navy/5 ${isProductEmpty && touched.product ? 'border-amber-400 bg-amber-50' : 'border-slate-200 bg-white focus:border-navy'}`}
+                  className={`w-full p-3 border rounded-lg text-sm transition-all focus:outline-none focus:ring-4 focus:ring-navy/5 ${isProductEmpty && touched.product ? 'border-amber-400 bg-amber-50' : 'border-slate-200 bg-white focus:border-navy'}`}
                   value={localPlan.product} placeholder="Ej: App de Delivery 'Rápido'"
                   onChange={(e) => handleChange({ product: e.target.value })}
                   onBlur={(e) => { touch('product'); handleAutoSave({ product: e.target.value }); }} />
@@ -297,11 +301,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 <label htmlFor="module-name" className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-1.5">
                   Módulo o Pantalla Específica:
                   <Tooltip text="Parte específica del sistema que se someterá a prueba.">
-                    <Info size={13} className="text-slate-400" />
+                    <Info size={16} className="text-slate-400" />
                   </Tooltip>
                 </label>
                 <input id="module-name" type="text" maxLength={MAX_CHARS}
-                  className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
+                  className="w-full p-3 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                   value={localPlan.module} placeholder="Ej: Proceso de pago (Checkout)"
                   onChange={(e) => handleChange({ module: e.target.value })}
                   onBlur={(e) => handleAutoSave({ module: e.target.value })} />
@@ -314,11 +318,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 Objetivo de la Evaluación:
                 <span className="text-red-600" aria-hidden="true">*</span>
                 <Tooltip text="¿Qué quieres descubrir o validar con este test?">
-                  <Info size={13} className="text-slate-400" />
+                  <Info size={16} className="text-slate-400" />
                 </Tooltip>
               </label>
               <AutoGrowTextarea id="test-objective"
-                className={fieldClass(warn.objective, "w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
+                className={fieldClass(warn.objective, "w-full p-3 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
                 value={localPlan.objective} placeholder="Ej: Validar si los usuarios pueden completar una compra en menos de 2 minutos sin errores."
                 onChange={(e) => handleChange({ objective: e.target.value })}
                 onBlur={(e) => { touch('objective'); handleAutoSave({ objective: e.target.value }); }} rows={2} />
@@ -330,11 +334,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
 
         {/* ── 2. ESTRATEGIA Y PARTICIPANTES ── */}
         <section className="section-block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 flex items-center justify-between">
+          <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-sm font-bold uppercase tracking-wider m-0 flex items-center justify-between">
             <span className="flex items-center gap-2">
               2. Estrategia y Participantes
               <Tooltip text="Cómo se ejecutará el test y a quién va dirigido.">
-                <Info size={14} className="text-white/70" />
+                <Info size={16} className="text-white/70" />
               </Tooltip>
             </span>
             <span
@@ -351,11 +355,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 Perfil del Usuario (Target):
                 <span className="text-red-600" aria-hidden="true">*</span>
                 <Tooltip text="Características demográficas y psicográficas de los participantes.">
-                  <Info size={13} className="text-slate-400" />
+                  <Info size={16} className="text-slate-400" />
                 </Tooltip>
               </label>
               <input id="user-profile" type="text" maxLength={MAX_CHARS}
-                className={fieldClass(warn.user_profile, "w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
+                className={fieldClass(warn.user_profile, "w-full p-3 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
                 value={localPlan.user_profile} placeholder="Ej: Estudiantes universitarios, 18-25 años, usan banca móvil."
                 onChange={(e) => handleChange({ user_profile: e.target.value })}
                 onBlur={(e) => { touch('user_profile'); handleAutoSave({ user_profile: e.target.value }); }} />
@@ -369,11 +373,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
                   Metodología:
                   <span className="text-red-600" aria-hidden="true">*</span>
                   <Tooltip text="Técnica a usar: Pensamiento en voz alta, Entrevista, Moderado, etc.">
-                    <Info size={13} className="text-slate-400" />
+                    <Info size={16} className="text-slate-400" />
                   </Tooltip>
                 </label>
                 <input id="test-method" type="text" maxLength={MAX_CHARS}
-                  className={fieldClass(warn.method, "w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
+                  className={fieldClass(warn.method, "w-full p-3 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
                   value={localPlan.method} placeholder="Ej: Test moderado con Think Aloud"
                   onChange={(e) => handleChange({ method: e.target.value })}
                   onBlur={(e) => { touch('method'); handleAutoSave({ method: e.target.value }); }} />
@@ -387,7 +391,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
                   <span className="text-red-600" aria-hidden="true">*</span>
                 </label>
                 <input id="test-duration" type="text" maxLength={MAX_CHARS}
-                  className={fieldClass(warn.duration, "w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
+                  className={fieldClass(warn.duration, "w-full p-3 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
                   value={localPlan.duration} placeholder="Ej: 30 a 45 minutos"
                   onChange={(e) => handleChange({ duration: e.target.value })}
                   onBlur={(e) => { touch('duration'); handleAutoSave({ duration: e.target.value }); }} />
@@ -400,11 +404,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
 
         {/* ── 3. CRONOGRAMA Y LOGÍSTICA ── */}
         <section className="section-block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 flex items-center justify-between">
+          <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-sm font-bold uppercase tracking-wider m-0 flex items-center justify-between">
             <span className="flex items-center gap-2">
               3. Cronograma y Logística
               <Tooltip text="Cuándo y dónde se realizarán las sesiones.">
-                <Info size={14} className="text-white/70" />
+                <Info size={16} className="text-white/70" />
               </Tooltip>
             </span>
             <span
@@ -423,7 +427,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
                   <span className="text-red-600" aria-hidden="true">*</span>
                 </label>
                 <input id="test-date" type="date" min={minDate}
-                  className={fieldClass(warn.test_date, "w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
+                  className={fieldClass(warn.test_date, "w-full p-3 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
                   value={localPlan.test_date || ''}
                   onChange={(e) => handleChange({ test_date: e.target.value })}
                   onBlur={(e) => { touch('test_date'); handleAutoSave({ test_date: e.target.value }); }} />
@@ -435,11 +439,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
                   Lugar o Canal:
                   <span className="text-red-600" aria-hidden="true">*</span>
                   <Tooltip text="Plataforma online (Zoom, Meet) o lugar físico.">
-                    <Info size={13} className="text-slate-400" />
+                    <Info size={16} className="text-slate-400" />
                   </Tooltip>
                 </label>
                 <input id="location-channel" type="text" maxLength={MAX_CHARS}
-                  className={fieldClass(warn.location_channel, "w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
+                  className={fieldClass(warn.location_channel, "w-full p-3 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
                   value={localPlan.location_channel} placeholder="Ej: Google Meet / Oficina IHC"
                   onChange={(e) => handleChange({ location_channel: e.target.value })}
                   onBlur={(e) => { touch('location_channel'); handleAutoSave({ location_channel: e.target.value }); }} />
@@ -452,11 +456,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
 
         {/* ── 4. TAREAS DEL TEST ── */}
         <section className="section-block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 flex items-center justify-between">
+          <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-sm font-bold uppercase tracking-wider m-0 flex items-center justify-between">
             <span className="flex items-center gap-2">
               4. Tareas del Test
               <Tooltip text="Actividades que el usuario realizará durante la sesión.">
-                <Info size={14} className="text-white/70" />
+                <Info size={16} className="text-white/70" />
               </Tooltip>
             </span>
             <div className="flex items-center gap-3">
@@ -473,7 +477,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
           {isMobile && (
             <div className="p-4 flex flex-col gap-4">
               {tasks.length === 0 ? (
-                <p className="text-center text-slate-500 py-8 italic font-medium">No hay tareas añadidas.</p>
+                <p className="text-center text-slate-500 py-8 italic font-medium text-sm">No hay tareas añadidas.</p>
               ) : (
                 tasks.map((task) => (
                   <TaskCard key={task.id} task={task} handleTaskChange={handleTaskChange} onSaveTask={onSaveTask} onDeleteTask={onDeleteTask} />
@@ -492,13 +496,13 @@ export const PlanView: React.FC<PlanViewProps> = ({
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-navy text-white text-[0.75rem] font-black uppercase tracking-widest">
+                    <tr className="bg-navy text-white text-sm font-black uppercase tracking-widest">
                       <th className="p-4 text-center border-r border-white/10 w-[60px]">ID</th>
                       <th className="p-4 text-left border-r border-white/10">Escenario / tarea</th>
                       <th className="p-4 text-left border-r border-white/10">Resultado esperado</th>
                       <th className="p-4 text-left border-r border-white/10">Métrica principal</th>
                       <th className="p-4 text-left border-r border-white/10">Criterio de éxito</th>
-                      <th className="p-4 text-center w-[80px]"></th>
+                      <th className="p-4 text-center w-[80px]">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -507,7 +511,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
                         <TaskRow key={task.id} task={task} handleTaskChange={handleTaskChange} onSaveTask={onSaveTask} onDeleteTask={onDeleteTask} />
                       ))
                     ) : (
-                      <tr><td colSpan={6} className="p-12 text-center text-slate-500 italic">No hay tareas añadidas.</td></tr>
+                      <tr><td colSpan={6} className="p-12 text-center text-slate-500 italic text-sm">No hay tareas añadidas.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -525,11 +529,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
 
         {/* ── 5. ROLES Y LOGÍSTICA ── */}
         <section className="section-block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0 flex items-center justify-between">
+          <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-sm font-bold uppercase tracking-wider m-0 flex items-center justify-between">
             <span className="flex items-center gap-2">
               5. Roles y Logística
               <Tooltip text="Personas involucradas y recursos necesarios.">
-                <Info size={14} className="text-white/70" />
+                <Info size={16} className="text-white/70" />
               </Tooltip>
             </span>
             <span
@@ -542,7 +546,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
               <div className="field-group">
                 <label htmlFor="moderator-name" className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-1.5">Moderador: <span className="text-red-600">*</span></label>
                 <input id="moderator-name" type="text" maxLength={MAX_CHARS}
-                  className={fieldClass(warn.moderator, "w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
+                  className={fieldClass(warn.moderator, "w-full p-3 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white", 'error')}
                   value={localPlan.moderator} placeholder="Facilitador"
                   onChange={(e) => handleChange({ moderator: e.target.value })}
                   onBlur={(e) => { touch('moderator'); handleAutoSave({ moderator: e.target.value }); }} />
@@ -551,7 +555,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
               <div className="field-group">
                 <label htmlFor="observer-name" className="text-sm font-bold text-slate-700 mb-1.5 block">Observador:</label>
                 <input id="observer-name" type="text" maxLength={MAX_CHARS}
-                  className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
+                  className="w-full p-3 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                   value={localPlan.observer} placeholder="Opcional"
                   onChange={(e) => handleChange({ observer: e.target.value })}
                   onBlur={(e) => handleAutoSave({ observer: e.target.value })} />
@@ -560,7 +564,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
               <div className="field-group">
                 <label htmlFor="tools-used" className="text-sm font-bold text-slate-700 mb-1.5 block">Herramientas:</label>
                 <input id="tools-used" type="text" maxLength={MAX_CHARS}
-                  className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
+                  className="w-full p-3 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                   value={localPlan.tools} placeholder="Ej: Figma, Maze"
                   onChange={(e) => handleChange({ tools: e.target.value })}
                   onBlur={(e) => handleAutoSave({ tools: e.target.value })} />
@@ -569,7 +573,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
               <div className="field-group">
                 <label htmlFor="project-link" className="text-sm font-bold text-slate-700 mb-1.5 block">Enlace:</label>
                 <input id="project-link" type="text" maxLength={MAX_CHARS}
-                  className="w-full p-3 border border-slate-200 rounded-lg text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
+                  className="w-full p-3 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-white"
                   value={localPlan.link} placeholder="https://..."
                   onChange={(e) => handleChange({ link: e.target.value })}
                   onBlur={(e) => handleAutoSave({ link: e.target.value })} />
@@ -581,12 +585,14 @@ export const PlanView: React.FC<PlanViewProps> = ({
 
         {/* ── 6. NOTAS DEL MODERADOR ── */}
         <section className="section-block bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <h2 className="bg-hierarchy-l1 text-white px-5 py-3 text-base font-bold uppercase tracking-wider m-0">
-            6. Notas del moderador
-          </h2>
+          <div className="bg-hierarchy-l1 px-5 py-3">
+            <label htmlFor="moderator-notes" className="text-white text-sm font-bold uppercase tracking-wider block">
+              6. Notas del moderador
+            </label>
+          </div>
           <div className="p-6">
             <AutoGrowTextarea id="moderator-notes"
-              className="w-full p-4 border border-slate-200 rounded-xl text-base transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-slate-50 focus:bg-white min-h-[120px]"
+              className="w-full p-4 border border-slate-200 rounded-xl text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5 bg-slate-50 focus:bg-white min-h-[120px]"
               value={localPlan.moderator_notes}
               onChange={(e) => handleChange({ moderator_notes: e.target.value })}
               onBlur={(e) => handleAutoSave({ moderator_notes: e.target.value })}

@@ -54,10 +54,10 @@ export const FlowProgress: React.FC<FlowProgressProps> = ({
 
       {/* Encabezado */}
       <div className="flex justify-between items-center mb-2">
-        <span className="text-[0.72rem] font-extrabold text-slate-500 uppercase tracking-widest">
+        <span className="text-xs font-extrabold text-slate-500 uppercase tracking-widest">
           Progreso del plan
         </span>
-        <span className="text-[0.72rem] font-extrabold text-navy">
+        <span className="text-xs font-extrabold text-navy">
           {completedCount} de {steps.length} · {progressPct}%
         </span>
       </div>
@@ -97,7 +97,7 @@ export const FlowProgress: React.FC<FlowProgressProps> = ({
                   visual (Ware, 2004): tamaño + color saturado atraen primero.
                 */}
                 <div
-                  className={`rounded-full flex items-center justify-center text-[0.7rem] font-extrabold border-2 transition-all duration-300 ${
+                  className={`rounded-full flex items-center justify-center text-xs font-extrabold border-2 transition-all duration-300 ${
                     complete
                       ? 'w-8 h-8 bg-emerald-600 border-emerald-600 text-white'
                       : active
@@ -107,10 +107,10 @@ export const FlowProgress: React.FC<FlowProgressProps> = ({
                   role="img"
                   aria-label={`Paso ${idx + 1}: ${step.label} — ${statusText}`}
                 >
-                  {complete ? <Check size={14} strokeWidth={3} aria-hidden="true" /> : idx + 1}
+                  {complete ? <Check size={16} strokeWidth={3} aria-hidden="true" /> : idx + 1}
                 </div>
 
-                <span className={`text-[0.6rem] font-bold whitespace-nowrap transition-colors ${
+                <span className={`text-[0.8rem] font-bold whitespace-nowrap transition-colors ${
                   complete ? 'text-emerald-600' : active ? 'text-navy font-extrabold' : 'text-slate-500'
                 }`}>
                   {step.label}
