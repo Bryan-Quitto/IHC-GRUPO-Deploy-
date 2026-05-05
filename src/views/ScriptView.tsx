@@ -53,7 +53,6 @@ const TaskComboBox: React.FC<{
     const label = task.scenario || task.task_index;
     setQuery(label);
     onChange(label);
-    onBlur?.(label);
     setOpen(false);
   };
 
@@ -67,9 +66,19 @@ const TaskComboBox: React.FC<{
           className={fieldClass(!!hasWarning, `w-full p-2.5 pr-8 border border-slate-200 rounded-lg text-sm bg-transparent transition-all focus:bg-white focus:border-navy focus:ring-4 focus:ring-navy/5 outline-none font-medium`, 'error')}
           value={query}
           placeholder={placeholder || 'Seleccionar o escribir tarea...'}
-          onChange={e => { setQuery(clamp(e.target.value)); onChange(clamp(e.target.value)); setOpen(true); }}
+          onChange={e => { 
+            const val = clamp(e.target.value);
+            setQuery(val); 
+            onChange(val); 
+            setOpen(true); 
+          }}
           onFocus={() => setOpen(true)}
-          onBlur={() => { onBlur?.(); }}
+          onBlur={() => { 
+            // Pequeño delay para permitir que el click en el dropdown ocurra antes del blur
+            setTimeout(() => {
+              if (!open) onBlur?.(query);
+            }, 200);
+          }}
         />
         <Search size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" aria-hidden="true" />
       </div>
