@@ -219,6 +219,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
   };
 
   const isProductEmpty = !localPlan.product || localPlan.product.trim() === '';
+  const isLastTaskEmpty = tasks.length > 0 && (!tasks[tasks.length - 1].scenario || tasks[tasks.length - 1].scenario?.trim() === '');
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const touch = (field: string) => setTouched(prev => ({ ...prev, [field]: true }));
@@ -485,7 +486,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
               )}
               <button type="button"
                 className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer transition-all disabled:bg-slate-300 shadow-xl mt-2 w-full"
-                onClick={onAddTask} disabled={!localPlan.id || isProductEmpty || tasks.length >= 10}>
+                onClick={onAddTask} disabled={!localPlan.id || isProductEmpty || tasks.length >= 10 || isLastTaskEmpty}>
                 <Plus size={20} aria-hidden="true" /> Añadir Tarea
               </button>
             </div>
@@ -519,7 +520,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
               <div className="p-4 px-6 bg-slate-50 border-t border-slate-200">
                 <button type="button"
                   className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider cursor-pointer transition-all disabled:bg-slate-300 shadow-lg"
-                  onClick={onAddTask} disabled={!localPlan.id || isProductEmpty || tasks.length >= 10}>
+                  onClick={onAddTask} disabled={!localPlan.id || isProductEmpty || tasks.length >= 10 || isLastTaskEmpty}>
                   <Plus size={20} aria-hidden="true" /> Añadir Tarea
                 </button>
               </div>

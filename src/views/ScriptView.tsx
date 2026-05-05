@@ -68,7 +68,7 @@ const TaskComboBox: React.FC<{
           placeholder={placeholder || 'Seleccionar o escribir tarea...'}
           onChange={e => { setQuery(clamp(e.target.value)); onChange(clamp(e.target.value)); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          onBlur={() => { setOpen(false); onBlur?.(); }}
+          onBlur={() => { onBlur?.(); }}
         />
         <Search size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" aria-hidden="true" />
       </div>
