@@ -11,6 +11,38 @@ export function clamp(value: string): string {
 }
 
 /**
+ * Devuelve las clases CSS del input según el tipo de aviso.
+ * variant='error'   → borde rojo + fondo rojo tenue
+ * variant='warning' → borde amarillo + fondo amarillo tenue
+ *
+ * [Fase 3 — Contraste] El borde coloreado + fondo tenue actúan como
+ * señal pre-atentiva: el ojo detecta el cambio de color antes de leer
+ * el texto del error (principio de pre-atención visual, Ware 2004).
+ */
+export function fieldClass(
+  hasWarning: boolean,
+  baseClass: string,
+  variant: 'error' | 'warning' = 'warning'
+): string {
+  if (!hasWarning) return baseClass;
+
+  if (variant === 'error') {
+    return baseClass
+      .replace(/border-slate-200/g, 'border-red-400')
+      .replace(/border-transparent/g, 'border-red-400')
+      .replace(/bg-white/g, 'bg-red-50')
+      .replace(/bg-slate-50/g, 'bg-red-50') + ' border-red-400';
+  }
+
+  // warning (amarillo)
+  return baseClass
+    .replace(/border-slate-200/g, 'border-amber-400')
+    .replace(/border-transparent/g, 'border-amber-400')
+    .replace(/bg-white/g, 'bg-amber-50')
+    .replace(/bg-slate-50/g, 'bg-amber-50') + ' border-amber-400';
+}
+
+/**
  * Validate a date string (YYYY-MM-DD from <input type="date">).
  * Rules:
  *   - Must be a complete date (year + month + day all present)

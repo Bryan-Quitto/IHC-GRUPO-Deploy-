@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react';
-import { TestPlan, Observation, Finding } from '../models/types';
+import React, { useMemo, useState } from 'react';
+import { TestPlan, Observation, Finding, PlanStatus } from '../models/types';
 import {
   ClipboardList, TrendingUp, Clock,
   AlertTriangle, Shield, Plus, ArrowRight,
-  BarChart2, Users, Zap, Search, Trash2
+  BarChart2, Users, Zap, Search, Trash2, Filter, Calendar, X
 } from 'lucide-react';
 
 interface GlobalDashboardProps {
@@ -26,14 +26,32 @@ const SEV_COLORS: Record<string, { bg: string; text: string }> = {
   'Baja':    { bg: 'bg-green-900', text: 'text-white' },
 };
 
+import StatusDropdown from '../components/StatusDropdown';
+
+const STATUS_FILTER_OPTIONS = [
+  { value: 'Todos', label: 'Todos los estados', dot: 'bg-slate-300' },
+  { value: 'Borrador', label: 'Borrador', dot: 'bg-slate-400', color: 'text-slate-600' },
+  { value: 'Activo', label: 'Activos', dot: 'bg-emerald-500', color: 'text-emerald-700' },
+  { value: 'Completado', label: 'Completados', dot: 'bg-blue-600', color: 'text-blue-700' }
+];
+
+const DATE_FILTER_OPTIONS = [
+  { value: 'Todas', label: 'Todas las fechas' },
+  { value: 'Recientes', label: 'Últimos 7 días' },
+  { value: 'Este mes', label: 'Este mes' },
+  { value: 'Mes pasado', label: 'Mes pasado' }
+];
+
 export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
   loading = false,
   allPlans, allObservations, allFindings,
   onSelectPlan, onCreatePlan, onDeletePlan,
 }) => {
-  const [search, setSearch] = React.useState('');
-  const [page, setPage] = React.useState(1);
-  const [planToDelete, setPlanToDelete] = React.useState<TestPlan | null>(null);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<PlanStatus | 'Todos'>('Todos');
+  const [dateFilter, setDateFilter] = useState<'Todas' | 'Recientes' | 'Este mes' | 'Mes pasado'>('Todas');
+  const [page, setPage] = useState(1);
+  const [planToDelete, setPlanToDelete] = useState<TestPlan | null>(null);
   const PAGE_SIZE = 10;
 
   const global = useMemo(() => {
@@ -101,10 +119,36 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
     });
   }, [allPlans, allObservations, allFindings]);
 
-  const filtered = planMetrics.filter(pm =>
-    pm.plan.product?.toLowerCase().includes(search.toLowerCase()) ||
-    pm.plan.module?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    return planMetrics.filter(pm => {
+      // Búsqueda de texto
+      const matchesSearch = pm.plan.product?.toLowerCase().includes(search.toLowerCase()) ||
+                           pm.plan.module?.toLowerCase().includes(search.toLowerCase());
+      
+      // Filtro de estado
+      const matchesStatus = statusFilter === 'Todos' || pm.plan.status === statusFilter;
+
+      // Filtro de fecha
+      let matchesDate = true;
+      if (dateFilter !== 'Todas' && pm.plan.created_at) {
+        const planDate = new Date(pm.plan.created_at);
+        const now = new Date();
+        if (dateFilter === 'Recientes') {
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(now.getDate() - 7);
+          matchesDate = planDate >= sevenDaysAgo;
+        } else if (dateFilter === 'Este mes') {
+          matchesDate = planDate.getMonth() === now.getMonth() && planDate.getFullYear() === now.getFullYear();
+        } else if (dateFilter === 'Mes pasado') {
+          const lastMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+          const year = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+          matchesDate = planDate.getMonth() === lastMonth && planDate.getFullYear() === year;
+        }
+      }
+
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+  }, [planMetrics, search, statusFilter, dateFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -156,8 +200,8 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
                 <span className="text-4xl md:text-5xl font-black leading-none tracking-tighter font-mono">
                   {global.total === 0 ? '—' : `${global.successRate}%`}
                 </span>
-                <span className="text-[0.8rem] font-bold text-white/75 uppercase tracking-widest mt-1">Tasa de éxito</span>
-                <span className="inline-block mt-2 px-4 py-1 rounded-full bg-white/20 border border-white/30 text-[0.8rem] font-bold">
+                <span className="text-sm font-bold text-white/75 uppercase tracking-widest mt-1">Tasa de éxito</span>
+                <span className="inline-block mt-2 px-4 py-1 rounded-full bg-white/20 border border-white/30 text-sm font-bold">
                   {global.usabilityScore}
                 </span>
               </>
@@ -180,8 +224,8 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
               </div>
               <div className="flex flex-col gap-0.5 min-w-0">
                 <h3 className={`text-xl font-extrabold leading-none tracking-tight font-mono ${k.color}`}>{k.value}</h3>
-                <span className="text-[0.75rem] font-bold text-slate-800 uppercase tracking-wider">{k.label}</span>
-                <span className="text-[0.75rem] text-slate-500 font-semibold truncate">{k.sub}</span>
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">{k.label}</span>
+                <span className="text-xs text-slate-500 font-semibold truncate">{k.sub}</span>
               </div>
             </article>
           ))
@@ -190,33 +234,64 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
 
       {/* ══ LISTA DE PLANES ══ */}
       <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6" aria-labelledby="gd-plans-title">
-        <div className="flex flex-wrap justify-between items-center gap-3 p-4 md:px-6 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
+        <div className="flex flex-wrap justify-between items-center gap-4 p-4 md:px-6 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <h3 id="gd-plans-title" className="flex items-center gap-2 text-[0.9rem] font-extrabold text-navy uppercase tracking-wider">
+            <h3 id="gd-plans-title" className="flex items-center gap-2 text-[0.9rem] font-extrabold text-navy uppercase tracking-wider text-nowrap">
               <BarChart2 size={18} aria-hidden="true" /> Todos los planes
             </h3>
-            <span className="bg-blue-50 text-navy text-[0.8rem] font-bold px-2.5 py-0.5 rounded-full border border-blue-100">
-              {allPlans.length} plan{allPlans.length !== 1 ? 'es' : ''}
+            <span className="bg-blue-50 text-navy text-sm font-bold px-2.5 py-0.5 rounded-full border border-blue-100 whitespace-nowrap">
+              {filtered.length} plan{filtered.length !== 1 ? 'es' : ''}
             </span>
           </div>
-          <div className="flex items-center gap-3 flex-1 sm:flex-none w-full sm:w-auto">
-            <div className="relative flex items-center flex-1 sm:flex-none">
-              <Search size={16} aria-hidden="true" className="absolute left-3 text-slate-400 pointer-events-none" />
+
+          <div className="flex flex-wrap items-center gap-3 flex-1 justify-end min-w-0">
+            {/* Buscador */}
+            <div className="relative flex items-center w-full sm:w-[200px]">
+              <Search size={15} aria-hidden="true" className="absolute left-3 text-slate-400 pointer-events-none" />
               <input
                 type="search"
                 placeholder="Buscar plan..."
+                aria-label="Buscar plan por producto o módulo"
                 value={search}
                 onChange={e => handleSearch(e.target.value)}
-                className="w-full sm:w-[220px] pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5"
-                aria-label="Buscar plan por producto o módulo"
+                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:border-navy focus:ring-4 focus:ring-navy/5"
               />
             </div>
+
+            {/* Filtro de Estado */}
+            <StatusDropdown 
+              value={statusFilter} 
+              options={STATUS_FILTER_OPTIONS}
+              onChange={(val) => { setStatusFilter(val as typeof statusFilter); setPage(1); }}
+              icon={Filter}
+              headerLabel="Estado del Plan"
+            />
+
+            {/* Filtro de Fecha */}
+            <StatusDropdown 
+              value={dateFilter} 
+              options={DATE_FILTER_OPTIONS}
+              onChange={(val) => { setDateFilter(val as typeof dateFilter); setPage(1); }}
+              icon={Calendar}
+              headerLabel="Rango de Fecha"
+            />
+
+            {/* Reset Filtros */}
+            {(search || statusFilter !== 'Todos' || dateFilter !== 'Todas') && (
+              <button 
+                onClick={() => { setSearch(''); setStatusFilter('Todos'); setDateFilter('Todas'); setPage(1); }}
+                className="p-2 text-slate-400 hover:text-navy transition-colors bg-transparent border-none cursor-pointer"
+                title="Limpiar filtros"
+              >
+                <X size={18} />
+              </button>
+            )}
+
             <button 
               className="inline-flex items-center gap-1.5 bg-navy text-white border-none rounded-lg px-4 py-2 text-sm font-bold cursor-pointer transition-all hover:bg-navy-dark active:scale-[0.98] whitespace-nowrap" 
               onClick={onCreatePlan} 
-              aria-label="Crear nuevo plan de prueba"
             >
-              <Plus size={16} aria-hidden="true" /> <span className="hidden sm:inline">Nuevo plan</span>
+              <Plus size={16} aria-hidden="true" /> <span>Nuevo plan</span>
             </button>
           </div>
         </div>
@@ -245,81 +320,101 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
         ) : (
           <>
             {/* Cabecera tabla (Desktop) */}
-            <div className="hidden lg:grid grid-cols-[1fr_130px_140px_100px_90px_140px_48px_48px] px-6 py-3 bg-slate-50 border-b border-slate-200 text-[0.75rem] font-black uppercase tracking-widest text-slate-500" aria-hidden="true">
+            <div className="hidden lg:grid grid-cols-[1fr_100px_120px_90px_80px_110px_120px_48px] px-6 py-3 bg-slate-50 border-b border-slate-200 text-xs font-black uppercase tracking-widest text-slate-500" aria-hidden="true">
               <span>Plan / Módulo</span>
               <span className="text-center">Obs.</span>
               <span className="text-center">Éxito</span>
               <span className="text-center">Hallazgos</span>
               <span className="text-center">Críticos</span>
-              <span className="text-center">Estado</span>
-              <span></span>
+              <span className="text-center">Usabilidad</span>
+              <span className="text-center">Estado Plan</span>
               <span></span>
             </div>
 
             <ul className="list-none p-0 m-0 divide-y divide-slate-100">
-              {paginated.map(({ plan, obs, fin, ok, rate, criticalF, score, scoreColor, scoreBg, barColor }) => (
-                <li key={plan.id} className="group flex items-center hover:bg-slate-50 transition-colors">
-                  <button
-                    className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_130px_140px_100px_90px_140px_48px] items-center text-left bg-transparent border-none p-4 lg:py-4 lg:pl-6 lg:pr-0 cursor-pointer font-inherit"
-                    onClick={() => onSelectPlan(plan)}
-                    aria-label={`Abrir plan: ${plan.product || 'Sin nombre'} - ${plan.module || 'Sin módulo'}`}
-                  >
-                    {/* Nombre */}
-                    <div className="flex flex-col gap-0.5 pr-4 min-w-0">
-                      <strong className="text-[0.95rem] font-bold text-slate-900 break-words">{plan.product || 'Sin nombre'}</strong>
-                      <span className="text-[0.8rem] text-slate-500 font-medium break-words">{plan.module || 'Módulo no especificado'}</span>
-                      {plan.moderator && (
-                        <span className="flex items-center gap-1.5 text-[0.8rem] text-slate-500 font-semibold mt-1 truncate">
-                          <Users size={11} aria-hidden="true" /> {plan.moderator}
-                        </span>
-                      )}
-                    </div>
+              {paginated.map(({ plan, obs, fin, ok, rate, criticalF, score, scoreColor, scoreBg, barColor }) => {
+                const planStatusData = {
+                  'Borrador':   { bg: 'bg-slate-100 border-slate-200', text: 'text-slate-600', dot: 'bg-slate-400' },
+                  'Activo':     { bg: 'bg-emerald-50 border-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+                  'Completado': { bg: 'bg-blue-50 border-blue-100', text: 'text-blue-700', dot: 'bg-blue-600' },
+                }[plan.status || 'Borrador'];
 
-                    {/* Observaciones (Desktop) */}
-                    <div className="hidden lg:flex flex-col items-center gap-0.5">
-                      <span className="text-base font-black text-slate-800 font-mono">{obs}</span>
-                      <span className="text-[0.75rem] text-slate-500 font-bold uppercase">{ok} exitosas</span>
-                    </div>
-
-                    {/* Tasa éxito */}
-                    <div className="hidden lg:flex flex-col items-center gap-1.5">
-                      <span className={`text-base font-black font-mono ${scoreColor}`}>
-                        {obs === 0 ? '—' : `${rate}%`}
-                      </span>
-                      <div className="w-20 h-1.5 bg-slate-200 rounded-full overflow-hidden" role="presentation">
-                        <div
-                          className={`h-full rounded-full transition-all duration-700 min-w-[2px] ${barColor}`}
-                          style={{ width: obs === 0 ? '0%' : `${rate}%` }}
-                        />
+                return (
+                  <li key={plan.id} className="group flex items-center hover:bg-slate-50 transition-colors">
+                    <button
+                      className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_100px_120px_90px_80px_110px_120px_48px] items-center text-left bg-transparent border-none p-4 lg:py-4 lg:pl-6 lg:pr-0 cursor-pointer font-inherit"
+                      onClick={() => onSelectPlan(plan)}
+                      aria-label={`Abrir plan: ${plan.product || 'Sin nombre'} - ${plan.module || 'Sin módulo'}`}
+                    >
+                      {/* Nombre */}
+                      <div className="flex flex-col gap-0.5 pr-4 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <strong className="text-[0.95rem] font-bold text-slate-900 truncate">{plan.product || 'Sin nombre'}</strong>
+                          <span className={`lg:hidden flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-xs font-black uppercase tracking-widest ${planStatusData.bg} ${planStatusData.text}`}>
+                            {plan.status || 'Borrador'}
+                          </span>
+                        </div>
+                        <span className="text-sm text-slate-500 font-medium break-words">{plan.module || 'Módulo no especificado'}</span>
+                        {plan.moderator && (
+                          <span className="flex items-center gap-1.5 text-sm text-slate-500 font-semibold mt-1 truncate">
+                            <Users size={11} aria-hidden="true" /> {plan.moderator}
+                          </span>
+                        )}
                       </div>
-                    </div>
 
-                    {/* Hallazgos (Desktop) */}
-                    <div className="hidden lg:flex flex-col items-center gap-0.5">
-                      <span className="text-base font-black text-slate-800 font-mono">{fin}</span>
-                      <span className="text-[0.75rem] text-slate-500 font-bold uppercase tracking-tighter">Hallazgos</span>
-                    </div>
+                      {/* Observaciones (Desktop) */}
+                      <div className="hidden lg:flex flex-col items-center gap-0.5">
+                        <span className="text-base font-black text-slate-800 font-mono">{obs}</span>
+                        <span className="text-xs text-slate-400 font-bold uppercase tracking-tighter">{ok} exitosas</span>
+                      </div>
 
-                    {/* Críticos (Desktop) */}
-                    <div className="hidden lg:flex flex-col items-center gap-0.5">
-                      <span className={`text-base font-black font-mono ${criticalF > 0 ? 'text-red-700' : 'text-green-700'}`}>
-                        {criticalF}
-                      </span>
-                      <span className="text-[0.75rem] text-slate-500 font-bold uppercase tracking-tighter">Críticos</span>
-                    </div>
+                      {/* Tasa éxito */}
+                      <div className="hidden lg:flex flex-col items-center gap-1.5">
+                        <span className={`text-base font-black font-mono ${scoreColor}`}>
+                          {obs === 0 ? '—' : `${rate}%`}
+                        </span>
+                        <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden" role="presentation">
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 min-w-[2px] ${barColor}`}
+                            style={{ width: obs === 0 ? '0%' : `${rate}%` }}
+                          />
+                        </div>
+                      </div>
 
-                    {/* Estado */}
-                    <div className="hidden lg:flex justify-center">
-                      <span className={`gd-status-badge ${scoreBg} ${scoreColor} border`}>
-                        {score}
-                      </span>
-                    </div>
+                      {/* Hallazgos (Desktop) */}
+                      <div className="hidden lg:flex flex-col items-center gap-0.5">
+                        <span className="text-base font-black text-slate-800 font-mono">{fin}</span>
+                        <span className="text-xs text-slate-400 font-bold uppercase tracking-tighter">Items</span>
+                      </div>
 
-                    {/* Flecha */}
-                    <div className="flex items-center justify-center text-slate-300 transition-all group-hover:text-navy group-hover:translate-x-1">
-                      <ArrowRight size={20} aria-hidden="true" />
-                    </div>
-                  </button>
+                      {/* Críticos (Desktop) */}
+                      <div className="hidden lg:flex flex-col items-center gap-0.5">
+                        <span className={`text-base font-black font-mono ${criticalF > 0 ? 'text-red-700' : 'text-green-700'}`}>
+                          {criticalF}
+                        </span>
+                        <span className="text-xs text-slate-400 font-bold uppercase tracking-tighter">Alertas</span>
+                      </div>
+
+                      {/* Usabilidad (Score) */}
+                      <div className="hidden lg:flex justify-center">
+                        <span className={`gd-status-badge ${scoreBg} ${scoreColor} border text-xs`}>
+                          {score}
+                        </span>
+                      </div>
+
+                      {/* Estado del Plan */}
+                      <div className="hidden lg:flex justify-center">
+                        <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-black uppercase tracking-widest ${planStatusData.bg} ${planStatusData.text}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${planStatusData.dot}`} />
+                          {plan.status || 'Borrador'}
+                        </span>
+                      </div>
+
+                      {/* Flecha */}
+                      <div className="flex items-center justify-center text-slate-300 transition-all group-hover:text-navy group-hover:translate-x-1">
+                        <ArrowRight size={20} aria-hidden="true" />
+                      </div>
+                    </button>
 
                   <button
                     className="shrink-0 w-12 h-full min-h-[64px] flex items-center justify-center bg-transparent border-none text-slate-300 cursor-pointer p-0 transition-all hover:bg-red-50 hover:text-red-600 border-l border-transparent group-hover:border-slate-100"
@@ -333,13 +428,13 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
                     <Trash2 size={16} aria-hidden="true" />
                   </button>
                 </li>
-              ))}
-            </ul>
-
+                );
+                })}
+                </ul>
             {/* ── Paginación ── */}
             {totalPages > 1 && (
               <nav className="flex flex-wrap items-center justify-between gap-4 p-4 md:px-6 border-t border-slate-100 bg-slate-50/50" aria-label="Paginación de planes">
-                <span className="text-[0.8rem] font-bold text-slate-500 whitespace-nowrap uppercase tracking-wider" aria-live="polite">
+                <span className="text-sm font-bold text-slate-500 whitespace-nowrap uppercase tracking-wider" aria-live="polite">
                   {((currentPage - 1) * PAGE_SIZE) + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} de {filtered.length} planes
                 </span>
                 <div className="flex items-center gap-1.5">
@@ -419,7 +514,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
               return (
                 <div key={s} className={`rounded-2xl p-6 text-center flex flex-col gap-1 transition-transform hover:scale-[1.03] ${c.bg} ${c.text} shadow-lg shadow-black/5`}>
                   <span className="text-4xl font-black leading-none font-mono tracking-tighter">{global.sev[s] || 0}</span>
-                  <span className="text-[0.8rem] font-black uppercase tracking-widest mt-1 opacity-90">{s}</span>
+                  <span className="text-sm font-black uppercase tracking-widest mt-1 opacity-90">{s}</span>
                 </div>
               );
             })}

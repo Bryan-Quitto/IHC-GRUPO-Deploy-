@@ -30,17 +30,17 @@ export const SeveritySuggestion: React.FC<SeveritySuggestionProps> = ({
       role="status"
       aria-live="polite"
     >
-      <Sparkles size={12} className={c.text} aria-hidden="true" />
-      <span className={`text-[0.68rem] font-bold flex-1 ${c.text}`}>
+      <Sparkles size={14} className={c.text} aria-hidden="true" />
+      <span className={`text-xs font-bold flex-1 ${c.text}`}>
         Respuesta sugerida: <strong>{suggested}</strong>
       </span>
       <button
         type="button"
         onClick={onAccept}
-        className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[0.65rem] font-black border-none cursor-pointer transition-all ${c.bg} ${c.text} hover:brightness-90`}
+        className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-xs font-black border-none cursor-pointer transition-all ${c.bg} ${c.text} hover:brightness-90`}
         aria-label={`Aceptar severidad sugerida: ${suggested}`}
       >
-        <Check size={11} strokeWidth={3} />
+        <Check size={14} strokeWidth={3} />
         Aplicar
       </button>
       <button
@@ -49,7 +49,7 @@ export const SeveritySuggestion: React.FC<SeveritySuggestionProps> = ({
         className={`p-0.5 rounded border-none cursor-pointer bg-transparent ${c.text} hover:brightness-75`}
         aria-label="Descartar sugerencia de severidad"
       >
-        <X size={11} />
+        <X size={14} />
       </button>
     </div>
   );

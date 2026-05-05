@@ -1,5 +1,6 @@
 // src/models/types.ts
 export type DashboardTab = 'plan' | 'script' | 'observations' | 'findings' | 'reports';
+export type PlanStatus = 'Borrador' | 'Activo' | 'Completado';
 export type Severity = 'Baja' | 'Media' | 'Alta' | 'Crítica';
 export type Priority = 'Baja' | 'Media' | 'Alta';
 export type SuccessStatus = 'Sí' | 'No' | 'Con ayuda';
@@ -46,6 +47,7 @@ export interface TestPlan {
   observer: string;
   tools: string;
   link: string;
+  status?: PlanStatus;
   moderator_notes: string;
   closing_questions?: ClosingQuestion[];
   created_at?: string;

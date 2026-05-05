@@ -3,14 +3,31 @@
 // Accesibilidad: WCAG 2.1 AA · WAVE · Lighthouse >= 90
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { Observation, SuccessStatus, Severity } from '../models/types';
 import {
   Trash2, Plus, CheckCircle, RefreshCcw, ClipboardList,
   Check, X, ChevronDown, Info, Pencil,
 } from 'lucide-react';
 import AutoGrowTextarea from '../components/AutoGrowTextarea';
-import { FieldWarning, CharCounter, fieldClass } from '../components/FieldWarning';
+import CustomSelect from '../components/CustomSelect';
+import { FieldWarning } from '../components/FieldWarning';
+import { CharCounter } from '../components/CharCounter';
+import { fieldClass } from '../components/validation';
+
+// ... (existing constants)
+
+const SEVERITY_OPTIONS = [
+  { value: 'Baja', label: '🟢 Baja' },
+  { value: 'Media', label: '🟡 Media' },
+  { value: 'Alta', label: '🟠 Alta' },
+  { value: 'Crítica', label: '🔴 Crítica' }
+];
+
+const SUCCESS_OPTIONS = [
+  { value: 'Sí', label: '✅ Sí' },
+  { value: 'No', label: '❌ No' },
+  { value: 'Con ayuda', label: '🤝 Con ayuda' }
+];
 import { MAX_CHARS, clamp } from '../components/validation';
 import {
   suggestSeverity,
@@ -19,6 +36,7 @@ import {
 } from '../utils/observationsAnalysis';
 import { SeveritySuggestion } from '../components/SeveritySuggestion';
 import { SuggestionsInput } from '../components/SuggestionsInput';
+import { Tooltip } from '../components/Tooltip';
 
 interface ObservationsViewProps {
   data: Observation[];
@@ -68,46 +86,6 @@ function useWindowWidth() {
   return width;
 }
 
-const Tooltip: React.FC<{ text: string; children: React.ReactNode }> = ({ text, children }) => {
-  const [visible, setVisible] = useState(false);
-  const [coords, setCoords] = useState({ left: 0, top: 0 });
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const tipId = useRef(`tip-${Math.random().toString(36).slice(2)}`);
-
-  useEffect(() => {
-    if (visible && triggerRef.current) {
-      const r = triggerRef.current.getBoundingClientRect();
-      setCoords({ left: r.left + r.width / 2, top: r.top + window.scrollY - 8 });
-    }
-  }, [visible]);
-
-  return (
-    <div
-      ref={triggerRef}
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-      onFocus={() => setVisible(true)}
-      onBlur={() => setVisible(false)}
-      className="relative inline-flex items-center cursor-help"
-      aria-describedby={visible ? tipId.current : undefined}
-    >
-      {children}
-      {visible && createPortal(
-        <div
-          id={tipId.current}
-          role="tooltip"
-          className="absolute bg-slate-900 text-white px-3 py-2 rounded-lg text-[0.72rem] leading-snug w-[210px] z-[99999] shadow-xl text-center pointer-events-none font-medium"
-          style={{ left: coords.left, top: coords.top, transform: 'translate(-50%,-100%)' }}
-        >
-          {text}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-l-4 border-r-4 border-transparent border-t-4 border-t-slate-900" aria-hidden="true" />
-        </div>,
-        document.body,
-      )}
-    </div>
-  );
-};
-
 interface ReadEditCellProps {
   value: string;
   placeholder?: string;
@@ -153,10 +131,10 @@ const ReadEditCell: React.FC<ReadEditCellProps> = ({
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40
                      focus-visible:bg-slate-50 flex items-start gap-1.5 transition-colors"
         >
-          <span className={`flex-1 text-[0.82rem] leading-relaxed font-medium break-words whitespace-pre-wrap min-h-[1.4rem] ${value ? colorClass : 'text-slate-400 italic'}`}>
+          <span className={`flex-1 text-sm leading-relaxed font-medium break-words whitespace-pre-wrap min-h-[1.4rem] ${value ? colorClass : 'text-slate-400 italic'}`}>
             {value || placeholder}
           </span>
-          <Pencil size={12} className="mt-0.5 flex-shrink-0 text-slate-300 group-hover:text-slate-500 transition-colors" aria-hidden="true" />
+          <Pencil size={16} className="mt-0.5 flex-shrink-0 text-slate-300 group-hover:text-slate-500 transition-colors" aria-hidden="true" />
         </button>
       ) : isTextarea ? (
         <AutoGrowTextarea
@@ -234,16 +212,16 @@ const ObservationCard: React.FC<{
       aria-label={`Observación ${idx + 1}${obs.participant ? `, participante ${obs.participant}` : ''}`}
     >
       <div className={`${sStyle.bg} p-4 flex justify-between items-center flex-wrap gap-2`}>
-        <span className={`font-black ${sStyle.text} text-[0.85rem] uppercase tracking-tight`}>
+        <span className={`font-black ${sStyle.text} text-sm uppercase tracking-tight`}>
           Observación #{idx + 1}
         </span>
         <div className="flex gap-2 items-center flex-wrap" aria-label="Estado actual de la observación">
           {/* ── Éxito badge con color dinámico ─────────────────────────────── */}
-          <span className={`px-2.5 py-0.5 rounded-full ${okStyle.bg} ${okStyle.text} font-bold text-[0.72rem] border ${okStyle.border}`}>
+          <span className={`px-2.5 py-0.5 rounded-full ${okStyle.bg} ${okStyle.text} font-bold text-xs border ${okStyle.border}`}>
             {obs.success_level || 'Sí'}
           </span>
           {/* ── Severidad badge con color dinámico ─────────────────────────── */}
-          <span className={`px-2.5 py-0.5 rounded-md ${sStyle.bg} ${sStyle.text} font-bold text-[0.72rem] border ${sStyle.border}`}>
+          <span className={`px-2.5 py-0.5 rounded-md ${sStyle.bg} ${sStyle.text} font-bold text-xs border ${sStyle.border}`}>
             {obs.severity || 'Baja'}
           </span>
         </div>
@@ -254,7 +232,7 @@ const ObservationCard: React.FC<{
         <div className="grid grid-cols-[1fr_1fr_90px] gap-3">
           {/* Participante */}
           <div className="flex flex-col gap-1">
-            <label htmlFor={`m-participant-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">
+            <label htmlFor={`m-participant-${obs.id}`} className="font-black text-xs text-slate-600 uppercase tracking-widest">
               Participante&nbsp;<span aria-hidden="true">*</span><span className="sr-only">(requerido)</span>
             </label>
             <input id={`m-participant-${obs.id}`} type="text" maxLength={MAX_CHARS}
@@ -274,20 +252,16 @@ const ObservationCard: React.FC<{
             <label htmlFor={`m-profile-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">
               Perfil
             </label>
-            <select
+            <CustomSelect
               id={`m-profile-${obs.id}`}
               className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all font-medium"
               value={obs.profile || ''}
+              options={[{ value: '', label: '— Perfil —' }, ...PROFILE_OPTIONS.map(opt => ({ value: opt, label: opt }))]}
               onChange={e => {
                 onLocalChange(obs.id!, { profile: e.target.value });
                 onAction(() => onSave(obs.id!, { profile: e.target.value }));
               }}
-            >
-              <option value="">— Perfil —</option>
-              {PROFILE_OPTIONS.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Tarea */}
@@ -296,18 +270,12 @@ const ObservationCard: React.FC<{
               Tarea&nbsp;<span aria-hidden="true">*</span><span className="sr-only">(requerido)</span>
             </label>
             {tasks.length > 0 ? (
-              <select id={`m-task-${obs.id}`} aria-required="true" aria-invalid={warnTaskRef || undefined}
+              <CustomSelect id={`m-task-${obs.id}`} aria-required="true" aria-invalid={warnTaskRef || undefined}
                 className={fieldClass(warnTaskRef, 'w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all font-medium', 'error')}
                 value={obs.task_ref || ''}
+                options={[{ value: '', label: '— Tarea —' }, ...tasks.map(t => ({ value: t.task_index, label: `${t.task_index} – ${t.scenario || '(sin nombre)'}` }))]}
                 onChange={e => { touch('task_ref'); onLocalChange(obs.id!, { task_ref: e.target.value }); onAction(() => onSave(obs.id!, { task_ref: e.target.value })); }}
-              >
-                <option value="">— Tarea —</option>
-                {tasks.map(t => (
-                  <option key={t.task_index} value={t.task_index}>
-                    {t.task_index} – {t.scenario || '(sin nombre)'}
-                  </option>
-                ))}
-              </select>
+              />
             ) : (
               <input id={`m-task-${obs.id}`} type="text" maxLength={20} aria-required="true"
                 className={fieldClass(warnTaskRef, 'w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all', 'error')}
@@ -326,20 +294,17 @@ const ObservationCard: React.FC<{
           {/* Éxito — select con color dinámico (igual que desktop) */}
           <div className="flex flex-col gap-1">
             <label htmlFor={`m-success-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">Éxito</label>
-            <select id={`m-success-${obs.id}`}
+            <CustomSelect id={`m-success-${obs.id}`}
               className={`w-full p-2 border ${okStyle.border} rounded-lg text-sm ${okStyle.bg} ${okStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer`}
               value={obs.success_level}
+              options={SUCCESS_OPTIONS}
               onChange={e => {
                 const val = e.target.value as SuccessStatus;
                 onLocalChange(obs.id!, { success_level: val });
                 onAction(() => onSave(obs.id!, { success_level: val }));
                 setDismissedSugg(false);
               }}
-            >
-              <option value="Sí">✅ Sí</option>
-              <option value="No">❌ No</option>
-              <option value="Con ayuda">🤝 Con ayuda</option>
-            </select>
+            />
           </div>
 
           {/* Tiempo */}
@@ -366,7 +331,7 @@ const ObservationCard: React.FC<{
               placeholder="0"
             />
             {obs.errors > 2 && (
-              <span id={`m-err-warn-${obs.id}`} role="alert" className="text-[0.68rem] text-red-700 font-bold">
+              <span id={`m-err-warn-${obs.id}`} role="alert" className="text-sm text-red-700 font-bold">
                 Alto
               </span>
             )}
@@ -413,21 +378,17 @@ const ObservationCard: React.FC<{
         {/* ── Severidad — select con color dinámico (igual que desktop) ────── */}
         <div className="flex flex-col gap-1">
           <label htmlFor={`m-severity-${obs.id}`} className="font-black text-[0.7rem] text-slate-600 uppercase tracking-widest">Severidad</label>
-          <select id={`m-severity-${obs.id}`}
+          <CustomSelect id={`m-severity-${obs.id}`}
             className={`w-full p-2 border ${sStyle.border} rounded-lg text-sm ${sStyle.bg} ${sStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer`}
             value={obs.severity}
+            options={SEVERITY_OPTIONS}
             onChange={e => {
               const val = e.target.value as Severity;
               onLocalChange(obs.id!, { severity: val });
               onAction(() => onSave(obs.id!, { severity: val }));
               setDismissedSugg(true);
             }}
-          >
-            <option value="Baja">🟢 Baja</option>
-            <option value="Media">🟡 Media</option>
-            <option value="Alta">🟠 Alta</option>
-            <option value="Crítica">🔴 Crítica</option>
-          </select>
+          />
           {showSuggestion && (
             <SeveritySuggestion suggested={suggestedSev} current={obs.severity}
               onAccept={handleAcceptSeverity} onDismiss={() => setDismissedSugg(true)} />
@@ -523,7 +484,6 @@ const ObservationRow: React.FC<{
     handleLocalChange(obs.id!, { [field]: clamp(value) } as Partial<Observation>);
     setDismissedSugg(false);
   };
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   /*const save = (field: keyof Observation) => (value: string) => {
     touch(field as string);
     handleActionWithStatus(() => onSave(obs.id!, { [field]: value } as Partial<Observation>));
@@ -546,38 +506,28 @@ const ObservationRow: React.FC<{
 
       {/* ── PERFIL: combobox (desktop) ───────────────────────────────────── */}
       <td className="p-2 border-r border-slate-100 align-top min-w-[140px]">
-        <select
+        <CustomSelect
           aria-label={`Perfil, fila ${rowIndex + 1}`}
           className="w-full p-2 border border-slate-200 bg-slate-50 rounded-lg text-[0.82rem] font-medium focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 cursor-pointer transition-all"
           value={obs.profile || ''}
+          options={[{ value: '', label: '— Perfil —' }, ...PROFILE_OPTIONS.map(opt => ({ value: opt, label: opt }))]}
           onChange={e => {
             handleLocalChange(obs.id!, { profile: e.target.value });
             handleActionWithStatus(() => onSave(obs.id!, { profile: e.target.value }));
           }}
-        >
-          <option value="">— Perfil —</option>
-          {PROFILE_OPTIONS.map(opt => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
+        />
       </td>
 
       {/* Tarea */}
       <td className="p-2 border-r border-slate-100 align-top w-[140px]">
         {tasks.length > 0 ? (
-          <select
+          <CustomSelect
             aria-label={`Tarea, fila ${rowIndex + 1}`} aria-required="true"
             className={fieldClass(warnTaskRef, 'w-full p-2 border border-slate-200 bg-slate-50 rounded-lg text-sm focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 font-mono font-bold', 'error')}
             value={obs.task_ref || ''}
+            options={[{ value: '', label: '—' }, ...tasks.map(t => ({ value: t.task_index, label: `${t.task_index} – ${t.scenario || '(sin nombre)'}` }))]}
             onChange={e => { touch('task_ref'); handleLocalChange(obs.id!, { task_ref: e.target.value }); handleActionWithStatus(() => onSave(obs.id!, { task_ref: e.target.value })); }}
-          >
-            <option value="">—</option>
-            {tasks.map(t => (
-              <option key={t.task_index} value={t.task_index}>
-                {t.task_index} – {t.scenario || '(sin nombre)'}
-              </option>
-            ))}
-          </select>
+          />
         ) : (
           <ReadEditCell value={obs.task_ref || ''} placeholder="T1" colorClass="text-slate-800 font-mono"
             isTextarea={false} maxLength={20} ariaLabel="Referencia de tarea"
@@ -590,21 +540,18 @@ const ObservationRow: React.FC<{
 
       {/* Éxito */}
       <td className="p-2 border-r border-slate-100 align-top min-w-[155px]">
-        <select
+        <CustomSelect
           aria-label={`Éxito de la tarea, fila ${rowIndex + 1}`}
           className={`w-full p-2 border ${okStyle.border} rounded-lg text-[0.82rem] ${okStyle.bg} ${okStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer shadow-sm`}
           value={obs.success_level}
+          options={SUCCESS_OPTIONS}
           onChange={e => {
             const val = e.target.value as SuccessStatus;
             handleLocalChange(obs.id!, { success_level: val });
             handleActionWithStatus(() => onSave(obs.id!, { success_level: val }));
             setDismissedSugg(false);
           }}
-        >
-          <option value="Sí">✅ Sí</option>
-          <option value="No">❌ No</option>
-          <option value="Con ayuda">🤝 Con ayuda</option>
-        </select>
+        />
       </td>
 
       {/* Tiempo */}
@@ -629,7 +576,7 @@ const ObservationRow: React.FC<{
           placeholder="0"
         />
         {obs.errors > 2 && (
-          <span id={`err-high-${obs.id}`} role="alert" className="text-[0.65rem] text-red-700 font-bold mt-0.5 block">Alto</span>
+          <span id={`err-high-${obs.id}`} role="alert" className="text-sm text-red-700 font-bold mt-0.5 block">Alto</span>
         )}
       </td>
 
@@ -657,7 +604,7 @@ const ObservationRow: React.FC<{
           onBlurSave={v => { touch('problem'); handleActionWithStatus(() => onSave(obs.id!, { problem: v })); }}
         />
         {isProblemRequired && !obs.problem && (
-          <span className="text-[0.65rem] text-red-700 font-bold mt-0.5 block" role="note">
+          <span className="text-sm text-red-700 font-bold mt-0.5 block" role="note">
             Requerido (si el éxito es No)
           </span>
         )}
@@ -666,21 +613,17 @@ const ObservationRow: React.FC<{
 
       {/* Severidad */}
       <td className="p-2 text-center border-r border-slate-100 align-top min-w-[150px]">
-        <select aria-label={`Severidad, fila ${rowIndex + 1}`}
+        <CustomSelect aria-label={`Severidad, fila ${rowIndex + 1}`}
           className={`w-full p-2 border ${sStyle.border} rounded-lg text-[0.78rem] ${sStyle.bg} ${sStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer shadow-sm`}
           value={obs.severity}
+          options={SEVERITY_OPTIONS}
           onChange={e => {
             const val = e.target.value as Severity;
             handleLocalChange(obs.id!, { severity: val });
             handleActionWithStatus(() => onSave(obs.id!, { severity: val }));
             setDismissedSugg(true);
           }}
-        >
-          <option value="Baja">🟢 Baja</option>
-          <option value="Media">🟡 Media</option>
-          <option value="Alta">🟠 Alta</option>
-          <option value="Crítica">🔴 Crítica</option>
-        </select>
+        />
         {showSuggestion && (
           <SeveritySuggestion suggested={suggestedSev} current={obs.severity}
             onAccept={handleAcceptSeverity} onDismiss={() => setDismissedSugg(true)} />
@@ -777,10 +720,10 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
         >
           {isSaving
             ? <span className="flex items-center gap-1.5 text-white animate-pulse">
-              <RefreshCcw size={14} className="animate-spin" aria-hidden="true" /> Guardando…
+              <RefreshCcw size={16} className="animate-spin" aria-hidden="true" /> Guardando…
             </span>
             : <span className="flex items-center gap-1.5 text-emerald-300 font-bold">
-              <CheckCircle size={14} aria-hidden="true" /> Cambios guardados
+              <CheckCircle size={16} aria-hidden="true" /> Cambios guardados
             </span>
           }
         </div>
@@ -812,7 +755,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
             {isMobile && (
               <section aria-labelledby="obs-cards-heading">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 id="obs-cards-heading" className="text-[0.9rem] font-black text-navy uppercase tracking-widest flex items-center gap-2 m-0">
+                  <h2 id="obs-cards-heading" className="text-sm font-black text-navy uppercase tracking-widest flex items-center gap-2 m-0">
                     <span className="w-2 h-6 bg-navy rounded-full" aria-hidden="true" />
                     Observaciones
                   </h2>
@@ -822,10 +765,10 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                       aria-label="Ordenar observaciones por severidad"
                       aria-expanded={showSortMenu}
                       aria-haspopup="listbox"
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.72rem] font-black uppercase tracking-wider border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 transition-all ${sortMode !== 'default' ? 'bg-navy text-white border-navy' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 transition-all ${sortMode !== 'default' ? 'bg-navy text-white border-navy' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
                     >
                       Severidad
-                      <ChevronDown size={14} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
+                      <ChevronDown size={16} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
                     </button>
                     {showSortMenu && (
                       <>
@@ -837,7 +780,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                             <li key={m} role="option" aria-selected={sortMode === m}>
                               <button type="button"
                                 onClick={() => { setSortMode(m); setShowSortMenu(false); }}
-                                className={`w-full text-left px-3 py-2 text-[0.72rem] font-bold hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-100 transition-colors ${sortMode === m ? 'text-navy bg-slate-50' : 'text-slate-700'}`}
+                                className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-100 transition-colors ${sortMode === m ? 'text-navy bg-slate-50' : 'text-slate-700'}`}
                               >
                                 {m === 'desc' ? 'Descendente' : m === 'asc' ? 'Ascendente' : 'Sin orden'}
                               </button>
@@ -886,12 +829,12 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                       Tabla de observaciones del test de usabilidad. Haz clic en cualquier celda de texto para editarla. Usa Tab para navegar entre campos.
                     </caption>
                     <thead>
-                      <tr className="bg-slate-50 text-slate-600 text-[0.7rem] font-black uppercase tracking-[0.08em] border-b border-slate-200">
+                      <tr className="bg-slate-50 text-slate-600 text-xs font-black uppercase tracking-[0.08em] border-b border-slate-200">
                         <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[100px]">
                           <Tooltip text="Código o nombre del participante en la sesión.">
                             <span className="flex items-center gap-1">
                               Participante <span aria-hidden="true">*</span>
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -899,7 +842,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Nivel educativo o perfil del participante.">
                             <span className="flex items-center gap-1">
                               Perfil
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -907,7 +850,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Tarea del plan que se evaluó en esta sesión.">
                             <span className="flex items-center justify-center gap-1">
                               Tarea <span aria-hidden="true">*</span>
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -915,7 +858,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Si el participante completó la tarea: Sí, No, o Con ayuda del moderador.">
                             <span className="flex items-center justify-center gap-1">
                               Éxito
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -923,7 +866,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Tiempo en segundos que tardó en completar o fallar la tarea.">
                             <span className="flex items-center justify-center gap-1">
                               Tiempo
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -931,7 +874,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Número de errores o acciones incorrectas cometidas durante la tarea.">
                             <span className="flex items-center justify-center gap-1">
                               Errores
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -939,7 +882,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Lo más relevante observado durante la sesión. Clic para editar.">
                             <span className="flex items-center gap-1">
                               Comentarios <span aria-hidden="true">*</span>
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -947,7 +890,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Problema de usabilidad detectado. Obligatorio si el éxito es No. Clic para editar.">
                             <span className="flex items-center gap-1">
                               Problema
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>
@@ -956,7 +899,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                             <Tooltip text="Impacto del problema en la experiencia del usuario.">
                               <span className="flex items-center gap-1">
                                 Severidad
-                                <Info size={11} className="text-slate-400" aria-hidden="true" />
+                                <Info size={16} className="text-slate-400" aria-hidden="true" />
                               </span>
                             </Tooltip>
                             <div className="relative ml-1">
@@ -967,7 +910,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                                 aria-haspopup="listbox"
                                 className={`p-1 rounded-md hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 flex items-center transition-all ${sortMode !== 'default' ? 'text-navy bg-slate-100' : 'text-slate-400'}`}
                               >
-                                <ChevronDown size={13} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
+                                <ChevronDown size={16} className={`transition-transform duration-300 ${showSortMenu ? 'rotate-180' : ''}`} aria-hidden="true" />
                               </button>
                               {showSortMenu && (
                                 <>
@@ -979,7 +922,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                                       <li key={m} role="option" aria-selected={sortMode === m}>
                                         <button type="button"
                                           onClick={() => { setSortMode(m); setShowSortMenu(false); }}
-                                          className={`w-full text-left px-3 py-2 text-[0.72rem] font-bold hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-100 transition-colors ${sortMode === m ? 'text-navy bg-slate-50' : 'text-slate-700'}`}
+                                          className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-50 focus-visible:outline-none focus-visible:bg-slate-100 transition-colors ${sortMode === m ? 'text-navy bg-slate-50' : 'text-slate-700'}`}
                                         >
                                           {m === 'desc' ? 'Descendente' : m === 'asc' ? 'Ascendente' : 'Sin orden'}
                                         </button>
@@ -995,7 +938,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                           <Tooltip text="Propuesta de mejora de diseño para el problema. Clic para editar.">
                             <span className="flex items-center gap-1">
                               Mejora propuesta
-                              <Info size={11} className="text-slate-400" aria-hidden="true" />
+                              <Info size={16} className="text-slate-400" aria-hidden="true" />
                             </span>
                           </Tooltip>
                         </th>

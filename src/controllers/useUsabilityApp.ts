@@ -26,7 +26,7 @@ export const useUsabilityApp = () => {
     product: '', module: '', objective: '', 
     user_profile: '', method: '', duration: '', test_date: '', location_channel: '',
     moderator: '', observer: '',
-    tools: '', link: '', moderator_notes: '',
+    tools: '', link: '', status: 'Borrador', moderator_notes: '',
     closing_questions: [
       { question: "¿Qué fue lo más fácil?", answer: "" },
       { question: "¿Qué fue lo más confuso?", answer: "" },
@@ -106,7 +106,7 @@ export const useUsabilityApp = () => {
     return () => {
       isMounted = false;
     };
-  }, [user?.id]); // Usamos user.id como dependencia específica para evitar re-cargas por cambios de referencia del objeto user
+  }, [user, allPlans.length]); // Incluimos user y allPlans.length para evitar la advertencia de dependencias de React Hook
 
   // ── Seleccionar un plan y cargar sus datos ────────────────────────────
   const loadFullPlanById = useCallback(async (id: string) => {
@@ -184,6 +184,7 @@ export const useUsabilityApp = () => {
 
     // Limpiar el objeto para Supabase
     // Extraemos campos que NO deben ir en el cuerpo (metadatos o calculados)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, created_at, ...rest } = fullPlan;
 
     // Preparar data asegurando tipos compatibles con Postgres
@@ -232,7 +233,9 @@ export const useUsabilityApp = () => {
       }
     } catch (err) {
       console.error("Error crítico al guardar el plan:", err);
-      // Opcional: podrías añadir un estado de error global aquí
+      if (err instanceof Error) {
+        console.error("Mensaje de error:", err.message);
+      }
       return null;
     }
     return null;

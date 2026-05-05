@@ -1,12 +1,10 @@
 import React, { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 
-interface AutoGrowTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
-
 /**
  * Componente Textarea que ajusta su altura automáticamente según el contenido.
  * Crece hasta un máximo de 5 líneas y luego activa el scroll interno.
  */
-const AutoGrowTextarea = forwardRef<HTMLTextAreaElement, AutoGrowTextareaProps>(
+const AutoGrowTextarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
   ({ className = '', onChange, ...props }, ref) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
