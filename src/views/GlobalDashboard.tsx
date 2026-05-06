@@ -233,8 +233,8 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
       </section>
 
       {/* ══ LISTA DE PLANES ══ */}
-      <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6" aria-labelledby="gd-plans-title">
-        <div className="flex flex-wrap justify-between items-center gap-4 p-4 md:px-6 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
+      <section className="bg-white border border-slate-200 rounded-xl shadow-sm mb-6" aria-labelledby="gd-plans-title">
+        <div className="flex flex-wrap justify-between items-center gap-4 p-4 md:px-6 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 rounded-t-xl">
           <div className="flex items-center gap-3">
             <h3 id="gd-plans-title" className="flex items-center gap-2 text-[0.9rem] font-extrabold text-navy uppercase tracking-wider text-nowrap">
               <BarChart2 size={18} aria-hidden="true" /> Todos los planes
@@ -296,7 +296,8 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
           </div>
         </div>
 
-        {loading ? (
+        <div className="rounded-b-xl overflow-hidden">
+          {loading ? (
           <div className="p-6 space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="h-[60px] bg-slate-50 rounded-lg animate-pulse" />
@@ -500,6 +501,7 @@ export const GlobalDashboard: React.FC<GlobalDashboardProps> = ({
             )}
           </>
         )}
+        </div>
       </section>
 
       {/* ══ SEVERIDAD GLOBAL ══ */}
