@@ -1,0 +1,143 @@
+# ============================================================
+# docker-compose.yml — IHC-GRUPO Backend IA
+# Conecta con Supabase EXISTENTE (no recrea Supabase)
+# ============================================================
+version: "3.9"
+
+# ============================================================
+# NETWORKS
+# ============================================================
+networks:
+  ihc-backend-network:
+    driver: bridge
+    name: ihc-backend-network
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+# ============================================================
+# VOLUMES
+# ============================================================
+volumes:
+  deno-cache:
+    name: ihc-deno-cache
+    driver: local
+  supabase-functions-cache:
+    name: ihc-functions-cache
+    driver: local
+
+# ============================================================
+# SERVICES
+# ============================================================
+services:
+
+  # ----------------------------------------------------------
+  # SERVICIO PRINCIPAL: Edge Functions Runner
+  # ----------------------------------------------------------
+  ai-functions-runner:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      #target: development    # Cambiar a 'production' para deploy
+    container_name: ihc-ai-functions-runner
+    restart: unless-stopped
+
+    # Variables de entorno del contenedor
+    environment:
+      # Supabase — apunta al proyecto EXISTENTE, no local
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+
+      # Gemini AI
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+      # Configuración de la Edge Function
+      FUNCTION_TIMEOUT_MS: ${FUNCTION_TIMEOUT_MS:-30000}
+      MAX_RETRIES: ${MAX_RETRIES:-3}
+      NODE_ENV: ${NODE_ENV:-development}
+
+      # Deno
+      DENO_DIR: /deno-cache
+      DENO_NO_UPDATE_CHECK: 1
+
+    # Puertos expuestos
+    ports:
+      - "8000:8000"   # Supabase Functions API
+      - "54322:54322"   # Supabase Functions Inspector
+      - "54323:54323"   # Supabase Functions Debug
+
+    # Volúmenes montados
+    volumes:
+      # Hot reload: monta código fuente directamente
+      - ../supabase/functions:/app/supabase/functions:ro
+      # Cache de Deno para evitar re-downloads
+      - deno-cache:/deno-cache
+      # Variables de entorno locales
+      - ../.env.local:/app/.env.local:ro
+
+    # Networking
+    networks:
+      ihc-backend-network:
+        ipv4_address: 172.20.0.10
+
+    # Healthcheck
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - -X
+        - POST
+        - http://localhost:8000/
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    # Logging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Límites de recursos
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+
+  # ----------------------------------------------------------
+  # SERVICIO AUXILIAR: Monitor de logs en tiempo real
+  # ----------------------------------------------------------
+  log-monitor:
+    image: amir20/dozzle:latest
+    container_name: ihc-log-monitor
+    restart: unless-stopped
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    ports:
+      - "9999:8080"   # UI de logs en http://localhost:9999
+
+    networks:
+      ihc-backend-network:
+        ipv4_address: 172.20.0.11
+
+    environment:
+      DOZZLE_FILTER: name=ihc-ai-functions-runner
+
+    depends_on:
+      - ai-functions-runner
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"

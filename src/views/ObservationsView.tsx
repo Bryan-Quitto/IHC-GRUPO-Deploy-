@@ -14,7 +14,6 @@ import { FieldWarning } from '../components/FieldWarning';
 import { CharCounter } from '../components/CharCounter';
 import { fieldClass } from '../components/validation';
 
-// ... (existing constants)
 
 const SEVERITY_OPTIONS = [
   { value: 'Baja', label: '🟢 Baja' },
@@ -37,6 +36,9 @@ import {
 import { SeveritySuggestion } from '../components/SeveritySuggestion';
 import { SuggestionsInput } from '../components/SuggestionsInput';
 import { Tooltip } from '../components/Tooltip';
+
+import { useAIAnalysis } from "../controllers/useAIAnalysis";
+import type { AIAnalysisRequest } from "../controllers/useAIAnalysis";
 
 interface ObservationsViewProps {
   data: Observation[];
@@ -689,12 +691,64 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
   const [showSortMenu, setShowSortMenu] = useState(false);
   const isProductEmpty = !productName || productName.trim() === '';
 
+  const { analyze, isLoading, result, error } = useAIAnalysis();
+
   const handleActionWithStatus = (fn: () => void) => {
     setIsSaving(true); fn(); setTimeout(() => setIsSaving(false), 800);
   };
 
   const handleLocalChange = (id: string, updates: Partial<Observation>) => {
     onSync(data.map(o => o.id === id ? { ...o, ...updates } : o));
+  };
+
+  const handleAIAnalysis = async () => {
+    const request: AIAnalysisRequest = {
+      projectName: productName || "Proyecto sin nombre",
+
+      testPlan: {
+        objective: "Evaluación de usabilidad",
+        method: "Prueba de usabilidad",
+      },
+
+      observations: data.map((obs) => ({
+        participant: obs.participant || "Sin participante",
+
+        task: obs.task_ref || "Sin tarea",
+
+        issue:
+          obs.problem ||
+          obs.comments ||
+          "Sin descripción",
+
+        severity: obs.severity || "Media",
+
+        notes: obs.proposal || "",
+      })),
+
+      metrics: {
+        taskSuccess:
+          data.length > 0
+            ? Math.round(
+                (data.filter(o => o.success_level === 'Sí').length / data.length) * 100
+              )
+            : 0,
+
+        averageTime:
+          data.length > 0
+            ? Math.round(
+                data.reduce((acc, o) => acc + (o.time_seconds || 0), 0) / data.length
+              )
+            : 0,
+
+        satisfaction: 3.5,
+      },
+    };
+
+    const aiResult = await analyze(request);
+
+    if (aiResult) {
+      console.log("Análisis IA completado:", aiResult);
+    }
   };
 
   const displayData = useMemo(() => {
@@ -811,6 +865,21 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                   aria-label="Añadir nueva observación"
                   className="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl mt-4 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 transition-all"
                 >
+
+                  <button
+                    type="button"
+                    onClick={handleAIAnalysis}
+                    disabled={isLoading || data.length === 0}
+                    className="inline-flex items-center gap-2 bg-navy hover:bg-navy-dark text-white border-none px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg ml-3 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 transition-all"
+                  >
+                    {isLoading ? "Analizando..." : "Analizar con IA"}
+                  </button>
+                  {error && (
+                    <p className="text-red-600 font-semibold mt-3">
+                      {error}
+                    </p>
+                  )}
+
                   <Plus size={20} aria-hidden="true" /> Añadir Observación
                 </button>
               </section>
@@ -977,6 +1046,19 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                     aria-label="Añadir nueva observación a la tabla"
                     className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 transition-all"
                   >
+                  <button
+                    type="button"
+                    onClick={handleAIAnalysis}
+                    disabled={isLoading || data.length === 0}
+                    className="inline-flex items-center justify-center gap-2 w-full bg-navy hover:bg-navy-dark text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl mt-3 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 transition-all"
+                  >
+                    {isLoading ? "Analizando..." : "Analizar con IA"}
+                  </button>
+                  {error && (
+                    <p className="text-red-600 font-semibold mt-3 text-center">
+                      {error}
+                    </p>
+                  )}
                     <Plus size={20} aria-hidden="true" /> Añadir Observación
                   </button>
                 </div>
