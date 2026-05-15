@@ -80,3 +80,5 @@ export interface Finding {
   status: TaskStatus;
   is_favorite?: boolean;
 }
+
+export type { UsabilityObservation, ProposedSolution, UsabilityAnalysisRequest, UsabilityAnalysisResult } from './usabilityModels';
