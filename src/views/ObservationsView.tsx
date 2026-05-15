@@ -13,6 +13,7 @@ import CustomSelect from '../components/CustomSelect';
 import { FieldWarning } from '../components/FieldWarning';
 import { CharCounter } from '../components/CharCounter';
 import { fieldClass } from '../components/validation';
+import type { ObservationSeverity } from "../models/usabilityModels";
 
 
 const SEVERITY_OPTIONS = [
@@ -36,9 +37,10 @@ import {
 import { SeveritySuggestion } from '../components/SeveritySuggestion';
 import { SuggestionsInput } from '../components/SuggestionsInput';
 import { Tooltip } from '../components/Tooltip';
-
 import { useAIAnalysis } from "../controllers/useAIAnalysis";
-import type { AIAnalysisRequest } from "../controllers/useAIAnalysis";
+//import type { AIAnalysisRequest } from "../controllers/useAIAnalysis";
+import { AIAnalysisPanel } from "../components/AIAnalysisPanel";
+import { ResultsView } from "./ResultsView";
 
 interface ObservationsViewProps {
   data: Observation[];
@@ -136,7 +138,7 @@ const ReadEditCell: React.FC<ReadEditCellProps> = ({
           <span className={`flex-1 text-sm leading-relaxed font-medium break-words whitespace-pre-wrap min-h-[1.4rem] ${value ? colorClass : 'text-slate-400 italic'}`}>
             {value || placeholder}
           </span>
-          <Pencil size={16} className="mt-0.5 flex-shrink-0 text-slate-300 group-hover:text-slate-500 transition-colors" aria-hidden="true" />
+          <Pencil size={16} className="mt-0.5 shrink-0 text-slate-300 group-hover:text-slate-500 transition-colors" aria-hidden="true" />
         </button>
       ) : isTextarea ? (
         <AutoGrowTextarea
@@ -486,11 +488,7 @@ const ObservationRow: React.FC<{
     handleLocalChange(obs.id!, { [field]: clamp(value) } as Partial<Observation>);
     setDismissedSugg(false);
   };
-  /*const save = (field: keyof Observation) => (value: string) => {
-    touch(field as string);
-    handleActionWithStatus(() => onSave(obs.id!, { [field]: value } as Partial<Observation>));
-  };
-  */
+
   return (
     <tr
       className="hover:bg-slate-50/60 transition-colors border-b border-slate-100 last:border-0"
@@ -689,9 +687,10 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [sortMode, setSortMode] = useState<'desc' | 'asc' | 'default'>('default');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const isProductEmpty = !productName || productName.trim() === '';
 
-  const { analyze, isLoading, result, error } = useAIAnalysis();
+  const { analyze, isLoading, result, error, clearResult } = useAIAnalysis();
 
   const handleActionWithStatus = (fn: () => void) => {
     setIsSaving(true); fn(); setTimeout(() => setIsSaving(false), 800);
@@ -701,55 +700,55 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
     onSync(data.map(o => o.id === id ? { ...o, ...updates } : o));
   };
 
-  const handleAIAnalysis = async () => {
-    const request: AIAnalysisRequest = {
-      projectName: productName || "Proyecto sin nombre",
+const handleAIAnalysis = async () => {
+  const analysisRequest = {
+    projectName: productName || "Proyecto sin nombre",
+    testPlan: {
+      objective: "Evaluación de usabilidad",
+      method: "Prueba de usabilidad",
+    },
+    observations: data.map((obs) => {
+      const taskLabel = obs.task_ref
+        ? tasks.find(t => t.task_index === obs.task_ref)
+          ? `${obs.task_ref} - ${tasks.find(t => t.task_index === obs.task_ref)!.scenario}`
+          : obs.task_ref.trim().length >= 3
+            ? obs.task_ref
+            : `Tarea ${obs.task_ref}`
+        : "Tarea sin especificar";
 
-      testPlan: {
-        objective: "Evaluación de usabilidad",
-        method: "Prueba de usabilidad",
-      },
+      const issueText =
+        (obs.problem && obs.problem.trim().length >= 3 ? obs.problem : null) ||
+        (obs.comments && obs.comments.trim().length >= 3 ? obs.comments : null) ||
+        "Observación registrada";
 
-      observations: data.map((obs) => ({
-        participant: obs.participant || "Sin participante",
-
-        task: obs.task_ref || "Sin tarea",
-
-        issue:
-          obs.problem ||
-          obs.comments ||
-          "Sin descripción",
-
-        severity: obs.severity || "Media",
-
-        notes: obs.proposal || "",
-      })),
-
-      metrics: {
-        taskSuccess:
-          data.length > 0
-            ? Math.round(
-                (data.filter(o => o.success_level === 'Sí').length / data.length) * 100
-              )
-            : 0,
-
-        averageTime:
-          data.length > 0
-            ? Math.round(
-                data.reduce((acc, o) => acc + (o.time_seconds || 0), 0) / data.length
-              )
-            : 0,
-
-        satisfaction: 3.5,
-      },
-    };
-
-    const aiResult = await analyze(request);
-
-    if (aiResult) {
-      console.log("Análisis IA completado:", aiResult);
-    }
+      return {
+        participant: obs.participant || "Participante",
+        task: taskLabel,
+        issue: issueText,
+        severity: obs.severity as ObservationSeverity,
+      };
+    }),
+    metrics: {
+      taskSuccess:
+        data.length > 0
+          ? Math.round((data.filter(o => o.success_level === 'Sí').length / data.length) * 100)
+          : 0,
+      averageTime:
+        data.length > 0
+          ? Math.round(data.reduce((acc, o) => acc + (o.time_seconds || 0), 0) / data.length)
+          : 0,
+      satisfaction: 3.5,
+    },
   };
+
+  const aiResult = await analyze(analysisRequest);
+
+  if (aiResult) {
+    console.log("Análisis IA completado:", aiResult);
+    setTimeout(() => setShowResults(true), 500);
+  }
+};
+
 
   const displayData = useMemo(() => {
     if (sortMode === 'default') return data;
@@ -762,7 +761,6 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
 
   return (
     <div className="animate-in fade-in duration-500">
-
       {/* Header */}
       <header className="flex items-center justify-between bg-navy text-white p-4 md:px-6 rounded-xl mb-4 shadow-md min-h-[70px] gap-4">
         <div className="flex-1" aria-hidden="true" />
@@ -861,27 +859,29 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                   </div>
                 )}
 
-                <button type="button" onClick={onAdd} disabled={!planId}
-                  aria-label="Añadir nueva observación"
-                  className="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl mt-4 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 transition-all"
-                >
+                <div className="flex gap-3 flex-col">
+                  <button type="button" onClick={onAdd} disabled={!planId}
+                    aria-label="Añadir nueva observación"
+                    className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 transition-all"
+                  >
+                    <Plus size={20} aria-hidden="true" /> Añadir Observación
+                  </button>
 
                   <button
                     type="button"
                     onClick={handleAIAnalysis}
                     disabled={isLoading || data.length === 0}
-                    className="inline-flex items-center gap-2 bg-navy hover:bg-navy-dark text-white border-none px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg ml-3 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 transition-all"
+                    className="inline-flex items-center justify-center gap-2 w-full bg-navy hover:bg-navy-dark text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 transition-all"
                   >
-                    {isLoading ? "Analizando..." : "Analizar con IA"}
+                    {isLoading ? "Analizando..." : "🤖 Analizar con IA"}
                   </button>
+
                   {error && (
-                    <p className="text-red-600 font-semibold mt-3">
+                    <p className="text-red-600 font-semibold text-center">
                       {error}
                     </p>
                   )}
-
-                  <Plus size={20} aria-hidden="true" /> Añadir Observación
-                </button>
+                </div>
               </section>
             )}
 
@@ -1041,32 +1041,71 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
                   </table>
                 </div>
 
-                <div className="p-4 px-6 bg-slate-50 border-t border-slate-200 rounded-b-xl">
+                <div className="p-4 px-6 bg-slate-50 border-t border-slate-200 rounded-b-xl flex gap-3 flex-col">
                   <button type="button" onClick={onAdd} disabled={!planId}
                     aria-label="Añadir nueva observación a la tabla"
                     className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 transition-all"
                   >
+                    <Plus size={20} aria-hidden="true" /> Añadir Observación
+                  </button>
+
                   <button
                     type="button"
                     onClick={handleAIAnalysis}
                     disabled={isLoading || data.length === 0}
-                    className="inline-flex items-center justify-center gap-2 w-full bg-navy hover:bg-navy-dark text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl mt-3 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 transition-all"
+                    className="inline-flex items-center justify-center gap-2 w-full bg-navy hover:bg-navy-dark text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 transition-all"
                   >
-                    {isLoading ? "Analizando..." : "Analizar con IA"}
+                    {isLoading ? "Analizando..." : "🤖 Analizar con IA"}
                   </button>
+
                   {error && (
-                    <p className="text-red-600 font-semibold mt-3 text-center">
+                    <p className="text-red-600 font-semibold text-center">
                       {error}
                     </p>
                   )}
-                    <Plus size={20} aria-hidden="true" /> Añadir Observación
-                  </button>
                 </div>
               </section>
             )}
           </>
         )}
       </div>
+
+      {/* Panel de Análisis Flotante */}
+      <AIAnalysisPanel
+        isLoading={isLoading}
+        result={result}
+        error={error}
+        onClose={() => clearResult()}
+        onViewDetails={() => setShowResults(true)}
+      />
+
+      {/* Modal de Resultados Completos */}
+      {showResults && result && (
+        <div className="fixed inset-0 bg-black/40 z-[999] p-4 overflow-y-auto">
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full my-8">
+              <div className="p-6 border-b border-slate-200 flex justify-between items-center sticky top-0 bg-white rounded-t-2xl">
+                <h2 className="font-black text-lg text-slate-900">Análisis Detallado</h2>
+                <button
+                  onClick={() => setShowResults(false)}
+                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                  aria-label="Cerrar análisis"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+                <ResultsView
+                  result={result}
+                  isLoading={false}
+                  error={null}
+                  onBack={() => setShowResults(false)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
