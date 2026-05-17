@@ -12,18 +12,18 @@ import { SYSTEM_PROMPT } from "./systemPrompt.ts";
 // ============================================================
 
 const MODEL_CONFIG = {
-  model: "gemini-2.5-flash",
-  maxOutputTokens: 4096,              // Suficiente para respuesta JSON completa
-  temperature: 0.2,                   // Baja para respuestas consistentes y técnicas
-  topP: 0.8,                          // Diversidad controlada
-  topK: 40,                           // Top-K sampling
+  model: Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash",
+  maxOutputTokens: parseInt(Deno.env.get("MAX_OUTPUT_TOKENS") || "30000"),
+  temperature: parseFloat(Deno.env.get("TEMPERATURE") || "0.2"),
+  topP: parseFloat(Deno.env.get("TOP_P") || "0.8"),
+  topK: parseInt(Deno.env.get("TOP_K") || "40"),
 };
 
 const RETRY_CONFIG = {
-  maxRetries: 3,
-  baseDelayMs: 1000,                  // 1 segundo inicial
-  maxDelayMs: 8000,                   // Máximo 8 segundos
-  timeoutMs: 28000,                   // 28s (Edge Function tiene límite de 30s)
+  maxRetries: parseInt(Deno.env.get("MAX_RETRIES") || "3"),
+  baseDelayMs: parseInt(Deno.env.get("RETRY_BASE_DELAY_MS") || "1000"),
+  maxDelayMs: parseInt(Deno.env.get("RETRY_MAX_DELAY_MS") || "8000"),
+  timeoutMs: parseInt(Deno.env.get("FUNCTION_TIMEOUT_MS") || "28000"),
 };
 
 // ============================================================

@@ -78,12 +78,12 @@ export const AIAnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   // Sobrescribimos analyzeFromRequest para interceptar el planId del contexto
-  const analyzeFromRequest: UsabilityControllerType['analyzeFromRequest'] = async (request) => {
+  const analyzeFromRequest: UsabilityControllerType['analyzeFromRequest'] = async (request, rawObservations) => {
     if (request.context?.includes('planId:')) {
       const planId = request.context.split('planId:')[1];
       setCurrentPlanId(planId || null);
     }
-    return await controller.analyzeFromRequest(request);
+    return await controller.analyzeFromRequest(request, rawObservations);
   };
 
   return (

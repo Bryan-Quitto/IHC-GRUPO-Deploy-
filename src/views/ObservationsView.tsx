@@ -787,7 +787,7 @@ const handleAIAnalysis = async () => {
     context: planId ? `planId:${planId}` : undefined,
   };
 
-  const aiResult = await analyze(analysisRequest);
+  const aiResult = await analyze(analysisRequest, data);
 
   if (aiResult) {
     console.log("Análisis IA completado:", aiResult);

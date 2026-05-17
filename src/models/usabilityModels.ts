@@ -145,3 +145,22 @@ export interface AnalysisControllerState {
   error: AnalysisError | null;
   lastAnalyzedAt: Date | null;
 }
+
+// ----------------------------------------------------------
+// Historial de Análisis
+// ----------------------------------------------------------
+
+import type { Observation } from './types';
+
+export interface AnalysisHistoryItem {
+  id: string;
+  created_at: string;
+  test_plan_id: string;
+  profile_id: string;
+  project_name: string;
+  title?: string;
+  request_data: UsabilityAnalysisRequest;
+  result_data: UsabilityAnalysisResult;
+  metrics: UsabilityMetrics;
+  observations_snapshot?: Observation[];
+}

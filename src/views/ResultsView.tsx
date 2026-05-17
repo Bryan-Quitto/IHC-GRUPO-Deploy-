@@ -9,16 +9,20 @@ import {
   Info,
   TrendingUp,
   History as HistoryIcon,
+  ChevronDown,
+  ClipboardList,
 } from 'lucide-react';
 import type {
   UsabilityAnalysisResult,
   AnalyzedIssue,
   ProposedSolution,
   AccessibilityFinding,
+  AnalysisHistoryItem,
 } from '../models/usabilityModels';
 import { useUsabilityController } from '../controllers/UsabilityController';
-import { AnalysisHistoryPanel, type AnalysisHistoryItem } from '../components/AnalysisHistoryPanel';
+import { AnalysisHistoryPanel } from '../components/AnalysisHistoryPanel';
 import { supabase } from '../lib/supabaseClient';
+import { ObservationsSnapshot } from '../components/ObservationsSnapshot';
 
 interface ResultsViewProps {
   result: UsabilityAnalysisResult | null;
@@ -28,7 +32,7 @@ interface ResultsViewProps {
   onExport?: () => void;
   planId?: string;
   initialAnalysisId?: string;
-  onSelectResult?: (result: UsabilityAnalysisResult) => void;
+  onSelectResult?: (item: AnalysisHistoryItem) => void;
 }
 
 function useWindowWidth() {
@@ -235,8 +239,9 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [selectedResult, setSelectedResult] = useState<UsabilityAnalysisResult | null>(null);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisHistoryItem | null>(null);
   const [testPlan, setTestPlan] = useState<{ product: string, module: string } | null>(null);
+  const [showSnapshot, setShowSnapshot] = useState(false);
 
   const loadHistory = useCallback(async () => {
     if (!planId) return;
@@ -252,11 +257,11 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
     setIsHistoryLoading(false);
 
     if (initialAnalysisId === 'latest' && data.length > 0) {
-      setSelectedResult(data[0].result_data);
+      setSelectedAnalysis(data[0]);
     } else if (initialAnalysisId) {
       const found = data.find(item => item.id === initialAnalysisId);
       if (found) {
-        setSelectedResult(found.result_data);
+        setSelectedAnalysis(found);
       }
     }
   }, [planId, fetchHistory, initialAnalysisId]);
@@ -269,13 +274,13 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
     const { error } = await supabase.from('analysis_history').delete().eq('id', id);
     if (!error) {
       setHistory(prev => prev.filter(item => item.id !== id));
-      if (selectedResult && history.find(h => h.id === id)?.result_data === selectedResult) {
-        setSelectedResult(null);
+      if (selectedAnalysis?.id === id) {
+        setSelectedAnalysis(null);
       }
     }
   };
 
-  const activeResult = selectedResult || currentResult;
+  const activeResult = selectedAnalysis?.result_data || currentResult;
 
   if (isAnalyzing && !showHistory) {
     return (
@@ -305,6 +310,43 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const renderContent = (res: UsabilityAnalysisResult) => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Snapshot Section */}
+      <section className="animate-in fade-in duration-500">
+        <button 
+          onClick={() => setShowSnapshot(!showSnapshot)}
+          className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all group shadow-sm active:scale-[0.99] cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg transition-all ${showSnapshot ? 'bg-navy text-white rotate-6' : 'bg-slate-100 text-slate-500 group-hover:bg-navy/10 group-hover:text-navy'}`}>
+              <ClipboardList size={18} />
+            </div>
+            <div className="text-left">
+              <span className="block text-[0.6rem] font-black uppercase tracking-widest text-navy/60">Trazabilidad de datos</span>
+              <span className="block text-sm font-black text-slate-700 uppercase tracking-tight">Ver observaciones analizadas</span>
+            </div>
+          </div>
+          <ChevronDown className={`text-slate-400 transition-transform duration-300 ${showSnapshot ? 'rotate-180 text-navy' : ''}`} size={20} />
+        </button>
+
+        {showSnapshot && (
+          <div className="mt-4 animate-in slide-in-from-top-2 duration-300">
+            {selectedAnalysis?.observations_snapshot && selectedAnalysis.observations_snapshot.length > 0 ? (
+              <ObservationsSnapshot observations={selectedAnalysis.observations_snapshot} />
+            ) : (
+              <div className="p-8 text-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                <ClipboardList size={32} className="mx-auto text-slate-300 mb-3" />
+                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">
+                  No se encontraron las observaciones para este análisis
+                </p>
+                <p className="text-slate-400 text-[0.65rem] mt-1 font-medium">
+                  Los registros generados antes de la actualización de trazabilidad no disponen de un snapshot almacenado.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
       {/* Summary Section */}
       <section className="bg-gradient-to-br from-navy/5 via-white to-navy-light/5 border-2 border-navy/10 rounded-2xl p-6 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 opacity-5 rotate-12" aria-hidden="true">
@@ -431,7 +473,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             </button>
             <div>
               <h1 className="font-black text-xl md:text-2xl text-slate-900 uppercase tracking-tight leading-none">
-                {selectedResult ? 'Revisión de Historial' : 'Análisis de IA'}
+                {selectedAnalysis ? 'Revisión de Historial' : 'Análisis de IA'}
               </h1>
               {testPlan && (
                 <div className="mt-1.5 flex flex-col gap-0.5">
@@ -439,7 +481,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                   {testPlan.module && <span className="text-xs font-semibold text-slate-500">Módulo: {testPlan.module}</span>}
                 </div>
               )}
-              {selectedResult && (
+              {selectedAnalysis && (
                 <p className="text-[0.65rem] font-bold text-navy uppercase tracking-widest mt-2 animate-pulse">
                   Visualizando registro guardado
                 </p>
@@ -473,7 +515,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
           <div className="animate-in slide-in-from-right duration-300">
              <AnalysisHistoryPanel 
               history={history} 
-              onSelect={(res) => { setSelectedResult(res); setShowHistory(false); if(onSelectResult) onSelectResult(res); }} 
+              onSelect={(item) => { setSelectedAnalysis(item); setShowHistory(false); if(onSelectResult) onSelectResult(item); }} 
               onDelete={handleDeleteHistory}
               isLoading={isHistoryLoading}
             />
@@ -495,7 +537,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
         <aside className="w-80 shrink-0 sticky top-4 h-fit max-h-[calc(100vh-2rem)] overflow-y-auto pr-2">
           <AnalysisHistoryPanel 
             history={history} 
-            onSelect={(res) => { setSelectedResult(res); if(onSelectResult) onSelectResult(res); }} 
+            onSelect={(item) => { setSelectedAnalysis(item); if(onSelectResult) onSelectResult(item); }} 
             onDelete={handleDeleteHistory}
             isLoading={isHistoryLoading}
           />

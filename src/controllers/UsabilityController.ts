@@ -8,6 +8,7 @@ import type {
   AnalysisControllerState,
   AnalysisError,
   AnalysisErrorCode,
+  AnalysisHistoryItem,
 } from "../models/usabilityModels";
 
 const EDGE_FUNCTION_NAME = "ai-usability-analysis" as const;
@@ -108,7 +109,10 @@ export function useUsabilityController() {
 
   const abortRef = useRef<AbortController | null>(null);
 
-  async function runAnalysis(request: UsabilityAnalysisRequest): Promise<UsabilityAnalysisResult | null> {
+  async function runAnalysis(
+    request: UsabilityAnalysisRequest,
+    rawObservations?: Observation[]
+  ): Promise<UsabilityAnalysisResult | null> {
     if (abortRef.current) abortRef.current.abort();
     abortRef.current = new AbortController();
 
@@ -165,21 +169,43 @@ export function useUsabilityController() {
           `El análisis es demasiado complejo (${tokensUsed.toLocaleString()} tokens). Por favor, elimine algunas observaciones y vuelva a intentar.`
         );
       }
-      
+
       // ----------------------------------------------------------
-      // PERSISTENCIA (Bryan - Punto 4)
+      // PERSISTENCIA (Bryan - Punto 4 Mejorado)
       // ----------------------------------------------------------
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user && request.context?.includes('planId:')) {
           const planId = request.context.split('planId:')[1];
+          
+          // 1. Obtener el conteo actual para el correlativo #N
+          const { count } = await supabase
+            .from('analysis_history')
+            .select('*', { count: 'exact', head: true })
+            .eq('test_plan_id', planId);
+
+          const nextIndex = (count || 0) + 1;
+
+          // 2. Calcular resumen de éxito si tenemos las observaciones raw
+          let successSummary = "";
+          if (rawObservations) {
+            const s = rawObservations.filter(o => o.success_level === 'Sí').length;
+            const a = rawObservations.filter(o => o.success_level === 'Con ayuda').length;
+            const n = rawObservations.filter(o => o.success_level === 'No').length;
+            successSummary = `S:${s}, A:${a}, N:${n}`;
+          }
+
+          const generatedTitle = `Análisis #${nextIndex} | Éxito: ${successSummary || 'N/A'}`;
+
           await supabase.from('analysis_history').insert({
             test_plan_id: planId,
             profile_id: user.id,
             project_name: request.projectName,
+            title: generatedTitle,
             request_data: request,
             result_data: result,
-            metrics: request.metrics
+            metrics: request.metrics,
+            observations_snapshot: rawObservations || null
           });
         }
       } catch (dbErr) {
@@ -220,14 +246,17 @@ export function useUsabilityController() {
         metrics: { taskSuccess, averageTime, satisfaction },
         context: `planId:${plan.id}`,
       };
-      return runAnalysis(request);
+      return runAnalysis(request, observations);
     },
     []
   );
 
   const analyzeFromRequest = useCallback(
-    async (request: UsabilityAnalysisRequest): Promise<UsabilityAnalysisResult | null> => {
-      return runAnalysis(request);
+    async (
+      request: UsabilityAnalysisRequest, 
+      rawObservations?: Observation[]
+    ): Promise<UsabilityAnalysisResult | null> => {
+      return runAnalysis(request, rawObservations);
     },
     []
   );
@@ -241,7 +270,7 @@ export function useUsabilityController() {
     setState({ status: "idle", result: null, error: null, lastAnalyzedAt: null });
   }, []);
 
-  const fetchHistory = useCallback(async (planId: string) => {
+  const fetchHistory = useCallback(async (planId: string): Promise<AnalysisHistoryItem[]> => {
     try {
       const { data, error } = await supabase
         .from('analysis_history')
@@ -250,7 +279,7 @@ export function useUsabilityController() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as AnalysisHistoryItem[];
     } catch (err) {
       console.error("Error al obtener el historial de análisis:", err);
       return [];
