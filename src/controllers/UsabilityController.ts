@@ -138,7 +138,20 @@ export function useUsabilityController() {
       if (!data || data.success === false) {
         console.error("❌ La API devolvió un error:", data);
         const apiErr = data?.error as { code?: string; message?: string; details?: string } | undefined;
-        
+
+        // Detectar error de cuota (429 / quota exceeded)
+        const isQuotaError =
+          apiErr?.details?.includes("429") ||
+          apiErr?.details?.toLowerCase().includes("quota") ||
+          apiErr?.message?.toLowerCase().includes("quota");
+
+        if (isQuotaError) {
+          throw buildError(
+            "RATE_LIMIT",
+            "Has alcanzado el límite de análisis de IA. Los análisis estarán disponibles nuevamente dentro de 24 horas."
+          );
+        }
+
         throw buildError("EDGE_FUNCTION_ERROR", apiErr?.message || "El análisis de IA no pudo completarse.", apiErr?.code);
       }
 

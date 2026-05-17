@@ -488,11 +488,16 @@ const ObservationRow: React.FC<{
 
   return (
     <tr
-      className="hover:bg-slate-50/60 transition-colors border-b border-slate-100 last:border-0"
+      className="hover:bg-slate-50/60 transition-colors border-b border-slate-200 last:border-0"
       aria-label={`Fila ${rowIndex + 1}: ${obs.participant || 'sin participante'}, tarea ${obs.task_ref || 'sin tarea'}`}
     >
+      {/* # */}
+      <td className="p-2 border-r border-slate-200 text-center align-middle">
+        <span className="text-xs font-black text-slate-400">{rowIndex + 1}</span>
+      </td>
+
       {/* Participante */}
-      <td className="p-2 border-r border-slate-100 align-top min-w-[100px]">
+      <td className="p-2 border-r border-slate-200 align-top min-w-[100px]">
         <ReadEditCell value={obs.participant || ''} placeholder="P1" colorClass="text-slate-900 font-bold"
           isTextarea={false} ariaLabel="Participante"
           onCommit={commit('participant')}
@@ -502,7 +507,7 @@ const ObservationRow: React.FC<{
       </td>
 
       {/* ── PERFIL: combobox (desktop) ───────────────────────────────────── */}
-      <td className="p-2 border-r border-slate-100 align-top min-w-[140px]">
+      <td className="p-2 border-r border-slate-200 align-top min-w-[140px]">
         <CustomSelect
           aria-label={`Perfil, fila ${rowIndex + 1}`}
           className="w-full p-2 border border-slate-200 bg-slate-50 rounded-lg text-[0.82rem] font-medium focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 cursor-pointer transition-all"
@@ -516,7 +521,7 @@ const ObservationRow: React.FC<{
       </td>
 
       {/* Tarea */}
-      <td className="p-2 border-r border-slate-100 align-top w-[140px]">
+      <td className="p-2 border-r border-slate-200 align-top w-[140px]">
         {tasks.length > 0 ? (
           <CustomSelect
             aria-label={`Tarea, fila ${rowIndex + 1}`} aria-required="true"
@@ -536,7 +541,7 @@ const ObservationRow: React.FC<{
       </td>
 
       {/* Éxito */}
-      <td className="p-2 border-r border-slate-100 align-top min-w-[155px]">
+      <td className="p-2 border-r border-slate-200 align-top min-w-[155px]">
         <CustomSelect
           aria-label={`Éxito de la tarea, fila ${rowIndex + 1}`}
           className={`w-full p-2 border ${okStyle.border} rounded-lg text-[0.82rem] ${okStyle.bg} ${okStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer shadow-sm`}
@@ -552,7 +557,7 @@ const ObservationRow: React.FC<{
       </td>
 
       {/* Tiempo */}
-      <td className="p-2 text-center border-r border-slate-100 align-top w-[90px]">
+      <td className="p-2 text-center border-r border-slate-200 align-top w-[90px]">
         <input aria-label={`Tiempo en segundos, fila ${rowIndex + 1}`} type="number" min="0"
           className="w-full px-2 py-2 border border-transparent bg-transparent rounded-lg text-[0.82rem] text-slate-800 font-mono font-bold text-center hover:bg-slate-50 hover:border-slate-200 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all"
           value={obs.time_seconds}
@@ -563,7 +568,7 @@ const ObservationRow: React.FC<{
       </td>
 
       {/* Errores */}
-      <td className="p-2 text-center border-r border-slate-100 align-top w-[90px]">
+      <td className="p-2 text-center border-r border-slate-200 align-top w-[90px]">
         <input aria-label={`Errores, fila ${rowIndex + 1}`} type="number" min="0"
           aria-describedby={obs.errors > 2 ? `err-high-${obs.id}` : undefined}
           className={`w-full px-2 py-2 border border-transparent bg-transparent rounded-lg text-[0.82rem] font-mono font-bold text-center hover:bg-slate-50 hover:border-slate-200 focus-visible:bg-white focus-visible:border-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/20 transition-all ${obs.errors > 2 ? 'text-red-700' : 'text-slate-800'}`}
@@ -578,7 +583,7 @@ const ObservationRow: React.FC<{
       </td>
 
       {/* Comentarios */}
-      <td className="p-2 border-r border-slate-100 align-top min-w-[220px]">
+      <td className="p-2 border-r border-slate-200 align-top min-w-[220px]">
         <ReadEditCell value={obs.comments || ''} placeholder="Comentarios..." colorClass="text-slate-800"
           ariaLabel="Comentarios clave" rows={3}
           onCommit={commit('comments')}
@@ -588,7 +593,7 @@ const ObservationRow: React.FC<{
       </td>
 
       {/* Problema */}
-      <td className="p-2 border-r border-slate-100 align-top min-w-[220px]">
+      <td className="p-2 border-r border-slate-200 align-top min-w-[220px]">
         <ReadEditCell
           value={obs.problem || ''}
           placeholder={isProblemRequired ? 'Obligatorio…' : 'Problema detectado...'}
@@ -609,7 +614,7 @@ const ObservationRow: React.FC<{
       </td>
 
       {/* Severidad */}
-      <td className="p-2 text-center border-r border-slate-100 align-top min-w-[150px]">
+      <td className="p-2 text-center border-r border-slate-200 align-top min-w-[150px]">
         <CustomSelect aria-label={`Severidad, fila ${rowIndex + 1}`}
           className={`w-full p-2 border ${sStyle.border} rounded-lg text-[0.78rem] ${sStyle.bg} ${sStyle.text} font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/30 cursor-pointer shadow-sm`}
           value={obs.severity}
@@ -628,7 +633,7 @@ const ObservationRow: React.FC<{
       </td>
 
       {/* Mejora propuesta */}
-      <td className="p-2 border-r border-slate-100 align-top min-w-[220px]">
+      <td className="p-2 border-r border-slate-200 align-top min-w-[220px]">
         <ReadEditCell
           value={obs.proposal || ''}
           placeholder="Mejora propuesta..."
@@ -696,7 +701,44 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
     onSync(data.map(o => o.id === id ? { ...o, ...updates } : o));
   };
 
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Valida que todas las observaciones tengan los campos requeridos llenos
+  const validateObservations = (): string | null => {
+    const REQUIRED: { field: keyof Observation; label: string }[] = [
+      { field: 'participant', label: 'Participante' },
+      { field: 'task_ref', label: 'Tarea' },
+      { field: 'comments', label: 'Comentarios' },
+    ];
+
+    for (const obs of data) {
+      const originalIndex = data.indexOf(obs) + 1;
+
+      // Campos siempre requeridos
+      for (const { field, label } of REQUIRED) {
+        const val = obs[field];
+        if (!val || (typeof val === 'string' && val.trim().length === 0)) {
+          return `Falta completar el campo "${label}" en la Observación #${originalIndex}.`;
+        }
+      }
+
+      // Problema es obligatorio si el éxito es 'No' o 'Con ayuda'
+      if ((obs.success_level === 'No' || obs.success_level === 'Con ayuda') &&
+          (!obs.problem || obs.problem.trim().length === 0)) {
+        return `Falta completar el campo "Problema" en la Observación #${originalIndex} (el éxito fue "${obs.success_level}").`;
+      }
+    }
+    return null;
+  };
+
 const handleAIAnalysis = async () => {
+  const validErr = validateObservations();
+  if (validErr) {
+    setValidationError(validErr);
+    return;
+  }
+  setValidationError(null);
+
   const analysisRequest = {
     projectName: productName || "Proyecto sin nombre",
     testPlan: {
@@ -904,7 +946,10 @@ const handleAIAnalysis = async () => {
                     </caption>
                     <thead>
                       <tr className="bg-slate-50 text-slate-600 text-xs font-black uppercase tracking-[0.08em] border-b border-slate-200">
-                        <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[100px]">
+                        <th scope="col" className="p-3 text-center border-r border-slate-200 w-[40px]">
+                          #
+                        </th>
+                        <th scope="col" className="p-3 text-left border-r border-slate-200 min-w-[100px]">
                           <Tooltip text="Código o nombre del participante en la sesión.">
                             <span className="flex items-center gap-1">
                               Participante <span aria-hidden="true">*</span>
@@ -912,7 +957,7 @@ const handleAIAnalysis = async () => {
                             </span>
                           </Tooltip>
                         </th>
-                        <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[140px]">
+                        <th scope="col" className="p-3 text-left border-r border-slate-200 min-w-[140px]">
                           <Tooltip text="Nivel educativo o perfil del participante.">
                             <span className="flex items-center gap-1">
                               Perfil
@@ -920,7 +965,7 @@ const handleAIAnalysis = async () => {
                             </span>
                           </Tooltip>
                         </th>
-                        <th scope="col" className="p-3 text-center border-r border-slate-100 w-[140px]">
+                        <th scope="col" className="p-3 text-center border-r border-slate-200 w-[140px]">
                           <Tooltip text="Tarea del plan que se evaluó en esta sesión.">
                             <span className="flex items-center justify-center gap-1">
                               Tarea <span aria-hidden="true">*</span>
@@ -928,7 +973,7 @@ const handleAIAnalysis = async () => {
                             </span>
                           </Tooltip>
                         </th>
-                        <th scope="col" className="p-3 text-center border-r border-slate-100 min-w-[155px]">
+                        <th scope="col" className="p-3 text-center border-r border-slate-200 min-w-[155px]">
                           <Tooltip text="Si el participante completó la tarea: Sí, No, o Con ayuda del moderador.">
                             <span className="flex items-center justify-center gap-1">
                               Éxito
@@ -936,7 +981,7 @@ const handleAIAnalysis = async () => {
                             </span>
                           </Tooltip>
                         </th>
-                        <th scope="col" className="p-3 text-center border-r border-slate-100 w-[90px]">
+                        <th scope="col" className="p-3 text-center border-r border-slate-200 w-[90px]">
                           <Tooltip text="Tiempo en segundos que tardó en completar o fallar la tarea.">
                             <span className="flex items-center justify-center gap-1">
                               Tiempo
@@ -944,7 +989,7 @@ const handleAIAnalysis = async () => {
                             </span>
                           </Tooltip>
                         </th>
-                        <th scope="col" className="p-3 text-center border-r border-slate-100 w-[90px]">
+                        <th scope="col" className="p-3 text-center border-r border-slate-200 w-[90px]">
                           <Tooltip text="Número de errores o acciones incorrectas cometidas durante la tarea.">
                             <span className="flex items-center justify-center gap-1">
                               Errores
@@ -952,7 +997,7 @@ const handleAIAnalysis = async () => {
                             </span>
                           </Tooltip>
                         </th>
-                        <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[220px]">
+                        <th scope="col" className="p-3 text-left border-r border-slate-200 min-w-[220px]">
                           <Tooltip text="Lo más relevante observado durante la sesión. Clic para editar.">
                             <span className="flex items-center gap-1">
                               Comentarios <span aria-hidden="true">*</span>
@@ -960,7 +1005,7 @@ const handleAIAnalysis = async () => {
                             </span>
                           </Tooltip>
                         </th>
-                        <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[220px]">
+                        <th scope="col" className="p-3 text-left border-r border-slate-200 min-w-[220px]">
                           <Tooltip text="Problema de usabilidad detectado. Obligatorio si el éxito es No. Clic para editar.">
                             <span className="flex items-center gap-1">
                               Problema
@@ -968,7 +1013,7 @@ const handleAIAnalysis = async () => {
                             </span>
                           </Tooltip>
                         </th>
-                        <th scope="col" className="p-3 text-center border-r border-slate-100 min-w-[150px]">
+                        <th scope="col" className="p-3 text-center border-r border-slate-200 min-w-[150px]">
                           <div className="flex items-center gap-1 justify-center">
                             <Tooltip text="Impacto del problema en la experiencia del usuario.">
                               <span className="flex items-center gap-1">
@@ -1008,7 +1053,7 @@ const handleAIAnalysis = async () => {
                             </div>
                           </div>
                         </th>
-                        <th scope="col" className="p-3 text-left border-r border-slate-100 min-w-[220px]">
+                        <th scope="col" className="p-3 text-left border-r border-slate-200 min-w-[220px]">
                           <Tooltip text="Propuesta de mejora de diseño para el problema. Clic para editar.">
                             <span className="flex items-center gap-1">
                               Mejora propuesta
@@ -1021,23 +1066,26 @@ const handleAIAnalysis = async () => {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-200">
                       {displayData.length > 0 ? (
-                        displayData.map((obs, idx) => (
+                        displayData.map((obs) => {
+                          const originalIndex = data.indexOf(obs);
+                          return (
                           <ObservationRow
                             key={obs.id}
                             obs={obs}
-                            rowIndex={idx}
+                            rowIndex={originalIndex}
                             handleLocalChange={handleLocalChange}
                             handleActionWithStatus={handleActionWithStatus}
                             onSave={onSave}
                             onDelete={onDelete}
                             tasks={tasks}
                           />
-                        ))
+                          );
+                        })
                       ) : (
                         <tr>
-                          <td colSpan={11} className="p-12 text-center text-slate-500 italic font-medium">
+                          <td colSpan={12} className="p-12 text-center text-slate-500 italic font-medium">
                             No hay observaciones registradas. Usa el botón de abajo para comenzar.
                           </td>
                         </tr>
@@ -1072,9 +1120,9 @@ const handleAIAnalysis = async () => {
                     Ver Historial de Análisis
                   </button>
 
-                  {error && (
-                    <p className="text-red-600 font-semibold text-center">
-                      {error.message}
+                  {(validationError || error) && (
+                    <p className="text-red-600 font-semibold text-center text-sm">
+                      {validationError || error?.message}
                     </p>
                   )}
                 </div>
