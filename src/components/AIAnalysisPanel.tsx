@@ -44,7 +44,7 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+            className="p-1 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
             aria-label="Cerrar panel"
           >
             <X size={18} />
@@ -106,7 +106,7 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
               <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-black text-amber-900">
-                    Puntuación de Prioridad
+                    Puntuación
                   </span>
                   <TrendingUp size={16} className="text-amber-600" />
                 </div>
@@ -140,13 +140,13 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
           <div className="border-t border-slate-200 p-3 flex gap-2">
             <button
               onClick={onViewDetails}
-              className="flex-1 px-3 py-2 rounded-lg bg-navy text-white text-sm font-bold hover:bg-navy-dark transition-colors"
+              className="flex-1 px-3 py-2 rounded-lg bg-navy text-white text-sm font-bold hover:bg-navy-dark transition-colors cursor-pointer"
             >
               Ver análisis completo
             </button>
             <button
               onClick={onClose}
-              className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors"
+              className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cerrar
             </button>

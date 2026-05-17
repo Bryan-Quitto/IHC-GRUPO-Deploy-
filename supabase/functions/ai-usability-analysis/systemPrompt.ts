@@ -141,7 +141,7 @@ INSTRUCCIONES ESPECIALES
 
 - Si observas patrones repetidos entre participantes, agrúpalos como un solo issue con mayor severidad.
 - Si el taskSuccess < 70%, el summary debe comenzar con "ATENCIÓN:"
-- Si hay observaciones de participantes que no pudieron completar ninguna tarea, clasifica esos issues como Críticos automáticamente.
+- Si hay observaciones de participantes que no pudieron completar ninguna tarea, clasifica esos issues como Críticos automáticamente.  
 - Máximo 8 criticalIssues, máximo 6 recommendations, máximo 5 accessibilityIssues.
 - El orden de criticalIssues debe ser: Crítica → Alta → Media → Baja.
 - El orden de recommendations debe ser: Inmediata → Corto plazo → Mediano plazo.

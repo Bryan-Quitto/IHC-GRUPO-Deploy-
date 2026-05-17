@@ -1780,6 +1780,9 @@
       "integrity": "sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q=="
     }
   },
+  "remote": {
+    "https://esm.sh/@google/generative-ai@0.21.0": "c50ac2729c07a30e82649ed868dbd424d8c37121206b74ded320559908856ff1"
+  },
   "workspace": {
     "packageJson": {
       "dependencies": [

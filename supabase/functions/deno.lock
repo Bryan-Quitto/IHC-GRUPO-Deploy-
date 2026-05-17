@@ -1,0 +1,14 @@
+{
+  "version": "5",
+  "remote": {
+    "https://esm.sh/@google/generative-ai@0.24.1": "1b08807076eadeaddb89d41e9a2365e6980ec870416b808e58fd0ea6ac0a93d5",
+    "https://esm.sh/@google/generative-ai@0.24.1/denonext/generative-ai.bundle.mjs": "621299e1cbe52fc6ce6255db96a6e0fd5ac5c47cd3f021af1aba69d4bae4b9a6",
+    "https://esm.sh/@google/generative-ai@0.24.1/denonext/generative-ai.mjs": "08c9716071f5f129a462eb9c71ebaa7f0597d1ef5005ef995fd606f3f0f7f073",
+    "https://esm.sh/@google/generative-ai@0.24.1?bundle": "7d540f290adb292d4f518476925da542666bdc3be23c50d84aa7d9cf61979e4c"
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:@google/generative-ai@~0.24.1"
+    ]
+  }
+}

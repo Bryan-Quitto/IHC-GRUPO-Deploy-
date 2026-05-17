@@ -57,9 +57,12 @@ function errorResponse(
 
   // Log seguro: NO incluir datos del usuario en logs de error
   console.error(`[Error] ${code}: ${message}`);
+  if (details) console.error(`[Details] ${details}`);
 
+  // Retornamos SIEMPRE 200 para que supabase-js pueda leer el JSON
+  // y no lance un FunctionsHttpError ciego.
   return new Response(JSON.stringify(body), {
-    status,
+    status: 200,
     headers: SECURE_HEADERS,
   });
 }
@@ -250,9 +253,10 @@ Deno.serve(async (req: Request) => {
     return errorResponse(
       "AI_ERROR",
       "Error al procesar el análisis con IA",
-      502,
-      process.env.NODE_ENV === "development" ? errorMsg : undefined
+      500,
+      errorMsg // Forzamos mostrar el error real para depuración
     );
+
   }
 
   // ----------------------------------------------------------

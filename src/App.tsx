@@ -18,6 +18,7 @@ const ReportsView = lazy(() => import('./views/ReportsView').then(module => ({ d
 const LoginView = lazy(() => import('./views/LoginView'));
 const RegisterView = lazy(() => import('./views/RegisterView'));
 const SettingsView = lazy(() => import('./views/SettingsView'));
+const AnalysisHistoryView = lazy(() => import('./views/AnalysisHistoryView').then(module => ({ default: module.AnalysisHistoryView })));
 
 const LazyLoader = () => (
   <div className="p-8 text-center text-slate-500 italic">
@@ -365,6 +366,20 @@ const App: React.FC = () => {
           } />
 
           <Route path="/plan/:id" element={<ProtectedRoute><PlanDetailContainer controller={controller} /></ProtectedRoute>} />
+          <Route path="/plan/:id/analysis-history" element={
+            <ProtectedRoute>
+              <Suspense fallback={<LazyLoader />}>
+                <AnalysisHistoryView />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+          <Route path="/plan/:id/analysis-history/:analysisId" element={
+            <ProtectedRoute>
+              <Suspense fallback={<LazyLoader />}>
+                <AnalysisHistoryView />
+              </Suspense>
+            </ProtectedRoute>
+          } />
           <Route path="/plan/:id/:tab" element={<ProtectedRoute><PlanDetailContainer controller={controller} /></ProtectedRoute>} />
 
           {/* Redirección por defecto */}

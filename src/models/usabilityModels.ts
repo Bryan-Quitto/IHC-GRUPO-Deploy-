@@ -1,4 +1,3 @@
-import type { Observation } from "./types";
 
 // ----------------------------------------------------------
 // Severidades
@@ -124,6 +123,7 @@ export type AnalysisErrorCode =
   | "PARSE_ERROR"
   | "AUTH_ERROR"
   | "EMPTY_OBSERVATIONS"
+  | "RATE_LIMIT"
   | "UNKNOWN_ERROR";
 
 export interface AnalysisError {

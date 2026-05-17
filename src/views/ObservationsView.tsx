@@ -37,10 +37,9 @@ import {
 import { SeveritySuggestion } from '../components/SeveritySuggestion';
 import { SuggestionsInput } from '../components/SuggestionsInput';
 import { Tooltip } from '../components/Tooltip';
-import { useAIAnalysis } from "../controllers/useAIAnalysis";
+import { useUsabilityController } from "../controllers/UsabilityController";
 //import type { AIAnalysisRequest } from "../controllers/useAIAnalysis";
 import { AIAnalysisPanel } from "../components/AIAnalysisPanel";
-import { ResultsView } from "./ResultsView";
 
 interface ObservationsViewProps {
   data: Observation[];
@@ -687,10 +686,9 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [sortMode, setSortMode] = useState<'desc' | 'asc' | 'default'>('default');
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const [showResults, setShowResults] = useState(false);
   const isProductEmpty = !productName || productName.trim() === '';
 
-  const { analyze, isLoading, result, error, clearResult } = useAIAnalysis();
+  const { analyzeFromRequest: analyze, isLoading, result, error, resetState: clearResult } = useUsabilityController();
 
   const handleActionWithStatus = (fn: () => void) => {
     setIsSaving(true); fn(); setTimeout(() => setIsSaving(false), 800);
@@ -722,7 +720,7 @@ const handleAIAnalysis = async () => {
         "Observación registrada";
 
       return {
-        participant: obs.participant || "Participante",
+        participant: obs.participant,
         task: taskLabel,
         issue: issueText,
         severity: obs.severity as ObservationSeverity,
@@ -739,13 +737,13 @@ const handleAIAnalysis = async () => {
           : 0,
       satisfaction: 3.5,
     },
+    context: planId ? `planId:${planId}` : undefined,
   };
 
   const aiResult = await analyze(analysisRequest);
 
   if (aiResult) {
     console.log("Análisis IA completado:", aiResult);
-    setTimeout(() => setShowResults(true), 500);
   }
 };
 
@@ -876,9 +874,18 @@ const handleAIAnalysis = async () => {
                     {isLoading ? "Analizando..." : "🤖 Analizar con IA"}
                   </button>
 
+                  <button
+                    type="button"
+                    onClick={() => window.open(`/plan/${planId}/analysis-history`, '_blank')}
+                    disabled={!planId}
+                    className="inline-flex items-center justify-center gap-2 w-full bg-white hover:bg-slate-50 text-navy border-2 border-navy/20 p-3.5 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed shadow-sm transition-all"
+                  >
+                    Ver Historial de Análisis
+                  </button>
+
                   {error && (
                     <p className="text-red-600 font-semibold text-center">
-                      {error}
+                      {error.message}
                     </p>
                   )}
                 </div>
@@ -1058,9 +1065,18 @@ const handleAIAnalysis = async () => {
                     {isLoading ? "Analizando..." : "🤖 Analizar con IA"}
                   </button>
 
+                  <button
+                    type="button"
+                    onClick={() => window.open(`/plan/${planId}/analysis-history`, '_blank')}
+                    disabled={!planId}
+                    className="inline-flex items-center justify-center gap-2 w-full bg-white hover:bg-slate-50 text-navy border-2 border-navy/20 p-3.5 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed shadow-sm transition-all"
+                  >
+                    Ver Historial de Análisis
+                  </button>
+
                   {error && (
                     <p className="text-red-600 font-semibold text-center">
-                      {error}
+                      {error.message}
                     </p>
                   )}
                 </div>
@@ -1074,38 +1090,10 @@ const handleAIAnalysis = async () => {
       <AIAnalysisPanel
         isLoading={isLoading}
         result={result}
-        error={error}
+        error={error?.message || null}
         onClose={() => clearResult()}
-        onViewDetails={() => setShowResults(true)}
+        onViewDetails={() => window.open(`/plan/${planId}/analysis-history/latest`, '_blank')}
       />
-
-      {/* Modal de Resultados Completos */}
-      {showResults && result && (
-        <div className="fixed inset-0 bg-black/40 z-[999] p-4 overflow-y-auto">
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full my-8">
-              <div className="p-6 border-b border-slate-200 flex justify-between items-center sticky top-0 bg-white rounded-t-2xl">
-                <h2 className="font-black text-lg text-slate-900">Análisis Detallado</h2>
-                <button
-                  onClick={() => setShowResults(false)}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                  aria-label="Cerrar análisis"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-                <ResultsView
-                  result={result}
-                  isLoading={false}
-                  error={null}
-                  onBack={() => setShowResults(false)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -53,6 +53,7 @@ function sanitizeString(value: string, maxLength: number): string {
     .trim()
     .slice(0, maxLength)
     // Eliminar caracteres de control excepto newlines y tabs
+    // eslint-disable-next-line no-control-regex
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
     // Normalizar múltiples espacios
     .replace(/\s{3,}/g, "  ")

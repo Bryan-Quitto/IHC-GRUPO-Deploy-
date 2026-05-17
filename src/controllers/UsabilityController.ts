@@ -107,8 +107,15 @@ export function useUsabilityController() {
   });
 
   const abortRef = useRef<AbortController | null>(null);
+  const cooldownRef = useRef<number>(0);
 
   async function runAnalysis(request: UsabilityAnalysisRequest): Promise<UsabilityAnalysisResult | null> {
+    if (Date.now() < cooldownRef.current) {
+      const remaining = Math.ceil((cooldownRef.current - Date.now()) / 1000);
+      setState({ status: "error", result: null, error: buildError("RATE_LIMIT", `Por favor, espera ${remaining} segundos antes de volver a intentar.`), lastAnalyzedAt: null });
+      return null;
+    }
+
     if (abortRef.current) abortRef.current.abort();
     abortRef.current = new AbortController();
 
@@ -120,18 +127,31 @@ export function useUsabilityController() {
 
     setState((prev) => ({ ...prev, status: "loading", error: null }));
 
+    console.log("🚀 Iniciando análisis de IA con payload:", JSON.stringify(request, null, 2));
+
     try {
       const { data, error: supabaseError } = await supabase.functions.invoke(
         EDGE_FUNCTION_NAME,
         { body: request }
       );
 
+      console.log("📥 Respuesta de Supabase Edge Function:", { data, error: supabaseError });
+
       if (supabaseError) {
+        console.error("❌ Error de Supabase Functions:", supabaseError);
         throw buildError("NETWORK_ERROR", supabaseError.message || "Error de conexión con el servicio de análisis.");
       }
 
       if (!data || data.success === false) {
-        const apiErr = data?.error as { code?: string; message?: string } | undefined;
+        console.error("❌ La API devolvió un error:", data);
+        const apiErr = data?.error as { code?: string; message?: string; details?: string } | undefined;
+        
+        // Si el error es de rate limit (429) o cuota, aplicar cooldown de 1 minuto
+        if (apiErr?.details?.includes("429") || apiErr?.message?.toLowerCase().includes("quota") || apiErr?.code === "AI_ERROR") {
+           cooldownRef.current = Date.now() + 60000;
+           console.warn("⏳ Cooldown de 1 minuto activado por límite de peticiones o error interno.");
+        }
+
         throw buildError("EDGE_FUNCTION_ERROR", apiErr?.message || "El análisis de IA no pudo completarse.", apiErr?.code);
       }
 
@@ -140,6 +160,27 @@ export function useUsabilityController() {
       }
 
       const result = data.data as UsabilityAnalysisResult;
+      
+      // ----------------------------------------------------------
+      // PERSISTENCIA (Bryan - Punto 4)
+      // ----------------------------------------------------------
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && request.context?.includes('planId:')) {
+          const planId = request.context.split('planId:')[1];
+          await supabase.from('analysis_history').insert({
+            test_plan_id: planId,
+            profile_id: user.id,
+            project_name: request.projectName,
+            request_data: request,
+            result_data: result,
+            metrics: request.metrics
+          });
+        }
+      } catch (dbErr) {
+        console.error("Error al persistir el historial:", dbErr);
+      }
+
       setState({ status: "success", result, error: null, lastAnalyzedAt: new Date() });
       return result;
 
@@ -172,6 +213,7 @@ export function useUsabilityController() {
         },
         observations: adaptObservations(observations),
         metrics: { taskSuccess, averageTime, satisfaction },
+        context: `planId:${plan.id}`,
       };
       return runAnalysis(request);
     },
@@ -194,6 +236,22 @@ export function useUsabilityController() {
     setState({ status: "idle", result: null, error: null, lastAnalyzedAt: null });
   }, []);
 
+  const fetchHistory = useCallback(async (planId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('analysis_history')
+        .select('*')
+        .eq('test_plan_id', planId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error("Error al obtener el historial de análisis:", err);
+      return [];
+    }
+  }, []);
+
   return {
     status: state.status,
     result: state.result,
@@ -206,5 +264,6 @@ export function useUsabilityController() {
     analyzeFromRequest,
     cancelAnalysis,
     resetState,
+    fetchHistory,
   };
 }

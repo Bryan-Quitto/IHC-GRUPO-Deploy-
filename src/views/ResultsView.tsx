@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ArrowLeft,
   AlertTriangle,
@@ -8,6 +8,7 @@ import {
   Download,
   Info,
   TrendingUp,
+  History as HistoryIcon,
 } from 'lucide-react';
 import type {
   UsabilityAnalysisResult,
@@ -15,14 +16,19 @@ import type {
   ProposedSolution,
   AccessibilityFinding,
 } from '../models/usabilityModels';
-//import { Tooltip } from '../components/Tooltip';
+import { useUsabilityController } from '../controllers/UsabilityController';
+import { AnalysisHistoryPanel, type AnalysisHistoryItem } from '../components/AnalysisHistoryPanel';
+import { supabase } from '../lib/supabaseClient';
 
 interface ResultsViewProps {
-  result: UsabilityAnalysisResult;
+  result: UsabilityAnalysisResult | null;
   isLoading: boolean;
   error: string | null;
   onBack: () => void;
   onExport?: () => void;
+  planId?: string;
+  initialAnalysisId?: string;
+  onSelectResult?: (result: UsabilityAnalysisResult) => void;
 }
 
 function useWindowWidth() {
@@ -147,11 +153,11 @@ const ProposedSolutionCard: React.FC<{ solution: ProposedSolution; idx: number }
           {priorityColor.icon} {solution.priority}
         </span>
         <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold text-xs border border-slate-300">
-          Effort: {solution.effort}
+          Esfuerzo: {solution.effort}
         </span>
         <span className={`px-2.5 py-0.5 rounded-full bg-white text-slate-700 font-bold text-xs border border-slate-300 flex items-center gap-1`}>
           <TrendingUp size={12} className={impactColor} />
-          Impact: {solution.impact}
+          Impacto: {solution.impact}
         </span>
       </div>
 
@@ -213,126 +219,131 @@ const AccessibilityCard: React.FC<{ finding: AccessibilityFinding; idx: number }
 
 /* ── Vista Principal: ResultsView ── */
 export const ResultsView: React.FC<ResultsViewProps> = ({
-  result,
-  isLoading,
-  error,
+  result: currentResult,
+  isLoading: isAnalyzing,
+  error: analysisError,
   onBack,
   onExport,
+  planId,
+  initialAnalysisId,
+  onSelectResult,
 }) => {
   const width = useWindowWidth();
-  const isMobile = width < 768;
+  const isMobile = width < 1024;
+  const { fetchHistory } = useUsabilityController();
 
-  if (isLoading) {
+  const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [selectedResult, setSelectedResult] = useState<UsabilityAnalysisResult | null>(null);
+  const [testPlan, setTestPlan] = useState<{ product: string, module: string } | null>(null);
+
+  const loadHistory = useCallback(async () => {
+    if (!planId) return;
+    setIsHistoryLoading(true);
+    
+    // Obtenemos los datos del plan de pruebas para mostrar el producto y módulo
+    const { data: planData } = await supabase.from('test_plans').select('product, module').eq('id', planId).single();
+    if (planData) {
+      setTestPlan(planData);
+    }
+    const data = await fetchHistory(planId);
+    setHistory(data);
+    setIsHistoryLoading(false);
+
+    if (initialAnalysisId === 'latest' && data.length > 0) {
+      setSelectedResult(data[0].result_data);
+    } else if (initialAnalysisId) {
+      const found = data.find(item => item.id === initialAnalysisId);
+      if (found) {
+        setSelectedResult(found.result_data);
+      }
+    }
+  }, [planId, fetchHistory, initialAnalysisId]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  const handleDeleteHistory = async (id: string) => {
+    const { error } = await supabase.from('analysis_history').delete().eq('id', id);
+    if (!error) {
+      setHistory(prev => prev.filter(item => item.id !== id));
+      if (selectedResult && history.find(h => h.id === id)?.result_data === selectedResult) {
+        setSelectedResult(null);
+      }
+    }
+  };
+
+  const activeResult = selectedResult || currentResult;
+
+  if (isAnalyzing && !showHistory) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <div className="w-16 h-16 rounded-full border-4 border-navy/20 border-t-navy animate-spin" />
-        <p className="text-slate-600 font-medium">Analizando resultados...</p>
+        <p className="text-slate-600 font-medium font-black uppercase tracking-widest text-sm">
+          Gemini 2.0 analizando...
+        </p>
       </div>
     );
   }
 
-  if (error) {
+  if (analysisError && !showHistory) {
     return (
-      <div className="bg-red-50 border-2 border-red-300 rounded-xl p-6 text-center max-w-md mx-auto">
-        <AlertTriangle className="mx-auto mb-3 text-red-600" size={32} />
-        <h2 className="font-black text-red-900 text-lg mb-2">Error en el análisis</h2>
-        <p className="text-red-800 text-sm mb-4">{error}</p>
-        <button
-          onClick={onBack}
-          className="px-4 py-2 rounded-lg bg-red-600 text-white font-bold text-sm hover:bg-red-700 transition-colors"
-        >
-          Volver
-        </button>
-      </div>
-    );
-  }
-
-  if (!result) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-slate-600 font-medium">No hay resultados para mostrar</p>
-        <button
-          onClick={onBack}
-          className="mt-4 px-4 py-2 rounded-lg bg-navy text-white font-bold text-sm hover:bg-navy-dark transition-colors"
-        >
-          Volver
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <button
-          onClick={onBack}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors"
-          aria-label="Volver a observaciones"
-        >
-          <ArrowLeft size={16} /> Volver
-        </button>
-
-        <h1 className="font-black text-2xl md:text-3xl text-slate-900 uppercase tracking-widest text-center flex-1">
-          📊 Análisis de Usabilidad
-        </h1>
-
-        {onExport && (
-          <button
-            onClick={onExport}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy text-white font-bold text-sm hover:bg-navy-dark transition-colors"
-          >
-            <Download size={16} /> Exportar
+      <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-8 text-center max-w-md mx-auto animate-in zoom-in-95">
+        <AlertTriangle className="mx-auto mb-4 text-red-600" size={40} />
+        <h2 className="font-black text-red-900 text-xl mb-2 uppercase tracking-tight">Error de análisis</h2>
+        <p className="text-red-800 text-sm mb-6 font-medium">{analysisError}</p>
+        <div className="flex gap-3 justify-center">
+          <button onClick={onBack} className="px-6 py-2.5 rounded-xl bg-red-600 text-white font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-200">
+            Volver
           </button>
-        )}
+        </div>
       </div>
+    );
+  }
 
+  const renderContent = (res: UsabilityAnalysisResult) => (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Summary Section */}
-      <section className="bg-gradient-to-r from-navy/5 to-navy-light/5 border-2 border-navy/10 rounded-2xl p-6">
-        <h2 className="font-black text-navy text-lg uppercase tracking-widest mb-3 flex items-center gap-2">
-          <BarChart3 size={20} /> Resumen Ejecutivo
+      <section className="bg-gradient-to-br from-navy/5 via-white to-navy-light/5 border-2 border-navy/10 rounded-2xl p-6 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-5 rotate-12" aria-hidden="true">
+          <TrendingUp size={80} />
+        </div>
+        <h2 className="font-black text-navy text-lg uppercase tracking-widest mb-4 flex items-center gap-2">
+          <BarChart3 size={20} className="text-navy" /> Resumen Ejecutivo
         </h2>
-        <p className="text-slate-700 text-base leading-relaxed">
-          {result.summary}
+        <p className="text-slate-700 text-base leading-relaxed font-medium relative z-10">
+          {res.summary}
         </p>
 
         {/* Key Metrics Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-          <div className="bg-white rounded-lg p-4 border border-navy/10 text-center">
-            <div className="text-2xl font-black text-red-600">
-              {result.criticalIssues.length}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          {[
+            { label: 'Problemas', val: res.criticalIssues.length, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100' },
+            { label: 'Soluciones', val: res.recommendations.length, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+            { label: 'WCAG', val: res.accessibilityIssues.length, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100' },
+            { label: 'Puntuación', val: res.priorityScore.toFixed(1), color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
+          ].map((m, i) => (
+            <div key={i} className={`${m.bg} ${m.border} border rounded-xl p-4 text-center shadow-sm`}>
+              <div className={`text-3xl font-black ${m.color} font-mono tracking-tighter`}>{m.val}</div>
+              <div className="text-[0.65rem] text-slate-500 font-black uppercase tracking-widest mt-1">{m.label}</div>
             </div>
-            <div className="text-xs text-slate-600 font-medium mt-1">Problemas</div>
-          </div>
-          <div className="bg-white rounded-lg p-4 border border-navy/10 text-center">
-            <div className="text-2xl font-black text-green-600">
-              {result.recommendations.length}
-            </div>
-            <div className="text-xs text-slate-600 font-medium mt-1">Soluciones</div>
-          </div>
-          <div className="bg-white rounded-lg p-4 border border-navy/10 text-center">
-            <div className="text-2xl font-black text-purple-600">
-              {result.accessibilityIssues.length}
-            </div>
-            <div className="text-xs text-slate-600 font-medium mt-1">WCAG</div>
-          </div>
-          <div className="bg-white rounded-lg p-4 border border-navy/10 text-center">
-            <div className="text-2xl font-black text-amber-600">
-              {result.priorityScore.toFixed(1)}
-            </div>
-            <div className="text-xs text-slate-600 font-medium mt-1">Prioridad</div>
-          </div>
+          ))}
         </div>
       </section>
 
       {/* Critical Issues */}
-      {result.criticalIssues.length > 0 && (
+      {res.criticalIssues.length > 0 && (
         <section>
-          <h2 className="font-black text-navy text-lg uppercase tracking-widest mb-4 flex items-center gap-2">
-            <AlertTriangle size={20} /> Problemas Críticos ({result.criticalIssues.length})
-          </h2>
-          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
-            {result.criticalIssues.map((issue, idx) => (
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-8 w-1.5 bg-red-600 rounded-full" />
+            <h2 className="font-black text-navy text-lg uppercase tracking-widest flex items-center gap-2">
+              <AlertTriangle size={20} className="text-red-600" /> Hallazgos Críticos ({res.criticalIssues.length})
+            </h2>
+          </div>
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+            {res.criticalIssues.map((issue, idx) => (
               <CriticalIssueCard key={idx} issue={issue} idx={idx} />
             ))}
           </div>
@@ -340,70 +351,159 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
       )}
 
       {/* Recommendations */}
-      {result.recommendations.length > 0 && (
+      {res.recommendations.length > 0 && (
         <section>
-          <h2 className="font-black text-navy text-lg uppercase tracking-widest mb-4 flex items-center gap-2">
-            <CheckCircle size={20} /> Soluciones Recomendadas ({result.recommendations.length})
-          </h2>
-          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
-            {result.recommendations.map((solution, idx) => (
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-8 w-1.5 bg-emerald-600 rounded-full" />
+            <h2 className="font-black text-navy text-lg uppercase tracking-widest flex items-center gap-2">
+              <CheckCircle size={20} className="text-emerald-600" /> Plan de Mejora ({res.recommendations.length})
+            </h2>
+          </div>
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+            {res.recommendations.map((solution, idx) => (
               <ProposedSolutionCard key={idx} solution={solution} idx={idx} />
             ))}
           </div>
         </section>
       )}
 
-      {/* Accessibility Issues */}
-      {result.accessibilityIssues.length > 0 && (
+      {/* Accessibility */}
+      {res.accessibilityIssues.length > 0 && (
         <section>
-          <h2 className="font-black text-navy text-lg uppercase tracking-widest mb-4 flex items-center gap-2">
-            <Zap size={20} /> Accesibilidad WCAG ({result.accessibilityIssues.length})
-          </h2>
-          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
-            {result.accessibilityIssues.map((finding, idx) => (
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-8 w-1.5 bg-purple-600 rounded-full" />
+            <h2 className="font-black text-navy text-lg uppercase tracking-widest flex items-center gap-2">
+              <Zap size={20} className="text-purple-600" /> Accesibilidad WCAG ({res.accessibilityIssues.length})
+            </h2>
+          </div>
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+            {res.accessibilityIssues.map((finding, idx) => (
               <AccessibilityCard key={idx} finding={finding} idx={idx} />
             ))}
           </div>
         </section>
       )}
 
-      {/* Metadata */}
-      <section className="bg-slate-50 border-2 border-slate-200 rounded-xl p-6">
-        <h2 className="font-black text-slate-900 text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
-          <Info size={16} /> Información del Análisis
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div>
-            <p className="text-slate-600 font-medium mb-1">Modelo</p>
-            <p className="text-slate-900 font-black">{result.analysisMetadata.model}</p>
-          </div>
-          <div>
-            <p className="text-slate-600 font-medium mb-1">Observaciones</p>
-            <p className="text-slate-900 font-black">
-              {result.analysisMetadata.observationsAnalyzed}
-            </p>
-          </div>
-          <div>
-            <p className="text-slate-600 font-medium mb-1">Tiempo</p>
-            <p className="text-slate-900 font-black">
-              {result.analysisMetadata.processingTimeMs}ms
-            </p>
-          </div>
-          <div>
-            <p className="text-slate-600 font-medium mb-1">Confianza</p>
-            <p className="text-slate-900 font-black">
-              {result.analysisMetadata.confidence}
-            </p>
+      {/* Analysis Metadata Footer */}
+      <footer className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-10" aria-hidden="true">
+          <Info size={120} />
+        </div>
+        <div className="relative z-10">
+          <h2 className="font-black text-blue-300 text-[0.7rem] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+            <Info size={14} /> Metadatos del Procesamiento
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+              <p className="text-slate-400 font-bold text-[0.6rem] uppercase tracking-widest mb-1">Motor de IA</p>
+              <p className="text-white font-black text-sm">{res.analysisMetadata.model}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 font-bold text-[0.6rem] uppercase tracking-widest mb-1">Confianza</p>
+              <p className="text-white font-black text-sm">{res.analysisMetadata.confidence}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 font-bold text-[0.6rem] uppercase tracking-widest mb-1">Latencia</p>
+              <p className="text-white font-black text-sm">{res.analysisMetadata.processingTimeMs}ms</p>
+            </div>
+            <div>
+              <p className="text-slate-400 font-bold text-[0.6rem] uppercase tracking-widest mb-1">Observaciones</p>
+              <p className="text-white font-black text-sm">{res.analysisMetadata.observationsAnalyzed} ítems</p>
+            </div>
           </div>
         </div>
-        {result.analysisMetadata.tokensUsed && (
-          <p className="text-xs text-slate-600 mt-4">
-            Tokens utilizados: {result.analysisMetadata.tokensUsed}
-          </p>
+      </footer>
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col lg:flex-row gap-8 animate-in fade-in duration-500">
+      {/* Main Column */}
+      <div className="flex-1 min-w-0">
+        <header className="flex items-center justify-between gap-4 mb-8 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex-wrap">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onBack}
+              className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all active:scale-95 cursor-pointer"
+              aria-label="Volver"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div>
+              <h1 className="font-black text-xl md:text-2xl text-slate-900 uppercase tracking-tight leading-none">
+                {selectedResult ? 'Revisión de Historial' : 'Análisis de IA'}
+              </h1>
+              {testPlan && (
+                <div className="mt-1.5 flex flex-col gap-0.5">
+                  <span className="text-sm font-bold text-slate-700">{testPlan.product || 'Sin producto definido'}</span>
+                  {testPlan.module && <span className="text-xs font-semibold text-slate-500">Módulo: {testPlan.module}</span>}
+                </div>
+              )}
+              {selectedResult && (
+                <p className="text-[0.65rem] font-bold text-navy uppercase tracking-widest mt-2 animate-pulse">
+                  Visualizando registro guardado
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {isMobile && (
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className={`p-2.5 rounded-xl border transition-all flex items-center gap-2 ${showHistory ? 'bg-navy text-white border-navy' : 'bg-white text-slate-600 border-slate-200'}`}
+              >
+                <HistoryIcon size={20} />
+                <span className="text-xs font-black uppercase tracking-widest">Historial</span>
+              </button>
+            )}
+            
+            {onExport && activeResult && (
+              <button
+                onClick={onExport}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-navy text-white font-black text-xs uppercase tracking-widest hover:bg-navy-dark transition-all shadow-lg shadow-navy/20"
+              >
+                <Download size={16} /> <span className="hidden sm:inline">Exportar</span>
+              </button>
+            )}
+          </div>
+        </header>
+
+        {showHistory && isMobile ? (
+          <div className="animate-in slide-in-from-right duration-300">
+             <AnalysisHistoryPanel 
+              history={history} 
+              onSelect={(res) => { setSelectedResult(res); setShowHistory(false); if(onSelectResult) onSelectResult(res); }} 
+              onDelete={handleDeleteHistory}
+              isLoading={isHistoryLoading}
+            />
+          </div>
+        ) : (
+          activeResult ? renderContent(activeResult) : (
+            <div className="text-center py-20 bg-slate-50 rounded-[32px] border-2 border-dashed border-slate-200">
+              <BarChart3 size={48} className="mx-auto text-slate-300 mb-4" />
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">
+                Selecciona un análisis del historial para visualizarlo
+              </p>
+            </div>
+          )
         )}
-      </section>
+      </div>
+
+      {/* Sidebar (Desktop only) */}
+      {!isMobile && (
+        <aside className="w-80 shrink-0 sticky top-4 h-fit max-h-[calc(100vh-2rem)] overflow-y-auto pr-2">
+          <AnalysisHistoryPanel 
+            history={history} 
+            onSelect={(res) => { setSelectedResult(res); if(onSelectResult) onSelectResult(res); }} 
+            onDelete={handleDeleteHistory}
+            isLoading={isHistoryLoading}
+          />
+        </aside>
+      )}
     </div>
   );
 };
+
 
 export default ResultsView;

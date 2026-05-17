@@ -3,7 +3,7 @@
 // Cliente Gemini con retry, timeout y manejo robusto de errores
 // ============================================================
 
-import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.21.0";
+import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.24.1?bundle";
 import type { AIAnalysisOutput } from "./types.ts";
 import { SYSTEM_PROMPT } from "./systemPrompt.ts";
 
@@ -12,7 +12,7 @@ import { SYSTEM_PROMPT } from "./systemPrompt.ts";
 // ============================================================
 
 const MODEL_CONFIG = {
-  model: "gemini-2.0-flash",          // Modelo más eficiente para análisis estructurado
+  model: "gemini-2.5-flash",
   maxOutputTokens: 4096,              // Suficiente para respuesta JSON completa
   temperature: 0.2,                   // Baja para respuestas consistentes y técnicas
   topP: 0.8,                          // Diversidad controlada
@@ -127,13 +127,14 @@ export async function callGeminiWithRetry(
   userContext: string,
   observationsCount: number
 ): Promise<AIAnalysisOutput> {
-  const apiKey = Deno.env.get("GEMINI_API_KEY");
+  const rawApiKey = Deno.env.get("GEMINI_API_KEY");
 
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY no está configurado en los secrets de Supabase");
-  }
+if (!rawApiKey) {
+  throw new Error("GEMINI_API_KEY no está configurado en los secrets de Supabase");
+}
 
-  const genAI = new GoogleGenerativeAI(apiKey);
+const apiKey = rawApiKey.trim();
+const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: MODEL_CONFIG.model,
     systemInstruction: SYSTEM_PROMPT,
@@ -169,6 +170,7 @@ export async function callGeminiWithRetry(
 
       // Extraer texto de la respuesta
       const responseText = result.response.text();
+      console.log(`[Gemini] Respuesta recibida (${responseText.length} chars)`);
 
       if (!responseText || responseText.trim().length === 0) {
         throw new Error("Gemini retornó una respuesta vacía");

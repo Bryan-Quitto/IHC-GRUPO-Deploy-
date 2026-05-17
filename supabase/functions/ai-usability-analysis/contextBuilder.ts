@@ -47,7 +47,7 @@ function groupSimilarObservations(observations: Observation[]): GroupedObservati
       const severityOrder = ["Crítica", "Critical", "Alta", "High", "Media", "Medium", "Baja", "Low"];
       const currentMaxIndex = severityOrder.indexOf(group.maxSeverity);
       const newIndex = severityOrder.indexOf(obs.severity);
-      if (newIndex < currentMaxIndex) {
+      if (newIndex !== -1 && (currentMaxIndex === -1 || newIndex < currentMaxIndex)) {
         group.maxSeverity = obs.severity;
       }
     } else {
