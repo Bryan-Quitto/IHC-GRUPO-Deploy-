@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Loader, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Loader, AlertTriangle, CheckCircle, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import type { UsabilityAnalysisResult } from '../models/usabilityModels';
 
 interface AIAnalysisPanelProps {
@@ -17,13 +17,18 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
   onClose,
   onViewDetails
 }) => {
+  const [isMinimized, setIsMinimized] = useState(false);
+
   if (!isLoading && !result && !error) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 w-full max-w-md z-50 animate-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed bottom-4 right-4 w-full max-w-md z-[9999] animate-in slide-in-from-bottom-4 duration-300">
       <div className="bg-white rounded-2xl shadow-2xl border-2 border-navy/10 overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-navy to-navy-light text-white p-4 flex justify-between items-center">
+        <div 
+          className="bg-gradient-to-r from-navy to-navy-light text-white p-4 flex justify-between items-center cursor-pointer select-none"
+          onClick={() => setIsMinimized(!isMinimized)}
+        >
           <div className="flex items-center gap-2">
             {isLoading ? (
               <>
@@ -42,16 +47,27 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
               </>
             )}
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
-            aria-label="Cerrar panel"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsMinimized(!isMinimized); }}
+              className="p-1 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
+              aria-label={isMinimized ? "Maximizar panel" : "Minimizar panel"}
+            >
+              {isMinimized ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onClose(); }}
+              className="p-1 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
+              aria-label="Cerrar panel"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
-        {/* Content */}
+        {!isMinimized && (
+          <>
+            {/* Content */}
         <div className="p-4 max-h-96 overflow-y-auto">
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-8 gap-3">
@@ -151,6 +167,8 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
               Cerrar
             </button>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

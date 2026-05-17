@@ -7,6 +7,7 @@ import Header from './components/Header';
 import { Trash2, AlertTriangle, ArrowLeft, Save } from 'lucide-react';
 import { DashboardTab, TestPlan } from './models/types';
 import { FlowProgress } from './components/FlowProgress';
+import { AIAnalysisProvider } from './controllers/AIAnalysisContext';
 
 // Lazy loading de vistas
 const GlobalDashboard = lazy(() => import('./views/GlobalDashboard').then(module => ({ default: module.GlobalDashboard })));
@@ -330,7 +331,8 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={shouldHideFooter ? "min-h-screen bg-white" : "main-container"}>
+    <AIAnalysisProvider>
+      <div className={shouldHideFooter ? "min-h-screen bg-white" : "main-container"}>
       <div>
         <Routes>
           {/* Rutas Públicas */}
@@ -392,7 +394,8 @@ const App: React.FC = () => {
           Grupo 3: Mateo Auz, Kerly Chicaiza, Bryan Quitto, Pedro Supe
         </footer>
       )}
-    </div>
+      </div>
+    </AIAnalysisProvider>
   );
 };
 

@@ -67,30 +67,7 @@ function errorResponse(
   });
 }
 
-// ============================================================
-// RATE LIMITING SIMPLE (en memoria, por instancia)
-// Para producción usar Supabase Rate Limiting o un KV store
-// ============================================================
 
-const requestCounts = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = { maxRequests: 10, windowMs: 60_000 }; // 10 req/min por IP
-
-function checkRateLimit(clientId: string): boolean {
-  const now = Date.now();
-  const entry = requestCounts.get(clientId);
-
-  if (!entry || now > entry.resetAt) {
-    requestCounts.set(clientId, { count: 1, resetAt: now + RATE_LIMIT.windowMs });
-    return true;
-  }
-
-  if (entry.count >= RATE_LIMIT.maxRequests) {
-    return false;
-  }
-
-  entry.count++;
-  return true;
-}
 
 // ============================================================
 // HANDLER PRINCIPAL
@@ -120,27 +97,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  // ----------------------------------------------------------
-  // Rate limiting basado en IP o anon key
-  // ----------------------------------------------------------
-  const clientIp =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    req.headers.get("x-real-ip") ||
-    req.headers.get("cf-connecting-ip") ||
-    "unknown";
 
-  if (!checkRateLimit(clientIp)) {
-    console.warn(`[${requestId}] Rate limit excedido para: ${clientIp.slice(0, 8)}***`);
-    return errorResponse(
-      "RATE_LIMIT_EXCEEDED",
-      "Demasiadas solicitudes. Intenta nuevamente en 60 segundos.",
-      429
-    );
-  }
-
-  // ----------------------------------------------------------
-  // Validar Content-Type
-  // ----------------------------------------------------------
   const contentType = req.headers.get("content-type") || "";
   if (!contentType.includes("application/json")) {
     return errorResponse(
@@ -257,6 +214,19 @@ Deno.serve(async (req: Request) => {
       errorMsg // Forzamos mostrar el error real para depuración
     );
 
+  }
+
+  // ----------------------------------------------------------
+  // Verificar límite de tokens (>30k = análisis demasiado complejo)
+  // ----------------------------------------------------------
+  const tokensUsed = analysisResult.analysisMetadata?.tokensUsed ?? 0;
+  if (tokensUsed > 30_000) {
+    console.warn(`[${requestId}] Tokens excedidos: ${tokensUsed}`);
+    return errorResponse(
+      "ANALYSIS_TOO_COMPLEX",
+      `El análisis es demasiado complejo (${tokensUsed.toLocaleString()} tokens). Por favor, elimine algunas observaciones y vuelva a intentar.`,
+      200
+    );
   }
 
   // ----------------------------------------------------------

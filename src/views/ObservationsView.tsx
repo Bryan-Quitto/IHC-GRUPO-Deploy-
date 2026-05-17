@@ -37,9 +37,7 @@ import {
 import { SeveritySuggestion } from '../components/SeveritySuggestion';
 import { SuggestionsInput } from '../components/SuggestionsInput';
 import { Tooltip } from '../components/Tooltip';
-import { useUsabilityController } from "../controllers/UsabilityController";
-//import type { AIAnalysisRequest } from "../controllers/useAIAnalysis";
-import { AIAnalysisPanel } from "../components/AIAnalysisPanel";
+import { useAIAnalysisContext } from "../controllers/AIAnalysisContext";
 
 interface ObservationsViewProps {
   data: Observation[];
@@ -688,7 +686,7 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
   const [showSortMenu, setShowSortMenu] = useState(false);
   const isProductEmpty = !productName || productName.trim() === '';
 
-  const { analyzeFromRequest: analyze, isLoading, result, error, resetState: clearResult } = useUsabilityController();
+  const { analyzeFromRequest: analyze, isLoading, error } = useAIAnalysisContext();
 
   const handleActionWithStatus = (fn: () => void) => {
     setIsSaving(true); fn(); setTimeout(() => setIsSaving(false), 800);
@@ -1086,14 +1084,6 @@ const handleAIAnalysis = async () => {
         )}
       </div>
 
-      {/* Panel de Análisis Flotante */}
-      <AIAnalysisPanel
-        isLoading={isLoading}
-        result={result}
-        error={error?.message || null}
-        onClose={() => clearResult()}
-        onViewDetails={() => window.open(`/plan/${planId}/analysis-history/latest`, '_blank')}
-      />
     </div>
   );
 };

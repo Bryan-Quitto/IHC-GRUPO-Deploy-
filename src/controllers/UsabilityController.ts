@@ -107,15 +107,8 @@ export function useUsabilityController() {
   });
 
   const abortRef = useRef<AbortController | null>(null);
-  const cooldownRef = useRef<number>(0);
 
   async function runAnalysis(request: UsabilityAnalysisRequest): Promise<UsabilityAnalysisResult | null> {
-    if (Date.now() < cooldownRef.current) {
-      const remaining = Math.ceil((cooldownRef.current - Date.now()) / 1000);
-      setState({ status: "error", result: null, error: buildError("RATE_LIMIT", `Por favor, espera ${remaining} segundos antes de volver a intentar.`), lastAnalyzedAt: null });
-      return null;
-    }
-
     if (abortRef.current) abortRef.current.abort();
     abortRef.current = new AbortController();
 
@@ -146,12 +139,6 @@ export function useUsabilityController() {
         console.error("❌ La API devolvió un error:", data);
         const apiErr = data?.error as { code?: string; message?: string; details?: string } | undefined;
         
-        // Si el error es de rate limit (429) o cuota, aplicar cooldown de 1 minuto
-        if (apiErr?.details?.includes("429") || apiErr?.message?.toLowerCase().includes("quota") || apiErr?.code === "AI_ERROR") {
-           cooldownRef.current = Date.now() + 60000;
-           console.warn("⏳ Cooldown de 1 minuto activado por límite de peticiones o error interno.");
-        }
-
         throw buildError("EDGE_FUNCTION_ERROR", apiErr?.message || "El análisis de IA no pudo completarse.", apiErr?.code);
       }
 
@@ -160,6 +147,15 @@ export function useUsabilityController() {
       }
 
       const result = data.data as UsabilityAnalysisResult;
+
+      // Verificar límite de tokens
+      const tokensUsed = result.analysisMetadata?.tokensUsed ?? 0;
+      if (tokensUsed > 30000) {
+        throw buildError(
+          "VALIDATION_ERROR",
+          `El análisis es demasiado complejo (${tokensUsed.toLocaleString()} tokens). Por favor, elimine algunas observaciones y vuelva a intentar.`
+        );
+      }
       
       // ----------------------------------------------------------
       // PERSISTENCIA (Bryan - Punto 4)
