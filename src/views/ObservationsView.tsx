@@ -691,7 +691,14 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
   const [showSortMenu, setShowSortMenu] = useState(false);
   const isProductEmpty = !productName || productName.trim() === '';
 
-  const { analyzeFromRequest: analyze, isLoading, error } = useAIAnalysisContext();
+  const { analyzeFromRequest: analyze, isLoading, error, retryCountdown } = useAIAnalysisContext();
+
+  const isBlocked = isLoading || retryCountdown > 0;
+  const analyzeButtonLabel = isLoading
+    ? 'Analizando...'
+    : retryCountdown > 0
+      ? `⏳ Reintentar en ${retryCountdown}s`
+      : '🤖 Analizar con IA';
 
   const handleActionWithStatus = (fn: () => void) => {
     setIsSaving(true); fn(); setTimeout(() => setIsSaving(false), 800);
@@ -908,10 +915,10 @@ const handleAIAnalysis = async () => {
                   <button
                     type="button"
                     onClick={handleAIAnalysis}
-                    disabled={isLoading || data.length === 0}
+                    disabled={isBlocked || data.length === 0}
                     className="inline-flex items-center justify-center gap-2 w-full bg-navy hover:bg-navy-dark text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 transition-all"
                   >
-                    {isLoading ? "Analizando..." : "🤖 Analizar con IA"}
+                    {analyzeButtonLabel}
                   </button>
 
                   <button
@@ -1105,10 +1112,10 @@ const handleAIAnalysis = async () => {
                   <button
                     type="button"
                     onClick={handleAIAnalysis}
-                    disabled={isLoading || data.length === 0}
+                    disabled={isBlocked || data.length === 0}
                     className="inline-flex items-center justify-center gap-2 w-full bg-navy hover:bg-navy-dark text-white border-none p-4 rounded-2xl font-black text-sm uppercase tracking-widest cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed shadow-xl active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 transition-all"
                   >
-                    {isLoading ? "Analizando..." : "🤖 Analizar con IA"}
+                    {analyzeButtonLabel}
                   </button>
 
                   <button

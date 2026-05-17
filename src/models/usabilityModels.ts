@@ -130,6 +130,7 @@ export interface AnalysisError {
   code: AnalysisErrorCode;
   message: string;
   details?: string;
+  retryAfterSeconds?: number;
 }
 
 // ----------------------------------------------------------

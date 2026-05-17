@@ -207,6 +207,19 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Detectar error de cuota / rate limit (429)
+    if (errorMsg.includes("429") || errorMsg.toLowerCase().includes("quota") || errorMsg.toLowerCase().includes("rate")) {
+      const match = errorMsg.match(/retry in ([\d.]+)s/i);
+      const waitSeconds = match ? Math.ceil(parseFloat(match[1])) : 60;
+      console.warn(`[${requestId}] Rate limit detectado. Espera: ${waitSeconds}s`);
+      return errorResponse(
+        "RATE_LIMIT",
+        `Límite de peticiones alcanzado. Por favor, espera ${waitSeconds} segundos antes de reintentar.`,
+        200,
+        String(waitSeconds) // Se usa como retryAfterSeconds en el frontend
+      );
+    }
+
     return errorResponse(
       "AI_ERROR",
       "Error al procesar el análisis con IA",

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { useUsabilityController } from './UsabilityController';
 import { AIAnalysisPanel } from '../components/AIAnalysisPanel';
 
@@ -6,6 +6,7 @@ type UsabilityControllerType = ReturnType<typeof useUsabilityController>;
 
 interface AIAnalysisContextType extends UsabilityControllerType {
   currentPlanId: string | null;
+  retryCountdown: number; // segundos restantes para reintentar (0 = libre)
 }
 
 const AIAnalysisContext = createContext<AIAnalysisContextType | null>(null);
@@ -21,6 +22,41 @@ export const useAIAnalysisContext = () => {
 export const AIAnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const controller = useUsabilityController();
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const [retryCountdown, setRetryCountdown] = useState(0);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Cuando llega un error de rate limit con retryAfterSeconds, arranca el countdown
+  useEffect(() => {
+    if (controller.error?.code === 'RATE_LIMIT' && controller.error.retryAfterSeconds) {
+      const seconds = controller.error.retryAfterSeconds;
+      setRetryCountdown(seconds);
+
+      if (countdownRef.current) clearInterval(countdownRef.current);
+      countdownRef.current = setInterval(() => {
+        setRetryCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownRef.current!);
+            countdownRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [controller.error]);
+
+  // Si resetState se llama, limpiar countdown también
+  const resetState: UsabilityControllerType['resetState'] = () => {
+    setRetryCountdown(0);
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+    controller.resetState();
+  };
 
   // Interceptar la recarga o cierre si está analizando
   useEffect(() => {
@@ -55,7 +91,9 @@ export const AIAnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ...controller,
       analyzeFromPlan,
       analyzeFromRequest,
-      currentPlanId
+      resetState,
+      currentPlanId,
+      retryCountdown
     }}>
       {children}
       {/* Panel Global de Análisis (Sobrevive a la navegación) */}
@@ -63,7 +101,7 @@ export const AIAnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         isLoading={controller.isLoading}
         result={controller.result}
         error={controller.error?.message || null}
-        onClose={controller.resetState}
+        onClose={resetState}
         onViewDetails={currentPlanId ? () => window.open(`/plan/${currentPlanId}/analysis-history/latest`, '_blank') : undefined}
       />
     </AIAnalysisContext.Provider>

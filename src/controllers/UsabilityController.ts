@@ -139,17 +139,13 @@ export function useUsabilityController() {
         console.error("❌ La API devolvió un error:", data);
         const apiErr = data?.error as { code?: string; message?: string; details?: string } | undefined;
 
-        // Detectar error de cuota (429 / quota exceeded)
-        const isQuotaError =
-          apiErr?.details?.includes("429") ||
-          apiErr?.details?.toLowerCase().includes("quota") ||
-          apiErr?.message?.toLowerCase().includes("quota");
-
-        if (isQuotaError) {
-          throw buildError(
-            "RATE_LIMIT",
-            "Has alcanzado el límite de análisis de IA. Los análisis estarán disponibles nuevamente dentro de 24 horas."
-          );
+        // Rate limit: la edge function pone los segundos en details
+        if (apiErr?.code === "RATE_LIMIT") {
+          const seconds = apiErr.details ? parseInt(apiErr.details, 10) : 60;
+          const retryAfterSeconds = isNaN(seconds) ? 60 : seconds;
+          const err = buildError("RATE_LIMIT", apiErr.message || "Límite de peticiones alcanzado.");
+          setState({ status: "error", result: null, error: { ...err, retryAfterSeconds }, lastAnalyzedAt: null });
+          return null;
         }
 
         throw buildError("EDGE_FUNCTION_ERROR", apiErr?.message || "El análisis de IA no pudo completarse.", apiErr?.code);
