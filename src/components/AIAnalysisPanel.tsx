@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { X, Loader, AlertTriangle, CheckCircle, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
-import type { UsabilityAnalysisResult } from '../models/usabilityModels';
+import { X, Loader, AlertTriangle, CheckCircle, TrendingUp, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import type { UsabilityAnalysisResult, AnalysisStatus } from '../models/usabilityModels';
 
 interface AIAnalysisPanelProps {
-  isLoading: boolean;
+  status: AnalysisStatus;
   result: UsabilityAnalysisResult | null;
   error: string | null;
   onClose: () => void;
@@ -11,7 +11,7 @@ interface AIAnalysisPanelProps {
 }
 
 export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
-  isLoading,
+  status,
   result,
   error,
   onClose,
@@ -19,7 +19,7 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
 }) => {
   const [isMinimized, setIsMinimized] = useState(false);
 
-  if (!isLoading && !result && !error) return null;
+  if (status === 'idle' && !result && !error) return null;
 
   return (
     <div className="fixed bottom-4 right-4 w-full max-w-md z-[9999] animate-in slide-in-from-bottom-4 duration-300">
@@ -30,7 +30,12 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
           onClick={() => setIsMinimized(!isMinimized)}
         >
           <div className="flex items-center gap-2">
-            {isLoading ? (
+            {status === 'queue' ? (
+              <>
+                <Clock size={18} className="animate-pulse" />
+                <span className="font-black text-sm text-amber-200">En cola de espera...</span>
+              </>
+            ) : status === 'loading' ? (
               <>
                 <Loader size={18} className="animate-spin" />
                 <span className="font-black text-sm">Analizando con IA...</span>
@@ -69,7 +74,19 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
           <>
             {/* Content */}
         <div className="p-4 max-h-96 overflow-y-auto">
-          {isLoading && (
+          {status === 'queue' && (
+            <div className="flex flex-col items-center justify-center py-8 gap-3">
+              <div className="w-12 h-12 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin" />
+              <p className="text-slate-600 text-sm text-center">
+                Tu análisis está en cola de espera. Se procesará automáticamente en unos segundos.
+              </p>
+              <p className="text-amber-600 text-[10px] font-bold uppercase tracking-wider">
+                Respetando Rate Limits de Gemini
+              </p>
+            </div>
+          )}
+
+          {status === 'loading' && (
             <div className="flex flex-col items-center justify-center py-8 gap-3">
               <div className="w-12 h-12 rounded-full border-4 border-navy/20 border-t-navy animate-spin" />
               <p className="text-slate-600 text-sm text-center">
@@ -82,7 +99,7 @@ export const AIAnalysisPanel: React.FC<AIAnalysisPanelProps> = ({
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
               <p className="text-red-800 text-sm font-medium">{error}</p>
               <p className="text-red-700 text-xs mt-1">
-                Intenta nuevamente o verifica tu conexión.
+                El análisis falló. Puedes intentar de nuevo desde la vista de observaciones.
               </p>
             </div>
           )}

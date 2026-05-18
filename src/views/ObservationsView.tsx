@@ -691,14 +691,16 @@ export const ObservationsView: React.FC<ObservationsViewProps> = ({
   const [showSortMenu, setShowSortMenu] = useState(false);
   const isProductEmpty = !productName || productName.trim() === '';
 
-  const { analyzeFromRequest: analyze, isLoading, error, retryCountdown } = useAIAnalysisContext();
+  const { analyzeFromRequest: analyze, status, error, retryCountdown } = useAIAnalysisContext();
 
-  const isBlocked = isLoading || retryCountdown > 0;
-  const analyzeButtonLabel = isLoading
-    ? 'Analizando...'
-    : retryCountdown > 0
-      ? `⏳ Reintentar en ${retryCountdown}s`
-      : '🤖 Analizar con IA';
+  const isBlocked = status === 'loading' || status === 'queue' || retryCountdown > 0;
+  const analyzeButtonLabel = status === 'queue'
+    ? 'En cola...'
+    : status === 'loading'
+      ? 'Analizando...'
+      : retryCountdown > 0
+        ? `⏳ Reintentar en ${retryCountdown}s`
+        : '🤖 Analizar con IA';
 
   const handleActionWithStatus = (fn: () => void) => {
     setIsSaving(true); fn(); setTimeout(() => setIsSaving(false), 800);

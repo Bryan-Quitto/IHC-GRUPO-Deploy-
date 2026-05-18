@@ -11,6 +11,7 @@ interface AIAnalysisContextType extends UsabilityControllerType {
 
 const AIAnalysisContext = createContext<AIAnalysisContextType | null>(null);
 
+/* eslint-disable react-refresh/only-export-components */
 export const useAIAnalysisContext = () => {
   const context = useContext(AIAnalysisContext);
   if (!context) {
@@ -58,18 +59,18 @@ export const AIAnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     controller.resetState();
   };
 
-  // Interceptar la recarga o cierre si está analizando
+  // Interceptar la recarga o cierre si está analizando o en cola
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (controller.isLoading) {
+      if (controller.status === 'queue' || controller.status === 'loading') {
         e.preventDefault();
-        e.returnValue = 'El análisis de IA se está ejecutando. Si cierras o recargas, se cancelará.';
+        e.returnValue = 'Hay un análisis de IA en proceso. Si cierras o recargas, podrías perder el seguimiento en tiempo real de este análisis.';
         return e.returnValue;
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [controller.isLoading]);
+  }, [controller.status]);
 
   // Sobrescribimos analyzeFromPlan para interceptar el planId actual
   const analyzeFromPlan: UsabilityControllerType['analyzeFromPlan'] = async (plan, obs, success, time, sat) => {
@@ -98,7 +99,7 @@ export const AIAnalysisProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       {children}
       {/* Panel Global de Análisis (Sobrevive a la navegación) */}
       <AIAnalysisPanel
-        isLoading={controller.isLoading}
+        status={controller.status}
         result={controller.result}
         error={controller.error?.message || null}
         onClose={resetState}

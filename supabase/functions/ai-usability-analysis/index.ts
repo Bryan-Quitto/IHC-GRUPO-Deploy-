@@ -4,25 +4,22 @@
 // Deno + TypeScript + Supabase Edge Runtime
 // ============================================================
 
+import { createClient } from "jsr:@supabase/supabase-js@2";
 import { validateAndSanitize } from "./validator.ts";
 import { buildUserContext } from "./contextBuilder.ts";
 import { callGeminiWithRetry } from "./geminiClient.ts";
-import type { EdgeFunctionResponse } from "./types.ts";
+import type { EdgeFunctionResponse, AIAnalysisInput } from "./types.ts";
 
 // ============================================================
 // CONFIGURACIÓN CORS
 // ============================================================
 
 const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",      // Restringir en producción al dominio de tu app
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Max-Age": "86400",
 };
-
-// ============================================================
-// HEADERS DE RESPUESTA SEGUROS
-// ============================================================
 
 const SECURE_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",
@@ -55,19 +52,14 @@ function errorResponse(
     timestamp: new Date().toISOString(),
   };
 
-  // Log seguro: NO incluir datos del usuario en logs de error
   console.error(`[Error] ${code}: ${message}`);
   if (details) console.error(`[Details] ${details}`);
 
-  // Retornamos SIEMPRE 200 para que supabase-js pueda leer el JSON
-  // y no lance un FunctionsHttpError ciego.
   return new Response(JSON.stringify(body), {
     status: 200,
     headers: SECURE_HEADERS,
   });
 }
-
-
 
 // ============================================================
 // HANDLER PRINCIPAL
@@ -75,182 +67,137 @@ function errorResponse(
 
 Deno.serve(async (req: Request) => {
   const requestId = crypto.randomUUID().slice(0, 8);
-  const startTime = Date.now();
 
-  console.log(`[${requestId}] ${req.method} ${new URL(req.url).pathname}`);
-
-  // ----------------------------------------------------------
-  // Preflight CORS
-  // ----------------------------------------------------------
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
-  // ----------------------------------------------------------
-  // Validar método HTTP
-  // ----------------------------------------------------------
   if (req.method !== "POST") {
-    return errorResponse(
-      "METHOD_NOT_ALLOWED",
-      "Solo se acepta método POST",
-      405
-    );
-  }
-
-
-  const contentType = req.headers.get("content-type") || "";
-  if (!contentType.includes("application/json")) {
-    return errorResponse(
-      "INVALID_CONTENT_TYPE",
-      "Content-Type debe ser application/json",
-      415
-    );
+    return errorResponse("METHOD_NOT_ALLOWED", "Solo se acepta método POST", 405);
   }
 
   // ----------------------------------------------------------
-  // Validar tamaño del body (máx 50KB)
+  // Inicializar Cliente Supabase (Service Role)
   // ----------------------------------------------------------
-  const contentLength = parseInt(req.headers.get("content-length") || "0");
-  if (contentLength > 51_200) {
-    return errorResponse(
-      "PAYLOAD_TOO_LARGE",
-      "El cuerpo de la petición excede el límite de 50KB",
-      413
-    );
-  }
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
 
   // ----------------------------------------------------------
   // Parsear body JSON
   // ----------------------------------------------------------
-  let rawBody: unknown;
+  let rawBody: Record<string, unknown>;
   try {
     rawBody = await req.json();
   } catch {
-    return errorResponse(
-      "INVALID_JSON",
-      "El cuerpo de la petición no es JSON válido",
-      400
-    );
+    return errorResponse("INVALID_JSON", "El cuerpo de la petición no es JSON válido", 400);
+  }
+
+  const jobId = rawBody?.jobId as string | undefined;
+  let input: AIAnalysisInput;
+  let rawObservationsForHistory: Observation[] = [];
+
+  // ----------------------------------------------------------
+  // MODO ASÍNCRONO: Cargar desde Base de Datos
+  // ----------------------------------------------------------
+  if (jobId) {
+    console.log(`[${requestId}] Procesando Job ID: ${jobId}`);
+    const { data: job, error: jobError } = await supabase
+      .from("analysis_jobs")
+      .select("*")
+      .eq("id", jobId)
+      .single();
+
+    if (jobError || !job) {
+      return errorResponse("JOB_NOT_FOUND", `No se encontró el trabajo ${jobId}`, 404);
+    }
+
+    input = job.request_payload as unknown as AIAnalysisInput;
+    rawObservationsForHistory = (job.observations_snapshot as unknown as Observation[]) || [];
+  } else {
+    // ----------------------------------------------------------
+    // MODO SÍNCRONO: Validar input directo
+    // ----------------------------------------------------------
+    const validation = validateAndSanitize(rawBody);
+    if (!validation.isValid || !validation.sanitizedInput) {
+      return errorResponse("VALIDATION_ERROR", "Validación fallida", 400, validation.errors.join("; "));
+    }
+    input = validation.sanitizedInput;
   }
 
   // ----------------------------------------------------------
-  // Ping de healthcheck (para Docker healthcheck)
+  // Procesamiento con Gemini
   // ----------------------------------------------------------
-  if (
-    rawBody &&
-    typeof rawBody === "object" &&
-    !Array.isArray(rawBody) &&
-    (rawBody as Record<string, unknown>).ping === true
-  ) {
+  try {
+    const userContext = buildUserContext(input);
+    const analysisResult = await callGeminiWithRetry(userContext, input.observations.length);
+
+    // ----------------------------------------------------------
+    // Finalización: Guardar resultados
+    // ----------------------------------------------------------
+    if (jobId) {
+      // 1. Actualizar Job
+      await supabase
+        .from("analysis_jobs")
+        .update({
+          status: "completed",
+          result_payload: analysisResult,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", jobId);
+
+      // 2. Insertar en el historial para visibilidad del usuario
+      const { data: jobData } = await supabase.from("analysis_jobs").select("*").eq("id", jobId).single();
+      
+      const { count } = await supabase
+        .from('analysis_history')
+        .select('*', { count: 'exact', head: true })
+        .eq('test_plan_id', jobData.test_plan_id);
+
+      const nextIndex = (count || 0) + 1;
+      let successSummary = "";
+      if (rawObservationsForHistory.length > 0) {
+        const s = rawObservationsForHistory.filter(o => o.success_level === 'Sí').length;
+        const a = rawObservationsForHistory.filter(o => o.success_level === 'Con ayuda').length;
+        const n = rawObservationsForHistory.filter(o => o.success_level === 'No').length;
+        successSummary = `S:${s}, A:${a}, N:${n}`;
+      }
+
+      await supabase.from('analysis_history').insert({
+        test_plan_id: jobData.test_plan_id,
+        profile_id: jobData.profile_id,
+        project_name: jobData.project_name,
+        title: `Análisis #${nextIndex} (Asíncrono) | Éxito: ${successSummary || 'N/A'}`,
+        request_data: jobData.request_payload,
+        result_data: analysisResult,
+        metrics: jobData.metrics,
+        observations_snapshot: jobData.observations_snapshot
+      });
+
+      console.log(`[${requestId}] Job ${jobId} completado exitosamente`);
+    }
+
     return successResponse({
       success: true,
-      data: undefined,
+      data: analysisResult,
       timestamp: new Date().toISOString(),
     });
-  }
 
-  // ----------------------------------------------------------
-  // Validar y sanitizar input
-  // ----------------------------------------------------------
-  const validation = validateAndSanitize(rawBody);
-
-  if (!validation.isValid || !validation.sanitizedInput) {
-    return errorResponse(
-      "VALIDATION_ERROR",
-      "El input no cumple los requisitos de validación",
-      400,
-      validation.errors.join("; ")
-    );
-  }
-
-  const input = validation.sanitizedInput;
-  console.log(`[${requestId}] Proyecto: "${input.projectName.slice(0, 30)}" | Observaciones: ${input.observations.length}`);
-
-  // ----------------------------------------------------------
-  // Construir contexto para Gemini
-  // ----------------------------------------------------------
-  let userContext: string;
-  try {
-    userContext = buildUserContext(input);
-    console.log(`[${requestId}] Contexto construido: ${userContext.length} chars`);
-  } catch (err) {
-    console.error(`[${requestId}] Error construyendo contexto:`, err);
-    return errorResponse(
-      "CONTEXT_BUILD_ERROR",
-      "Error al procesar las observaciones",
-      500
-    );
-  }
-
-  // ----------------------------------------------------------
-  // Llamar a Gemini
-  // ----------------------------------------------------------
-  let analysisResult;
-  try {
-    analysisResult = await callGeminiWithRetry(userContext, input.observations.length);
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
-
-    if (errorMsg.includes("API_KEY") || errorMsg.includes("PERMISSION_DENIED")) {
-      return errorResponse(
-        "AI_AUTH_ERROR",
-        "Error de autenticación con el servicio de IA",
-        503
-      );
+    
+    if (jobId) {
+      await supabase
+        .from("analysis_jobs")
+        .update({
+          status: "error",
+          error_log: errorMsg,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", jobId);
     }
 
-    if (errorMsg.includes("Timeout")) {
-      return errorResponse(
-        "AI_TIMEOUT",
-        "El servicio de IA tardó demasiado en responder. Intenta nuevamente.",
-        504
-      );
-    }
-
-    // Detectar error de cuota / rate limit (429)
-    if (errorMsg.includes("429") || errorMsg.toLowerCase().includes("quota") || errorMsg.toLowerCase().includes("rate")) {
-      const match = errorMsg.match(/retry in ([\d.]+)s/i);
-      const waitSeconds = match ? Math.ceil(parseFloat(match[1])) : 60;
-      console.warn(`[${requestId}] Rate limit detectado. Espera: ${waitSeconds}s`);
-      return errorResponse(
-        "RATE_LIMIT",
-        `Límite de peticiones alcanzado. Por favor, espera ${waitSeconds} segundos antes de reintentar.`,
-        200,
-        String(waitSeconds) // Se usa como retryAfterSeconds en el frontend
-      );
-    }
-
-    return errorResponse(
-      "AI_ERROR",
-      "Error al procesar el análisis con IA",
-      500,
-      errorMsg // Forzamos mostrar el error real para depuración
-    );
-
+    return errorResponse("AI_ERROR", "Error al procesar el análisis", 500, errorMsg);
   }
-
-  // ----------------------------------------------------------
-  // Verificar límite de tokens (>30k = análisis demasiado complejo)
-  // ----------------------------------------------------------
-  const tokensUsed = analysisResult.analysisMetadata?.tokensUsed ?? 0;
-  if (tokensUsed > 30_000) {
-    console.warn(`[${requestId}] Tokens excedidos: ${tokensUsed}`);
-    return errorResponse(
-      "ANALYSIS_TOO_COMPLEX",
-      `El análisis es demasiado complejo (${tokensUsed.toLocaleString()} tokens). Por favor, elimine algunas observaciones y vuelva a intentar.`,
-      200
-    );
-  }
-
-  // ----------------------------------------------------------
-  // Respuesta exitosa
-  // ----------------------------------------------------------
-  const totalTime = Date.now() - startTime;
-  console.log(`[${requestId}] Completado en ${totalTime}ms | Score: ${analysisResult.priorityScore}`);
-
-  return successResponse({
-    success: true,
-    data: analysisResult,
-    timestamp: new Date().toISOString(),
-  });
 });

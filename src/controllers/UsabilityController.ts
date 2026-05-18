@@ -9,9 +9,8 @@ import type {
   AnalysisError,
   AnalysisErrorCode,
   AnalysisHistoryItem,
+  AnalysisJob,
 } from "../models/usabilityModels";
-
-const EDGE_FUNCTION_NAME = "ai-usability-analysis" as const;
 
 // ----------------------------------------------------------
 // Adaptador Observation → UsabilityObservation
@@ -61,27 +60,6 @@ function validateRequest(request: UsabilityAnalysisRequest): AnalysisError | nul
 }
 
 // ----------------------------------------------------------
-// Validación de la estructura del JSON de respuesta
-// ----------------------------------------------------------
-
-function validateAnalysisResult(data: unknown): data is UsabilityAnalysisResult {
-  if (!data || typeof data !== "object") return false;
-  const r = data as Record<string, unknown>;
-  if (typeof r.summary !== "string") return false;
-  if (!Array.isArray(r.criticalIssues)) return false;
-  if (!Array.isArray(r.recommendations)) return false;
-  if (!Array.isArray(r.accessibilityIssues)) return false;
-  if (typeof r.priorityScore !== "number") return false;
-  if (!r.analysisMetadata || typeof r.analysisMetadata !== "object") return false;
-  const meta = r.analysisMetadata as Record<string, unknown>;
-  if (typeof meta.model !== "string") return false;
-  if (typeof meta.processingTimeMs !== "number") return false;
-  if (typeof meta.observationsAnalyzed !== "number") return false;
-  if (!["Alta", "Media", "Baja"].includes(meta.confidence as string)) return false;
-  return true;
-}
-
-// ----------------------------------------------------------
 // Helpers
 // ----------------------------------------------------------
 
@@ -108,13 +86,23 @@ export function useUsabilityController() {
   });
 
   const abortRef = useRef<AbortController | null>(null);
+  const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
 
-  async function runAnalysis(
+  const cleanupSubscription = useCallback(() => {
+    if (subscriptionRef.current) {
+      // @ts-expect-error - Supabase types for removeChannel can be complex to match exactly with a ref
+      supabase.removeChannel(subscriptionRef.current);
+      subscriptionRef.current = null;
+    }
+  }, []);
+
+  const runAnalysis = useCallback(async (
     request: UsabilityAnalysisRequest,
     rawObservations?: Observation[]
-  ): Promise<UsabilityAnalysisResult | null> {
+  ): Promise<UsabilityAnalysisResult | null> => {
     if (abortRef.current) abortRef.current.abort();
     abortRef.current = new AbortController();
+    cleanupSubscription();
 
     const validationError = validateRequest(request);
     if (validationError) {
@@ -122,98 +110,80 @@ export function useUsabilityController() {
       return null;
     }
 
-    setState((prev) => ({ ...prev, status: "loading", error: null }));
-
-    console.log("🚀 Iniciando análisis de IA con payload:", JSON.stringify(request, null, 2));
+    setState((prev) => ({ ...prev, status: "queue", error: null }));
 
     try {
-      const { data, error: supabaseError } = await supabase.functions.invoke(
-        EDGE_FUNCTION_NAME,
-        { body: request }
-      );
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw buildError("AUTH_ERROR", "Debes iniciar sesión para realizar un análisis.");
 
-      console.log("📥 Respuesta de Supabase Edge Function:", { data, error: supabaseError });
+      const planId = request.context?.includes('planId:') 
+        ? request.context.split('planId:')[1] 
+        : null;
 
-      if (supabaseError) {
-        console.error("❌ Error de Supabase Functions:", supabaseError);
-        throw buildError("NETWORK_ERROR", supabaseError.message || "Error de conexión con el servicio de análisis.");
+      if (!planId) throw buildError("VALIDATION_ERROR", "ID de plan de prueba no encontrado.");
+
+      // 1. Insertar en la cola de trabajos (analysis_jobs)
+      const { data: job, error: insertError } = await supabase
+        .from('analysis_jobs')
+        .insert({
+          test_plan_id: planId,
+          profile_id: user.id,
+          project_name: request.projectName,
+          request_payload: request,
+          observations_snapshot: rawObservations || null,
+          metrics: request.metrics,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Error al encolar el análisis:", insertError);
+        throw buildError("NETWORK_ERROR", "No se pudo encolar el análisis.");
       }
 
-      if (!data || data.success === false) {
-        console.error("❌ La API devolvió un error:", data);
-        const apiErr = data?.error as { code?: string; message?: string; details?: string } | undefined;
+      console.log("🚀 Análisis encolado con ID:", job.id);
 
-        // Rate limit: la edge function pone los segundos en details
-        if (apiErr?.code === "RATE_LIMIT") {
-          const seconds = apiErr.details ? parseInt(apiErr.details, 10) : 60;
-          const retryAfterSeconds = isNaN(seconds) ? 60 : seconds;
-          const err = buildError("RATE_LIMIT", apiErr.message || "Límite de peticiones alcanzado.");
-          setState({ status: "error", result: null, error: { ...err, retryAfterSeconds }, lastAnalyzedAt: null });
-          return null;
-        }
+      // 2. Suscribirse a cambios en tiempo real
+      return new Promise<UsabilityAnalysisResult | null>((resolve) => {
+        const channel = supabase
+          .channel(`job-${job.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'analysis_jobs',
+              filter: `id=eq.${job.id}`
+            },
+            (payload) => {
+              const updatedJob = payload.new as AnalysisJob;
+              console.log("🔄 Actualización de Job recibida:", updatedJob.status);
 
-        throw buildError("EDGE_FUNCTION_ERROR", apiErr?.message || "El análisis de IA no pudo completarse.", apiErr?.code);
-      }
+              if (updatedJob.status === 'processing') {
+                setState(prev => ({ ...prev, status: 'loading' }));
+              } else if (updatedJob.status === 'completed') {
+                cleanupSubscription();
+                const result = updatedJob.result_payload as UsabilityAnalysisResult;
+                setState({
+                  status: "success",
+                  result,
+                  error: null,
+                  lastAnalyzedAt: new Date()
+                });
+                resolve(result);
+              } else if (updatedJob.status === 'error') {
+                cleanupSubscription();
+                const error = buildError("EDGE_FUNCTION_ERROR", updatedJob.error_log || "Error en el procesamiento asíncrono.");
+                setState({ status: "error", result: null, error, lastAnalyzedAt: null });
+                resolve(null);
+              }
+            }
+          )
+          .subscribe();
 
-      if (!validateAnalysisResult(data.data)) {
-        throw buildError("PARSE_ERROR", "La respuesta del servicio de IA tiene un formato inesperado.");
-      }
-
-      const result = data.data as UsabilityAnalysisResult;
-
-      // Verificar límite de tokens
-      const tokensUsed = result.analysisMetadata?.tokensUsed ?? 0;
-      if (tokensUsed > 30000) {
-        throw buildError(
-          "VALIDATION_ERROR",
-          `El análisis es demasiado complejo (${tokensUsed.toLocaleString()} tokens). Por favor, elimine algunas observaciones y vuelva a intentar.`
-        );
-      }
-
-      // ----------------------------------------------------------
-      // PERSISTENCIA (Bryan - Punto 4 Mejorado)
-      // ----------------------------------------------------------
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && request.context?.includes('planId:')) {
-          const planId = request.context.split('planId:')[1];
-          
-          // 1. Obtener el conteo actual para el correlativo #N
-          const { count } = await supabase
-            .from('analysis_history')
-            .select('*', { count: 'exact', head: true })
-            .eq('test_plan_id', planId);
-
-          const nextIndex = (count || 0) + 1;
-
-          // 2. Calcular resumen de éxito si tenemos las observaciones raw
-          let successSummary = "";
-          if (rawObservations) {
-            const s = rawObservations.filter(o => o.success_level === 'Sí').length;
-            const a = rawObservations.filter(o => o.success_level === 'Con ayuda').length;
-            const n = rawObservations.filter(o => o.success_level === 'No').length;
-            successSummary = `S:${s}, A:${a}, N:${n}`;
-          }
-
-          const generatedTitle = `Análisis #${nextIndex} | Éxito: ${successSummary || 'N/A'}`;
-
-          await supabase.from('analysis_history').insert({
-            test_plan_id: planId,
-            profile_id: user.id,
-            project_name: request.projectName,
-            title: generatedTitle,
-            request_data: request,
-            result_data: result,
-            metrics: request.metrics,
-            observations_snapshot: rawObservations || null
-          });
-        }
-      } catch (dbErr) {
-        console.error("Error al persistir el historial:", dbErr);
-      }
-
-      setState({ status: "success", result, error: null, lastAnalyzedAt: new Date() });
-      return result;
+        subscriptionRef.current = channel;
+      });
 
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return null;
@@ -225,7 +195,7 @@ export function useUsabilityController() {
       setState((prev) => ({ ...prev, status: "error", error: analysisError }));
       return null;
     }
-  }
+  }, [cleanupSubscription]);
 
   const analyzeFromPlan = useCallback(
     async (
@@ -248,7 +218,7 @@ export function useUsabilityController() {
       };
       return runAnalysis(request, observations);
     },
-    []
+    [runAnalysis]
   );
 
   const analyzeFromRequest = useCallback(
@@ -258,7 +228,7 @@ export function useUsabilityController() {
     ): Promise<UsabilityAnalysisResult | null> => {
       return runAnalysis(request, rawObservations);
     },
-    []
+    [runAnalysis]
   );
 
   const cancelAnalysis = useCallback(() => {

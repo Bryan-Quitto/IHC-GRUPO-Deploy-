@@ -7,11 +7,11 @@ import { useAIAnalysisContext } from '../controllers/AIAnalysisContext';
 const Header: React.FC = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const { isLoading: isAnalyzing, cancelAnalysis } = useAIAnalysisContext();
+  const { status, cancelAnalysis } = useAIAnalysisContext();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleLogout = async () => {
-    if (isAnalyzing) {
+    if (status === 'queue' || status === 'loading') {
       setShowLogoutModal(true);
       return;
     }

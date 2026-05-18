@@ -199,11 +199,14 @@ const genAI = new GoogleGenerativeAI(apiKey);
       lastError = error instanceof Error ? error : new Error(String(error));
       console.error(`[Gemini] Error en intento ${attempt + 1}: ${lastError.message}`);
 
-      // No reintentar en errores de autenticación o estructura inválida
+      // No reintentar en errores de autenticación, estructura inválida o Rate Limits (429)
       if (
         lastError.message.includes("API_KEY") ||
         lastError.message.includes("INVALID_ARGUMENT") ||
-        lastError.message.includes("PERMISSION_DENIED")
+        lastError.message.includes("PERMISSION_DENIED") ||
+        lastError.message.includes("429") ||
+        lastError.message.includes("Too Many Requests") ||
+        lastError.message.toLowerCase().includes("quota")
       ) {
         break;
       }

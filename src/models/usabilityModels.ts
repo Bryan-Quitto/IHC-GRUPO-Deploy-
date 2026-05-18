@@ -137,13 +137,32 @@ export interface AnalysisError {
 // AnalysisControllerState
 // ----------------------------------------------------------
 
-export type AnalysisStatus = "idle" | "loading" | "success" | "error";
+export type AnalysisStatus = "idle" | "loading" | "queue" | "success" | "error";
 
 export interface AnalysisControllerState {
   status: AnalysisStatus;
   result: UsabilityAnalysisResult | null;
   error: AnalysisError | null;
   lastAnalyzedAt: Date | null;
+}
+
+// ----------------------------------------------------------
+// Trabajos de Análisis (Asíncronos)
+// ----------------------------------------------------------
+
+export interface AnalysisJob {
+  id: string;
+  test_plan_id: string;
+  profile_id: string;
+  project_name: string;
+  status: 'pending' | 'processing' | 'completed' | 'error';
+  request_payload: UsabilityAnalysisRequest;
+  result_payload: UsabilityAnalysisResult | null;
+  observations_snapshot: Observation[] | null;
+  metrics: UsabilityMetrics;
+  error_log: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // ----------------------------------------------------------
